@@ -53,8 +53,8 @@ def main():
             target_chr, genome_build, target_strand = cur.fetchone()
 
             reference_index = "/home/ubuntu/annotation/bwa_index/" + genome_build
-            fp_info = align_primer(sample["Forward Primer Sequence"], reference_index, "CACTCTTTCCCTACACGACGCTCTTCCGATCT")
-            rp_info = align_primer(sample["Reverse Primer Sequence"], reference_index, "GGAGTTCAGACGTGTGCTCTTCCGATCT")
+            fp_info = align_primer(sample["Forward Primer Sequence"], reference_index, target_chr, "CACTCTTTCCCTACACGACGCTCTTCCGATCT")
+            rp_info = align_primer(sample["Reverse Primer Sequence"], reference_index, target_chr, "GGAGTTCAGACGTGTGCTCTTCCGATCT")
 
             wt_start = fp_info["start"]
             wt_end = rp_info["end"]
