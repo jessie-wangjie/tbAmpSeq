@@ -107,7 +107,10 @@ def main():
             sp_info = get_cut_site(wt_amplicon, sp_seq)
             ng_info = get_cut_site(wt_amplicon, ng_seq)
             coord = re.match(r"\[(.*), (.*)\]", rt_coord)
-            rt_info = get_cut_site(wt_amplicon, atg_seq[coord.group(1):coord.group(2)])
+            print(coord)
+            print(coord.group(1))
+            print(coord.group(2))
+            rt_info = get_cut_site(wt_amplicon, atg_seq[int(coord.group(1)):int(coord.group(2))])
             beacon = get_beacon_seq(beacon_seq, sp_info["strand"])
 
             # beacon seq
