@@ -93,7 +93,7 @@ def main():
         # locate atgRNA, ngRNA in the amplicon
         if sample["atgRNA pairing type"] == "single":
             # get spacer sequences, beacon sequences, ngRNA sequences
-            cur.execute("select sp.bases, beacon.bases, ng.bases, rt.rt_coordinate, atg.bases from atg_ng "
+            cur.execute("select sp.bases, beacon.bases, ng.bases, atgrna.rt_coordinate, atg.bases from atg_ng "
                         "join modified_rna as m1 on m1.id=atg_ng.atgrna "
                         "join modified_rna as m2 on m2.id=atg_ng.ngrna "
                         "join atgrna on atgrna.id=m1.rna "
