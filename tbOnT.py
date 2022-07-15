@@ -111,6 +111,7 @@ def main():
             print(coord.group(1))
             print(coord.group(2))
             rt_info = get_cut_site(wt_amplicon, atg_seq[int(coord.group(1)):int(coord.group(2))])
+            print(rt_info["seq"])
             beacon = get_beacon_seq(beacon_seq, sp_info["strand"])
 
             # beacon seq
@@ -204,7 +205,7 @@ def main():
                 shell=True, stderr=error_fh, stdout=error_fh)
 
         ## align to plasmid
-        if pd.notna(sample["Payload ID"]):
+        if "Payload ID" in sample and pd.notna(sample["Payload ID"]):
             plasmid_id = {"Pdy0186": 140, "PL249": 140}
             input_file = os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")
             plasmid_sam = os.path.join(preprocess_output, "out.extendedFrags.plasmid.sam")
