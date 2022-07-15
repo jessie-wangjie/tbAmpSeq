@@ -85,7 +85,7 @@ def main():
         wt_amplicon = get_seq(genome_fa, target_chr, wt_start, wt_end, target_strand)
         amplicon_fh.write(name + "\tWT\t" + wt_amplicon + "\n")
 
-        spacer_info = {}
+        sp1_info = {}
         rt_info = {}
         wt_qw1 = ""
 
@@ -178,13 +178,13 @@ def main():
         # cargo seq
         if assay == "3P":
             beacon_info = align_primer(beacon[:18], "/home/ubuntu/annotation/bwa_index/PL224.nanoluc")
-            cargo_amplicon = wt_amplicon[0:spacer_info["cut"]] + get_seq(cargo_fa, rp2_info["chr"],
+            cargo_amplicon = wt_amplicon[0:sp1_info["cut"]] + get_seq(cargo_fa, rp2_info["chr"],
                                                                          beacon_info["start"], rp2_info["end"], "+")
             amplicon_fh.write(name + "\tCargo\t" + cargo_amplicon + "\n")
 
             # define quantification window
-            cargo_qw1 = "Cargo:spacer_cut:" + str(spacer_info["cut"]) + "-" + str(spacer_info["cut"] + 1) + ":0"
-            cargo_qw2 = "Cargo:AttL1:" + str(spacer_info["cut"] + 1) + "-" + str(spacer_info["cut"] + 30) + ":0"
+            cargo_qw1 = "Cargo:spacer_cut:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
+            cargo_qw2 = "Cargo:AttL1:" + str(sp1_info["cut"] + 1) + "-" + str(sp1_info["cut"] + 30) + ":0"
 
         # Run Crispresso2
         error_fh = open(os.path.join(output, name + ".job.log"), 'wb')
@@ -276,13 +276,13 @@ def main():
                 "python utils/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s --plot_left %s "
                 "--plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
-                    spacer_info["cut"] - 1, spacer_info["cut"], len(wt_amplicon) - spacer_info["cut"]), stderr=error_fh,
+                    sp1_info["cut"] - 1, sp1_info["cut"], len(wt_amplicon) - sp1_info["cut"]), stderr=error_fh,
                 stdout=error_fh, shell=True)
             subprocess.call(
                 "python utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s --plot_left "
                 "%s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
-                    spacer_info["cut"] - 1, spacer_info["cut"], len(beacon_amplicon) - spacer_info["cut"]),
+                    sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]),
                 stderr=error_fh,
                 stdout=error_fh, shell=True)
             subprocess.call("python utils/allele2html.py -f %s -r %s -b %s" % (
@@ -318,7 +318,7 @@ def main():
                 "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s" % (
-                    RP1_fastq, wt_amplicon + "," + beacon_amplicon, spacer_info["seq"], name + "_WT_Beacon", output,
+                    RP1_fastq, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"], name + "_WT_Beacon", output,
                     ncpu),
                 stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call(
@@ -351,23 +351,23 @@ def main():
                 "python utils/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s --plot_left %s "
                 "--plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
-                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), spacer_info["cut"] - 1,
-                    spacer_info["cut"], len(wt_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh,
+                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), sp1_info["cut"] - 1,
+                    sp1_info["cut"], len(wt_amplicon) - sp1_info["cut"]), stderr=error_fh, stdout=error_fh,
                 shell=True)
             subprocess.call(
                 "python utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s --plot_left "
                 "%s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
-                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), spacer_info["cut"] - 1,
-                    spacer_info["cut"], len(beacon_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh,
+                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), sp1_info["cut"] - 1,
+                    sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh, stdout=error_fh,
                 shell=True)
             subprocess.call(
                 "python utils/plotCustomAllelePlot.py -f %s -o %s -a Cargo --plot_center %s --plot_left %s "
                 "--plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name + "_Cargo"),
-                    os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), spacer_info["cut"] - 1,
-                    spacer_info["cut"],
-                    len(cargo_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh, shell=True)
+                    os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), sp1_info["cut"] - 1,
+                    sp1_info["cut"],
+                    len(cargo_amplicon) - sp1_info["cut"]), stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call("python utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), "WT", wt_qw1), stderr=error_fh,
                             stdout=error_fh, shell=True)
