@@ -104,7 +104,7 @@ def main():
                         "join dna_sequence as atg on atg.id=atgrna.id "
                         "where atg_ng.file_registry_id$ = %s", [sample["AA/AN ID"]])
             sp_seq, beacon_seq, ng_seq, rt_coord, atg_seq = cur.fetchone()
-            sp_info = get_cut_site(wt_amplicon, sp_seq)
+            sp1_info = get_cut_site(wt_amplicon, sp_seq)
             ng_info = get_cut_site(wt_amplicon, ng_seq)
             coord = re.match(r"\[(.*), (.*)\]", rt_coord)
             print(coord)
@@ -112,22 +112,22 @@ def main():
             print(coord.group(2))
             rt_info = get_cut_site(wt_amplicon, atg_seq[int(coord.group(1)):int(coord.group(2))])
             print(rt_info["seq"])
-            beacon = get_beacon_seq(beacon_seq, sp_info["strand"])
+            beacon = get_beacon_seq(beacon_seq, sp1_info["strand"])
 
             # beacon seq
-            beacon_amplicon = wt_amplicon[0:sp_info["cut"]] + beacon + wt_amplicon[sp_info["cut"]:]
+            beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[sp1_info["cut"]:]
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
 
             # define quantification window
             # WT amplicon, spacer cutting 2bp
-            wt_qw1 = "WT:spacer_cut:" + str(sp_info["cut"]) + "-" + str(sp_info["cut"] + 1) + ":0"
+            wt_qw1 = "WT:spacer_cut:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
 
             # WT amplicon, ngRNA cutting 2bp
             wt_qw2 = "WT:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
             # Beacon amplicon, whole beacon insertion, w/ flank 10bp
-            beacon_qw1 = "Beacon:beacon_whole:" + str(sp_info["cut"] + 1) + "-" + str(
-                sp_info["cut"] + len(beacon)) + ":10"
+            beacon_qw1 = "Beacon:beacon_whole:" + str(sp1_info["cut"] + 1) + "-" + str(
+                sp1_info["cut"] + len(beacon)) + ":10"
 
             # Beacon amplicon, RT 5'
             if rt_info["strand"] == "+":
@@ -178,8 +178,8 @@ def main():
         # cargo seq
         if assay == "3P":
             beacon_info = align_primer(beacon[:18], "/home/ubuntu/annotation/bwa_index/PL224.nanoluc")
-            cargo_amplicon = wt_amplicon[0:spacer_info["cut"]] + get_seq(cargo_fa, RP2_info["chr"],
-                                                                         beacon_info["start"], RP2_info["end"], "+")
+            cargo_amplicon = wt_amplicon[0:spacer_info["cut"]] + get_seq(cargo_fa, rp2_info["chr"],
+                                                                         beacon_info["start"], rp2_info["end"], "+")
             amplicon_fh.write(name + "\tCargo\t" + cargo_amplicon + "\n")
 
             # define quantification window
@@ -260,7 +260,7 @@ def main():
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
                 "--needleman_wunsch_gap_extend 0" % (
-                    unmapped_fastq, wt_amplicon + "," + beacon_amplicon, spacer_info["seq"], name, output, ncpu),
+                    unmapped_fastq, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"], name, output, ncpu),
                 stderr=error_fh, stdout=error_fh, shell=True)
             if sample["atgRNA pairing type"] == "single":
                 subprocess.call(
