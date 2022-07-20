@@ -48,7 +48,7 @@ def get_seq(twobit_file, chromosome, start, end, strand):
     seq = subprocess.check_output(
         "twoBitToFa -seq=%s -start=%s -end=%s %s stdout | grep -v \> | xargs | sed 's/ //g'" % (
             chromosome, start - 1, end, twobit_file), shell=True).decode().rstrip()
-    if strand == "-":
+    if strand == "-" or strand == "antisense":
         seq = reverse_complement(seq)
     return seq.upper()
 

@@ -110,7 +110,7 @@ def main():
             print(coord)
             print(coord.group(1))
             print(coord.group(2))
-            rt_info = get_cut_site(wt_amplicon, atg_seq[int(coord.group(1)):int(coord.group(2))])
+            rt_info = get_cut_site(wt_amplicon, atg_seq[int(coord.group(1))-1:int(coord.group(2))])
             print(rt_info["seq"])
             beacon = get_beacon_seq(beacon_seq, sp1_info["strand"])
 
