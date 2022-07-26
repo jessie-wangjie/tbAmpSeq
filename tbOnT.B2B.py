@@ -164,7 +164,7 @@ def main():
                     unmapped_fastq, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + ng_info["seq"], name,
                     output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call(
-                "python utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
+                "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
 
@@ -175,27 +175,27 @@ def main():
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s " % (
                     unmapped_fastq, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name,
                     output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
-            subprocess.call("python utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1,
                 wt_qw2, beacon_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
         # plot
         subprocess.call(
-            "python /home/ubuntu/bin/tbOnT/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s --plot_left %s --plot_right %s "
+            "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s --plot_left %s --plot_right %s "
             "--min_freq 0.01 --plot_cut_point" % (
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 sp1_info["cut"] - 1, sp1_info["cut"], len(wt_amplicon) - sp1_info["cut"]), stderr=error_fh,
                 stdout=error_fh, shell=True)
         subprocess.call(
-            "python /home/ubuntu/bin/tbOnT/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s --plot_left %s --plot_right "
+            "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s --plot_left %s --plot_right "
             "%s --min_freq 0.01 --plot_cut_point" % (
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
                 stdout=error_fh, shell=True)
 
-        subprocess.call("python /home/ubuntu/bin/tbOnT/allele2html.py -f %s -r %s -b %s" % (
+        subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
             os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
-        subprocess.call("python /home/ubuntu/bin/tbOnT/allele2html.py -f %s -r %s -b %s" % (
+        subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
             os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=error_fh, stdout=error_fh,
                         shell=True)
 
