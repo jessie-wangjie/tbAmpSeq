@@ -204,7 +204,7 @@ def main():
                 "flash %s %s --min-overlap 10 --max-overlap 100 --allow-outies -z -d %s" % (r1, r2, preprocess_output),
                 shell=True, stderr=error_fh, stdout=error_fh)
 
-        ## align to plasmid
+        # align to plasmid
         if "Payload ID" in sample and pd.notna(sample["Payload ID"]):
             plasmid_id = {"Pdy0186": 140, "PL249": 140}
             input_file = os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")
@@ -225,7 +225,7 @@ def main():
         else:
             unmapped_fastq = os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")
 
-        ## cs2, quantification, plot
+        # cs2, quantification, plot
         if assay == "Control":
             if wt_qw1:
                 subprocess.call(
