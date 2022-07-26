@@ -60,7 +60,7 @@ def main():
 
         # Beacon amplicon
         # locate atgRNA, ngRNA in the amplicon
-        if aaan_id.startwith("AN"):
+        if aaan_id.startswith("AN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
             cur.execute("select sp.bases, beacon.bases, ng.bases, atgrna.rt_coordinate, atg.bases from atg_ng "
                         "join modified_rna as m1 on m1.id=atg_ng.atgrna "
@@ -104,7 +104,7 @@ def main():
             beacon_qw3 = "Beacon:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
         # locate atgRNA, atgRNA in the amplicon
-        elif aaan_id.startwith("AA"):
+        elif aaan_id.startswith("AA"):
             # Get spacers information
             cur.execute("select sp1.bases, sp2.bases, beacon1.bases, beacon2.bases from atg_atg "
                         "join modified_rna as m1 on m1.id = atg_atg.atg1 "
@@ -156,7 +156,7 @@ def main():
         unmapped_fastq = os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")
 
         # cs2, quantification
-        if aaan_id.startwith("AN"):
+        if aaan_id.startswith("AN"):
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
@@ -168,7 +168,7 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
 
-        elif aaan_id.startwith("AA"):
+        elif aaan_id.startswith("AA"):
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
