@@ -33,6 +33,7 @@ def main():
 
     for record in cur:
         name, aaan_id, pp_id = record
+        print(record)
 
         # Get primer information
         cur.execute(
