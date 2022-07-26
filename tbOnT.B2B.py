@@ -181,21 +181,21 @@ def main():
 
         # plot
         subprocess.call(
-            "python utils/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s --plot_left %s --plot_right %s "
+            "python /home/ubuntu/bin/tbOnT/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s --plot_left %s --plot_right %s "
             "--min_freq 0.01 --plot_cut_point" % (
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 sp1_info["cut"] - 1, sp1_info["cut"], len(wt_amplicon) - sp1_info["cut"]), stderr=error_fh,
                 stdout=error_fh, shell=True)
         subprocess.call(
-            "python utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s --plot_left %s --plot_right "
+            "python /home/ubuntu/bin/tbOnT/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s --plot_left %s --plot_right "
             "%s --min_freq 0.01 --plot_cut_point" % (
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
                 stdout=error_fh, shell=True)
 
-        subprocess.call("python utils/allele2html.py -f %s -r %s -b %s" % (
+        subprocess.call("python /home/ubuntu/bin/tbOnT/allele2html.py -f %s -r %s -b %s" % (
             os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
-        subprocess.call("python utils/allele2html.py -f %s -r %s -b %s" % (
+        subprocess.call("python /home/ubuntu/bin/tbOnT/allele2html.py -f %s -r %s -b %s" % (
             os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=error_fh, stdout=error_fh,
                         shell=True)
 
