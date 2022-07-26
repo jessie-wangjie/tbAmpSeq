@@ -28,7 +28,7 @@ def main():
 
     # Read from metasheet
     cur.execute(
-        "select miseq_sample_name, aaan_id, pp_id, from ampseq_sample_metasheet$raw "
+        "select miseq_sample_name, aaan_id, pp_id from ampseq_sample_metasheet$raw "
         "where genomics_ampseq_project_queue = %s", [tbid])
 
     for record in cur:
