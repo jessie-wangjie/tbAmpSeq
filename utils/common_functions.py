@@ -123,12 +123,12 @@ def window_quantification(cs2_folder, quantification_windows):
     b_json["merged_r1r2_read_num"] = cs2_info["running_info"]["alignment_stats"]["N_TOT_READS"]
     b_json["wt_aligned_read_num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["WT"]
     b_json["beacon_aligned_read_num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["Beacon"]
-    b_json["aligned_percentage"] = (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json[
-        "merged_r1r2_read_num"]
-    b_json["wt_aligned_percentage"] = b_json["wt_aligned_read_num"] / (
-            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"])
-    b_json["beacon_placement_percentage"] = b_json["beacon_aligned_read_num"] / (
-            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"])
+    b_json["aligned_percentage"] = format((b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json[
+        "merged_r1r2_read_num"], ".2f")
+    b_json["wt_aligned_percentage"] = format(b_json["wt_aligned_read_num"] / (
+            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
+    b_json["beacon_placement_percentage"] = format(b_json["beacon_aligned_read_num"] / (
+            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
 
     qw_stats = []
     for window in quantification_windows:
@@ -166,9 +166,9 @@ def window_quantification(cs2_folder, quantification_windows):
 
         if ref_name == "Beacon" and qw_name == "beacon_whole":
             b_json["beacon_indel_read_num"] = stats["indels"]
-            b_json["beacon_indel_percentage"] = stats["indels"] / b_json["beacon_aligned_read_num"]
+            b_json["beacon_indel_percentage"] = format(stats["indels"] / b_json["beacon_aligned_read_num"], ".2f")
             b_json["beacon_sub_read_num"] = stats["substitution"]
-            b_json["beacon_sub_percentage"] = stats["substitution"] / b_json["beacon_aligned_read_num"]
+            b_json["beacon_sub_percentage"] = format(stats["substitution"] / b_json["beacon_aligned_read_num"], ".2f")
 
     pd.DataFrame(qw_stats).to_csv(cs2_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
                                   sep="\t", header=True, index=False, na_rep=0)
