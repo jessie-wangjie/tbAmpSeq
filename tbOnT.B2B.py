@@ -47,7 +47,7 @@ def main():
             {"Genomics AmpSeq Project Queue": {"value": tbid}, "pipeline Name": {"value": "tbOnT"}}))
 #    pipeline_run_entity = benchling.custom_entities.create(entity)
 
-    for record in cur:
+    for record in cur.fetchall():
         name, aaan_id, pp_id = record
         print(record)
 
@@ -64,7 +64,6 @@ def main():
         genome_fa = "/home/ubuntu/annotation/2bit/" + genome_build + ".2bit"
 
         # get r1 and r2 fastq
-        print(name)
         r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
         r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
 
@@ -195,7 +194,7 @@ def main():
         row = AssayResultCreate(schema_id="assaysch_WSXfG5XN", fields=AssayFieldsCreate.from_dict(cs2_stats),
                                 project_id="src_axGfyKYn")
         print(cs2_stats)
-#        benchling.assay_results.create([row])
+        benchling.assay_results.create([row])
 
         # plot
         subprocess.call(
