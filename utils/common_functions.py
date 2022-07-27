@@ -164,10 +164,10 @@ def window_quantification(cs2_folder, quantification_windows):
         qw_stats.append(stats)
 
         if ref_name == "Beacon" and qw_name == "beacon_whole":
-            b_json["Beacon Indel Read Num"] = stats["indels"]
-            b_json["Beacon Indel Percentage"] = stats["indels"] / b_json["Beacon Aligned Read Num"]
-            b_json["Beacon Sub Read Num"] = stats["substitution"]
-            b_json["Beacon Sub Percentage"] = stats["substitution"] / b_json["Beacon Aligned Read Num"]
+            b_json["beacon_indel_read_num"] = stats["indels"]
+            b_json["beacon_indel_percentage"] = stats["indels"] / b_json["beacon_aligned_read_num"]
+            b_json["beacon_sub_read_num"] = stats["substitution"]
+            b_json["beacon_sub_percentage"] = stats["substitution"] / b_json["beacon_aligned_read_num"]
 
     pd.DataFrame(qw_stats).to_csv(cs2_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
                                   sep="\t", header=True, index=False, na_rep=0)
