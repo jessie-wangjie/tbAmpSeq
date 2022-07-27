@@ -43,7 +43,7 @@ def main():
     benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
     entity = CustomEntityCreate(schema_id="ts_ytggkEM2", folder_id="lib_onlQar6Z", name=tbid + "b", fields=fields(
         {"Genomics AmpSeq Project Queue": {"value": tbid}, "pipeline Name": {"value": "tbOnT"}}))
-    pipeline_run_entity=benchling.custom_entities.create(entity)
+#    pipeline_run_entity=benchling.custom_entities.create(entity)
 
     for record in cur:
         name, aaan_id, pp_id = record
@@ -188,9 +188,11 @@ def main():
             cs2_stats = window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1])
 
         # insert the cs2 stats to benchling
-        cs2_stats["genomics_ampseq_project_queue"] = pipeline_run_entity.id
+#        cs2_stats["genomics_ampseq_project_queue"] = pipeline_run_entity.id
+        cs2_stats["genomics_ampseq_project_queue"] = "bfi_fxxYR3ug"
         row = AssayResultCreate(schema_id="assaysch_WSXfG5XN", fields=AssayFieldsCreate.from_dict(cs2_stats))
-        benchling.assay_results.create([row])
+        print(cs2_stats)
+#        benchling.assay_results.create([row])
 
 
         # plot
