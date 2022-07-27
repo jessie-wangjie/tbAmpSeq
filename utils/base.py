@@ -10,3 +10,6 @@ url = os.getenv('WAREHOUSE_URL')
 
 conn = psycopg2.connect(f"dbname=warehouse user={username} password={password} port=5432 host={url}")
 cur = conn.cursor()
+
+api_key = os.getenv('API_KEY')
+api_url = os.getenv('API_URL')
