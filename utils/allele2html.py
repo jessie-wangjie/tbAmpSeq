@@ -212,19 +212,19 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--topn", dest="topn", default=100, help="print the top N alignments", type=int)
     args = parser.parse_args()
 
-    crispresso2_info = CRISPRessoShared.load_crispresso_info(args.crispresso_output_folder)
+    cs2_info = CRISPRessoShared.load_crispresso_info(args.crispresso_output_folder)
     z = zipfile.ZipFile(os.path.join(args.crispresso_output_folder,
-                                     crispresso2_info['running_info']['allele_frequency_table_zip_filename']))
-    zf = z.open(crispresso2_info['running_info']['allele_frequency_table_filename'])
+                                     cs2_info['running_info']['allele_frequency_table_zip_filename']))
+    zf = z.open(cs2_info['running_info']['allele_frequency_table_filename'])
     df_alleles = pd.read_csv(zf, sep="\t")
     df_alleles["all_deletion_positions"] = df_alleles["all_deletion_positions"].apply(eval)
     df_alleles["all_substitution_positions"] = df_alleles["all_substitution_positions"].apply(eval)
     df_alleles["ref_positions"] = df_alleles["ref_positions"].apply(eval)
 
     #    html_fh=open(os.path.join(args.crispresso_output_folder,args.reference+".html"),'w')
-    html_fh = open(crispresso2_info['running_info']["name"] + "." + args.reference + ".html", 'w')
+    html_fh = open(cs2_info['running_info']["name"] + "." + args.reference + ".html", 'w')
     html_fh.write(HTML_HEADER)
     df_to_html(df_alleles[df_alleles['Aligned_Reference_Names'] == args.reference],
-               crispresso2_info["results"]["refs"][args.reference]["sequence"], args.highlight, html_fh)
+               cs2_info["results"]["refs"][args.reference]["sequence"], args.highlight, html_fh)
     html_fh.write(HTML_TAIL)
     html_fh.close()

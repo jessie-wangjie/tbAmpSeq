@@ -6,8 +6,13 @@ Information from Benchling
 functions need by tbOnT pipeline
 """
 
-import subprocess
+import os
 import re
+import subprocess
+import pandas as pd
+import zipfile
+from CRISPResso2 import CRISPRessoShared
+from CRISPResso2 import CRISPRessoCOREResources
 
 
 def align_primer(seq, index, chromosome, adapter=""):
@@ -70,3 +75,102 @@ def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
 def reverse_complement(seq):
     nt_complement = dict({'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N', '_': '_', '-': '-', 'U': 'A'})
     return "".join([nt_complement[c] for c in seq.upper()[-1::-1]])
+
+
+def arrstr_to_arr(val):
+    return [int(x) for x in val[1:-1].split(",")]
+
+
+def get_row_around_cut_assymetrical(row, start, end):
+    return row['Aligned_Sequence'][start:end], row['Reference_Sequence'][start:end], row['Read_Status'] == 'UNMODIFIED', \
+           row['n_deleted'], row['n_inserted'], row['n_mutated'], row['#Reads'], row['%Reads']
+
+
+def get_modified_in_quantification_window(row, include_idx):
+    payload = CRISPRessoCOREResources.find_indels_substitutions(row["Aligned_Sequence"], row["Reference_Sequence"],
+                                                                include_idx)
+    classification = "unmodified"
+    if payload["insertion_n"] + payload["deletion_n"] + payload["substitution_n"] > 0:
+        classification = "modified"
+    insertion = row["#Reads"] * (payload["insertion_n"] > 0)
+    deletion = row["#Reads"] * (payload["deletion_n"] > 0)
+    substitution = row["#Reads"] * (payload["substitution_n"] > 0)
+    indels = row["#Reads"] * ((payload["insertion_n"] > 0) | (payload["deletion_n"] > 0))
+    if set(include_idx).issubset(payload["deletion_positions"]):
+        whole_window_deletion = row["#Reads"]
+    else:
+        whole_window_deletion = 0
+    return {"#Reads": row["#Reads"], "classification": classification, "indels": indels, "insertion": insertion,
+            "deletion": deletion, "substitution": substitution, "whole_window_deletion": whole_window_deletion}
+
+
+def window_quantification(cs2_folder, quantification_windows):
+    # Amplicon:Window_name:Window_region:flanking_bp. 
+    # Bp positions in the amplicon sequence specifying the quantification window, 1-index
+
+    cs2_info = CRISPRessoShared.load_crispresso_info(cs2_folder)
+
+    if not cs2_info["running_info"]["args"].write_detailed_allele_table:
+        raise Exception('CRISPResso run must be run with the parameter --write_detailed_allele_table')
+
+    z = zipfile.ZipFile(os.path.join(cs2_folder, cs2_info["running_info"]["allele_frequency_table_zip_filename"]))
+    zf = z.open(cs2_info["running_info"]["allele_frequency_table_filename"])
+    df_alleles = pd.read_csv(zf, sep="\t")
+    df_alleles["ref_positions"] = df_alleles["ref_positions"].apply(arrstr_to_arr)
+
+    # generate the stats JSON for the result schema
+    b_json = {"samplename": cs2_info["running_info"]["args"].name}
+    b_json["merged_r1r2_read_num"] = cs2_info["running_info"]["alignment_stats"]["N_TOT_READS"]
+    b_json["wt_aligned_read_num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["WT"]
+    b_json["beacon_aligned_read_num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["Beacon"]
+    b_json["aligned_percentage"] = (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json[
+        "merged_r1r2_read_num"]
+    b_json["wt_aligned_percentage"] = b_json["wt_aligned_read_num"] / (
+            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"])
+    b_json["beacon_placement_percentage"] = b_json["beacon_aligned_read_num"] / (
+            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"])
+
+    qw_stats = []
+    for window in quantification_windows:
+        ref_name, qw_name, qw, flank_bp = window.split(":")
+        start, end = qw.split("-")
+
+        stats = {"amplicon": ref_name, "window_name": qw_name, "window_region": qw + ":" + flank_bp}
+        df_ref = df_alleles[df_alleles["Reference_Name"] == ref_name]
+        if df_ref.empty:
+            continue
+
+        df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))),
+                          axis=1, result_type='expand')
+        g = df.groupby("classification").sum()
+        for i in g.index:
+            stats[i] = g.loc[i]["#Reads"]
+            if i == "modified":
+                stats.update(g.loc[i][["indels", "insertion", "deletion", "substitution", "whole_window_deletion"]])
+
+        if int(flank_bp):
+            include_idx = []
+            include_idx.extend(range(int(start) - int(flank_bp) - 1, int(start) - 1))
+            include_idx.extend(range(int(end), int(end) + int(flank_bp)))
+            df_flank = pd.concat([df, df_ref.apply(
+                lambda row: get_modified_in_quantification_window(row, sorted(include_idx)), axis=1,
+                result_type='expand').add_suffix("_flank").drop("#Reads_flank", axis=1)], axis=1)
+            g = df_flank.groupby(["classification", "classification_flank"]).sum()
+            for i, j in g.index:
+                stats[i + "_" + j + "_flank"] = g.loc[i, j]["#Reads"]
+                if j == "modified":
+                    stats.update(g.loc[i, j][g.columns.str.endswith("_flank")].add_prefix(i + "_"))
+
+        qw_stats.append(stats)
+
+        if ref_name == "Beacon" and qw_name == "beacon_whole":
+            b_json["Beacon Indel Read Num"] = stats["indels"]
+            b_json["Beacon Indel Percentage"] = stats["indels"] / b_json["Beacon Aligned Read Num"]
+            b_json["Beacon Sub Read Num"] = stats["substitution"]
+            b_json["Beacon Sub Percentage"] = stats["substitution"] / b_json["Beacon Aligned Read Num"]
+
+    pd.DataFrame(qw_stats).to_csv(cs2_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
+                                  sep="\t", header=True, index=False, na_rep=0)
+    pd.Series(b_json).to_json(cs2_folder + "/CRISPResso_stats.json")
+
+    return b_json

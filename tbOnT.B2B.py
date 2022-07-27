@@ -7,6 +7,11 @@ Information from Benchling
 import argparse
 import glob
 
+from benchling_sdk.auth.api_key_auth import ApiKeyAuth
+from benchling_sdk.benchling import Benchling
+from benchling_sdk.helpers.serialization_helpers import fields
+from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate
+
 from utils.base import *
 from utils.common_functions import *
 
@@ -32,6 +37,13 @@ def main():
         "join registry_entity as re1 on re1.id = aaan_id "
         "join registry_entity as re2 on re2.id = pp_id "
         "where genomics_ampseq_project_queue = %s", [tbid])
+
+    # create pipeline run entity
+    # to check run suffix
+    benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
+    entity = CustomEntityCreate(schema_id="ts_ytggkEM2", folder_id="lib_onlQar6Z", name=tbid + "b", fields=fields(
+        {"Genomics AmpSeq Project Queue": {"value": tbid}, "pipeline Name": {"value": "tbOnT"}}))
+    pipeline_run_entity=benchling.custom_entities.create(entity)
 
     for record in cur:
         name, aaan_id, pp_id = record
@@ -163,10 +175,8 @@ def main():
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s " % (
                     unmapped_fastq, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + ng_info["seq"], name,
                     output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
-            subprocess.call(
-                "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
-                    wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
+            cs2_stats = window_quantification(os.path.join(output, "CRISPResso_on_" + name),
+                                  [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3])
 
         elif aaan_id.startswith("AA"):
             subprocess.call(
@@ -175,23 +185,27 @@ def main():
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s " % (
                     unmapped_fastq, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name,
                     output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1,
-                wt_qw2, beacon_qw1), stderr=error_fh, stdout=error_fh, shell=True)
+            cs2_stats = window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1])
+
+        # insert the cs2 stats to benchling
+        cs2_stats["genomics_ampseq_project_queue"] = pipeline_run_entity.id
+        row = AssayResultCreate(schema_id="assaysch_WSXfG5XN", fields=AssayFieldsCreate.from_dict(cs2_stats))
+        benchling.assay_results.create([row])
+
 
         # plot
         subprocess.call(
-            "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s --plot_left %s --plot_right %s "
-            "--min_freq 0.01 --plot_cut_point" % (
+            "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s "
+            "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 sp1_info["cut"] - 1, sp1_info["cut"], len(wt_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                stdout=error_fh, shell=True)
+            stdout=error_fh, shell=True)
         subprocess.call(
-            "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s --plot_left %s --plot_right "
-            "%s --min_freq 0.01 --plot_cut_point" % (
+            "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s "
+            "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                stdout=error_fh, shell=True)
+            stdout=error_fh, shell=True)
 
         subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
             os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)

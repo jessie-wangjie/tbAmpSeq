@@ -30,22 +30,22 @@ def main():
                         action="append")
 
     args = parser.parse_args()
-    crispresso2_info = CRISPRessoShared.load_crispresso_info(args.CRISPResso2_folder)
+    cs2_info = CRISPRessoShared.load_crispresso_info(args.CRISPResso2_folder)
 
-    if not crispresso2_info["running_info"]["args"].write_detailed_allele_table:
+    if not cs2_info["running_info"]["args"].write_detailed_allele_table:
         raise Exception('CRISPResso run must be run with the parameter --write_detailed_allele_table')
 
     z = zipfile.ZipFile(
-        os.path.join(args.CRISPResso2_folder, crispresso2_info["running_info"]["allele_frequency_table_zip_filename"]))
-    zf = z.open(crispresso2_info["running_info"]["allele_frequency_table_filename"])
+        os.path.join(args.CRISPResso2_folder, cs2_info["running_info"]["allele_frequency_table_zip_filename"]))
+    zf = z.open(cs2_info["running_info"]["allele_frequency_table_filename"])
     df_alleles = pd.read_csv(zf, sep="\t")
     df_alleles["ref_positions"] = df_alleles["ref_positions"].apply(arrstr_to_arr)
 
     # generate the stats JSON for the result schema
-    b_json = {"sample": crispresso2_info["running_info"]["args"].name}
-    b_json["Merged R1R2 Read Num"] = crispresso2_info["running_info"]["alignment_stats"]["N_TOT_READS"]
-    b_json["WT Aligned Read Num"] = crispresso2_info["results"]["alignment_stats"]["counts_total"]["WT"]
-    b_json["Beacon Aligned Read Num"] = crispresso2_info["results"]["alignment_stats"]["counts_total"]["Beacon"]
+    b_json = {"sample": cs2_info["running_info"]["args"].name}
+    b_json["Merged R1R2 Read Num"] = cs2_info["running_info"]["alignment_stats"]["N_TOT_READS"]
+    b_json["WT Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["WT"]
+    b_json["Beacon Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["Beacon"]
     b_json["Aligned Percentage"] = (b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"]) / b_json[
         "Merged R1R2 Read Num"]
     b_json["WT Aligned Percentage"] = b_json["WT Aligned Read Num"] / (

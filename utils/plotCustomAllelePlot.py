@@ -102,30 +102,30 @@ def plot_alleles_tables_from_folder(crispresso_output_folder, fig_filename_root,
     plot_left: number of bases left to plot from cut point
     plot_right: number of bases right to plot from cut point
     """
-    crispresso2_info = CRISPRessoShared.load_crispresso_info(crispresso_output_folder)
+    cs2_info = CRISPRessoShared.load_crispresso_info(crispresso_output_folder)
 
-    if not crispresso2_info['running_info']['args'].write_detailed_allele_table:
+    if not cs2_info['running_info']['args'].write_detailed_allele_table:
         raise Exception('CRISPResso run must be run with the parameter --write_detailed_allele_table')
 
     if MIN_FREQUENCY is None:
-        MIN_FREQUENCY = crispresso2_info['running_info']['args'].min_frequency_alleles_around_cut_to_plot
+        MIN_FREQUENCY = cs2_info['running_info']['args'].min_frequency_alleles_around_cut_to_plot
     if MAX_N_ROWS is None:
-        MAX_N_ROWS = crispresso2_info['running_info']['args'].max_rows_alleles_around_cut_to_plot
+        MAX_N_ROWS = cs2_info['running_info']['args'].max_rows_alleles_around_cut_to_plot
 
     plot_count = 0
 
     z = zipfile.ZipFile(
-        os.path.join(crispresso_output_folder, crispresso2_info['running_info']['allele_frequency_table_zip_filename']))
-    zf = z.open(crispresso2_info['running_info']['allele_frequency_table_filename'])
+        os.path.join(crispresso_output_folder, cs2_info['running_info']['allele_frequency_table_zip_filename']))
+    zf = z.open(cs2_info['running_info']['allele_frequency_table_filename'])
     df_alleles = pd.read_csv(zf, sep="\t")
     df_alleles['ref_positions'] = df_alleles['ref_positions'].apply(arrstr_to_arr)
 
     if amplicon_name is not None:
         ref_names = [amplicon_name]
     else:
-        ref_names = crispresso2_info['results']['ref_names']
+        ref_names = cs2_info['results']['ref_names']
 
-    refs = crispresso2_info['results']['refs']
+    refs = cs2_info['results']['refs']
     for ref_name in ref_names:
         sgRNA_sequences = refs[ref_name]['sgRNA_sequences']
         sgRNA_cut_points = refs[ref_name]['sgRNA_cut_points']
@@ -167,7 +167,7 @@ def plot_alleles_tables_from_folder(crispresso_output_folder, fig_filename_root,
                                MIN_FREQUENCY=MIN_FREQUENCY, MAX_N_ROWS=MAX_N_ROWS, SAVE_ALSO_PNG=SAVE_ALSO_PNG,
                                plot_cut_point=plot_cut_point, sgRNA_intervals=new_sgRNA_intervals,
                                sgRNA_names=sgRNA_names, sgRNA_mismatches=sgRNA_mismatches,
-                               annotate_wildtype_allele=crispresso2_info['running_info'][
+                               annotate_wildtype_allele=cs2_info['running_info'][
                                    'args'].annotate_wildtype_allele)
 
             plot_count += 1
@@ -202,7 +202,7 @@ def plot_alleles_tables_from_folder(crispresso_output_folder, fig_filename_root,
                                    MIN_FREQUENCY=MIN_FREQUENCY, MAX_N_ROWS=MAX_N_ROWS, SAVE_ALSO_PNG=SAVE_ALSO_PNG,
                                    plot_cut_point=plot_cut_point, sgRNA_intervals=new_sgRNA_intervals,
                                    sgRNA_names=sgRNA_names, sgRNA_mismatches=sgRNA_mismatches,
-                                   annotate_wildtype_allele=crispresso2_info['running_info'][
+                                   annotate_wildtype_allele=cs2_info['running_info'][
                                        'args'].annotate_wildtype_allele)
 
                 plot_count += 1
