@@ -132,6 +132,7 @@ def window_quantification(cs2_folder, quantification_windows):
 
     qw_stats = []
     for window in quantification_windows:
+        print(window)
         ref_name, qw_name, qw, flank_bp = window.split(":")
         start, end = qw.split("-")
 
