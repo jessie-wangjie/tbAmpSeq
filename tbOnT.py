@@ -51,7 +51,8 @@ def main():
                 "join target_gene on target_gene.id = primer.gene_or_target_name "
                 "where dna_oligo.bases = %s", [sample["Forward Primer Sequence"]])
             target_chr, genome_build, target_strand = cur.fetchone()
-
+            print(target_chr)
+            print(target_strand)
             reference_index = "/home/ubuntu/annotation/bwa_index/" + genome_build
             fp_info = align_primer(sample["Forward Primer Sequence"], reference_index, target_chr, "CACTCTTTCCCTACACGACGCTCTTCCGATCT")
             rp_info = align_primer(sample["Reverse Primer Sequence"], reference_index, target_chr, "GGAGTTCAGACGTGTGCTCTTCCGATCT")
