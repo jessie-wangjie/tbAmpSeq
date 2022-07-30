@@ -56,6 +56,7 @@ def main():
             fp_info = align_primer(sample["Forward Primer Sequence"], reference_index, target_chr, "CACTCTTTCCCTACACGACGCTCTTCCGATCT")
             rp_info = align_primer(sample["Reverse Primer Sequence"], reference_index, target_chr, "GGAGTTCAGACGTGTGCTCTTCCGATCT")
 
+            print(fp_info)
             wt_start = fp_info["start"]
             wt_end = rp_info["end"]
         else:
