@@ -162,7 +162,7 @@ def main():
                          "join dna_oligo as sp2 on sp2.id = a2.spacer "
                          "join dna_sequence as beacon1 on beacon1.id = a1.beacon "
                          "join dna_sequence as beacon2 on beacon2.id = a2.beacon "
-                         "where atg_atg.file_registry_id$ = %s", [sample["pair name/ID"]])
+                         "where atg_atg.file_registry_id$ = %s", [sample["AA/AN/SG/PN ID"]])
             sp1_seq, sp2_seq, beacon1_seq, beacon2_seq = cur.fetchone()
 
             sp1_info = get_cut_site(wt_amplicon, sp1_seq)
@@ -187,7 +187,7 @@ def main():
             assay = "Indel"
             cur.execute("select dna_oligo.bases from sgrna "
                         "join dna_oligo on dna_oligo.id=sgrna.spacer "
-                        "where sgrna.file_registry_id$ = %s", [sample["pair name/ID"]])
+                        "where sgrna.file_registry_id$ = %s", [sample["AA/AN/SG/PN ID"]])
             sg_seq = cur.fetchone()
             sg_info = get_cut_site(wt_amplicon, sg_seq[0])
             wt_qw1="WT:sg_cut:"+str(sg_info["cut"])+"-"+str(sg_info["cut"]+1)+":0"
