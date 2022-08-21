@@ -257,12 +257,12 @@ def main():
                 "--needleman_wunsch_gap_extend 0" % (
                     unmapped_fastq, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"], name, output, ncpu),
                 stderr=error_fh, stdout=error_fh, shell=True)
-            if sample["atgRNA pairing type"] == "single":
+            if sample["AA/AN/SG/PN ID"].startswith("AN") or sample["AA/AN/SG/PN ID"].startswith("PN"):
                 subprocess.call(
                     "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s" % (
                         os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                         wt_qw1, wt_qw2, beacon_qw1, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
-            elif sample["atgRNA pairing type"] == "dual":
+            elif sample["AA/AN/SG/PN ID"].startswith("AA"):
                 subprocess.call(
                     "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s" % (
                         os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
