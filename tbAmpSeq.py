@@ -150,7 +150,8 @@ def main():
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
-                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s --bam_output " % (
+                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
+                "--bam_output --needleman_wunsch_gap_extend 0" % (
                     r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + ng_info["seq"], name, output,
                     ncpu), stderr=error_fh, stdout=error_fh, shell=True)
 
@@ -206,7 +207,8 @@ def main():
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
-                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s --bam_output" % (
+                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
+                "--bam_output --needleman_wunsch_gap_extend 0" % (
                     r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + ng_info["seq"], name, output,
                     ncpu), stderr=error_fh, stdout=error_fh, shell=True)
 
@@ -251,7 +253,8 @@ def main():
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
-                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s --bam_output" % (
+                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
+                "--bam_output --needleman_wunsch_gap_extend 0" % (
                     r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output,
                     ncpu), stderr=error_fh, stdout=error_fh, shell=True)
 
@@ -272,7 +275,8 @@ def main():
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
-                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s --bam_output" % (
+                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
+                "--bam_output --needleman_wunsch_gap_extend 0" % (
                     r1, r2, wt_amplicon, sp1_info["seq"], name, output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
 
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s" % (
@@ -283,7 +287,8 @@ def main():
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
-                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s" % (
+                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
+                "--bam_output --needleman_wunsch_gap_extend 0" % (
                     r1, r2, wt_amplicon, name, output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
 
         # Plot
