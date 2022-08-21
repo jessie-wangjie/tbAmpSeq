@@ -102,7 +102,7 @@ def main():
 
         # Beacon amplicon
         # locate atgRNA, ngRNA in the amplicon
-        if sample["atgRNA pairing type"] == "single":
+        if sample["AA/AN/SG/PN ID"].startswith("AN") or sample["AA/AN/SG/PN ID"].startswith("PN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
             cur.execute("select sp.bases, beacon.bases, ng.bases, atgrna.rt_coordinate, atg.bases from atg_ng "
                         "join modified_rna as m1 on m1.id=atg_ng.atgrna "
@@ -151,7 +151,7 @@ def main():
             beacon_qw3 = "Beacon:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
         # locate atgRNA, atgRNA in the amplicon
-        elif sample["atgRNA pairing type"] == "dual":
+        elif sample["AA/AN/SG/PN ID"].startswith("AA"):
             # Get spacers information
             cur.execute( "select sp1.bases, sp2.bases, beacon1.bases, beacon2.bases from atg_atg "
                          "join modified_rna as m1 on m1.id = atg_atg.atg1 "
@@ -183,7 +183,7 @@ def main():
             beacon_qw1 = "Beacon:beacon_whole:" + str(sp1_info["cut"] + 1) + "-" + str(
                 sp1_info["cut"] + len(beacon)) + ":10"
 
-        elif pd.isna(sample["atgRNA pairing type"]) and pd.notna(sample["pair name/ID"]) and("SG" in sample["pair name/ID"]):
+        elif sample["AA/AN/SG/PN ID"].startswith("SG"):
             assay = "Indel"
             cur.execute("select dna_oligo.bases from sgrna "
                         "join dna_oligo on dna_oligo.id=sgrna.spacer "
