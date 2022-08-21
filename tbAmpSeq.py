@@ -181,7 +181,7 @@ def main():
             else:
                 rt_seq = peg_seq[int(coord.group(1)) - 1:int(coord.group(2))].upper()
 
-            beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + rt_seq + wt_amplicon[sp1_info["cut"] + len(rt_seq) - 1:]
+            beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + rt_seq + wt_amplicon[sp1_info["cut"] + len(rt_seq):]
             amplicon_fh.write(name + "\tPE\t" + beacon_amplicon + "\n")
 
             # define quantification window
