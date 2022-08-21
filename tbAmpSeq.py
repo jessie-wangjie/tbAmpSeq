@@ -176,7 +176,10 @@ def main():
             ng_info = get_cut_site(wt_amplicon, ng_seq)
 
             coord = re.match(r"\[(.*), (.*)\]", rt_coord)
-            rt_seq = peg_seq[int(coord.group(1)) - 1:int(coord.group(2))]
+            if sp1_info["strand"] == "+":
+                rt_seq = reverse_complement(peg_seq[int(coord.group(1)) - 1:int(coord.group(2))])
+            else:
+                rt_seq = peg_seq[int(coord.group(1)) - 1:int(coord.group(2))].upper()
 
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + rt_seq + wt_amplicon[sp1_info["cut"] + len(rt_seq) - 1:]
             amplicon_fh.write(name + "\tPE\t" + beacon_amplicon + "\n")
