@@ -4,14 +4,11 @@ On-Target analysis for AmpSeq
 Information from Benchling
 """
 
-import pandas as pd
 import argparse
-import subprocess
-from utils.common_functions import *
-from utils.base import *
-import os
 import glob
-import re
+
+from utils.base import *
+from utils.common_functions import *
 
 
 def main():
@@ -46,12 +43,19 @@ def main():
 
         # Get primer information
         if pd.isna(sample["PP ID"]):
-            if pd.notna(sample["Forward Primer ID"]):
+            if pd.notna(sample["forward primer"]):
                 cur.execute(
-                    "select target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from primer "
+                    "select dna_oligo.bases, target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from primer "
                     "join target_gene on target_gene.id = primer.gene_or_target_name "
-                    "where primer.file_registry_id$ = %s", [sample["Forward Primer ID"]])
-                target_chr, genome_build, target_strand = cur.fetchone()
+                    "join dna_oligo on dna_oligo.id = primer.id "
+                    "where primer.file_registry_id$ = %s", [sample["forward primer"]])
+                fp_seq, target_chr, genome_build, target_strand = cur.fetchone()
+
+                cur.execute(
+                    "select dna_oligo.bases from primer "
+                    "join dna_oligo on dna_oligo.id = primer.id "
+                    "where primer.file_registry_id$ = %s", [sample["reverse primer"]])
+                rp_seq = cur.fetchone()[0]
             else:
                 cur.execute(
                     "select target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from dna_oligo "
@@ -62,8 +66,8 @@ def main():
             
             genome_build = re.sub(".*/", "", genome_build)
             reference_index = "/home/ubuntu/annotation/bwa_index/" + genome_build
-            fp_info = align_primer(sample["Forward Primer Sequence"], reference_index, target_chr, "CACTCTTTCCCTACACGACGCTCTTCCGATCT")
-            rp_info = align_primer(sample["Reverse Primer Sequence"], reference_index, target_chr, "GGAGTTCAGACGTGTGCTCTTCCGATCT")
+            fp_info = align_primer(fp_seq, reference_index, target_chr, "CACTCTTTCCCTACACGACGCTCTTCCGATCT")
+            rp_info = align_primer(rp_seq, reference_index, target_chr, "GGAGTTCAGACGTGTGCTCTTCCGATCT")
 
             print(fp_info)
             wt_start = fp_info["start"]
