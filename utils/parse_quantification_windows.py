@@ -88,7 +88,10 @@ def main():
 
         if ref_name == "Beacon" and qw_name == "beacon_whole":
             b_json["Beacon Indel Read Num"] = stats["indels"]
-            b_json["Beacon Indel Percentage"] = stats["indels"] / b_json["Beacon Aligned Read Num"]
+            if "Beacon Aligned Read Num" in b_json:
+                b_json["Beacon Indel Percentage"] = stats["indels"] / b_json["Beacon Aligned Read Num"]
+            else:
+                b_json["Beacon Aligned Read Num"] = 0
             b_json["Beacon Sub Read Num"] = stats["substitution"]
             b_json["Beacon Sub Percentage"] = stats["substitution"] / b_json["Beacon Aligned Read Num"]
 
