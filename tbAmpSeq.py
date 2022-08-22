@@ -197,7 +197,7 @@ def main():
 
             # Beacon amplicon, RT 5'
             beacon_qw2 = "PE:RT_3P:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
-            beacon_qw3 = "PE:RT_5P:" + str(sp1_info["cut"] + len(rt_seq) - 1) + "-" + str(
+            beacon_qw3 = "PE:RT_5P:" + str(sp1_info["cut"] + len(rt_seq)) + "-" + str(
                 sp1_info["cut"] + len(rt_seq) + 1) + ":0"
 
             # Beacon amplicon, ngRNA cutting 2bp
