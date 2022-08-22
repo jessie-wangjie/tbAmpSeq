@@ -95,8 +95,11 @@ def main():
                 b_json["Beacon Indel Percentage"] = b_json["Beacon Indel Read Num"] / b_json["Beacon Aligned Read Num"]
             else:
                 b_json["Beacon Aligned Read Num"] = 0
-            b_json["Beacon Sub Read Num"] = stats["substitution"]
-            b_json["Beacon Sub Percentage"] = stats["substitution"] / b_json["Beacon Aligned Read Num"]
+            if "substitution" in stats:
+                b_json["Beacon Sub Read Num"] = stats["substitution"]
+            else:
+                b_json["Beacon Sub Read Num"] = 0
+            b_json["Beacon Sub Percentage"] = b_json["Beacon Sub Read Num"] / b_json["Beacon Aligned Read Num"]
 
     pd.DataFrame(qw_stats).to_csv(args.output_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
                                   sep="\t", header=True, index=False, na_rep=0)
