@@ -91,10 +91,7 @@ def main():
                 b_json["Beacon Indel Read Num"] = stats["indels"]
             else:
                 b_json["Beacon Indel Read Num"] = 0
-            if "Beacon Aligned Read Num" in b_json:
-                b_json["Beacon Indel Percentage"] = b_json["Beacon Indel Read Num"] / b_json["Beacon Aligned Read Num"]
-            else:
-                b_json["Beacon Aligned Read Num"] = 0
+            b_json["Beacon Indel Percentage"] = b_json["Beacon Indel Read Num"] / b_json["Beacon Aligned Read Num"]
             if "substitution" in stats:
                 b_json["Beacon Sub Read Num"] = stats["substitution"]
             else:
