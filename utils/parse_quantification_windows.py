@@ -45,7 +45,7 @@ def main():
     b_json = {"sample": cs2_info["running_info"]["args"].name}
     b_json["Merged R1R2 Read Num"] = cs2_info["running_info"]["alignment_stats"]["N_TOT_READS"]
     b_json["WT Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["WT"]
-    b_json["Beacon Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["Beacon"]
+    b_json["Beacon Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"][cs2_info["results"]["ref_names"][1]]
     b_json["Aligned Percentage"] = (b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"]) / b_json[
         "Merged R1R2 Read Num"]
     b_json["WT Aligned Percentage"] = b_json["WT Aligned Read Num"] / (
@@ -86,7 +86,7 @@ def main():
 
         qw_stats.append(stats)
 
-        if ref_name == "Beacon" and qw_name == "beacon_whole":
+        if (ref_name == "Beacon" and qw_name == "beacon_whole") or (ref_name == "PE" and qw_name == "RT_whole"):
             if "indels" in stats:
                 b_json["Beacon Indel Read Num"] = stats["indels"]
             else:
