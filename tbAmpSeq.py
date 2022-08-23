@@ -310,6 +310,7 @@ def main():
                     len(wt_amplicon) - 1), stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "WT"), stderr=error_fh, stdout=error_fh, shell=True)
+            continue
 
         if sample["AA/AN/SG/PN ID"].startswith("PN"):
             subprocess.call(
