@@ -45,13 +45,14 @@ def main():
     b_json = {"sample": cs2_info["running_info"]["args"].name}
     b_json["Merged R1R2 Read Num"] = cs2_info["running_info"]["alignment_stats"]["N_TOT_READS"]
     b_json["WT Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["WT"]
-    b_json["Beacon Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"][cs2_info["results"]["ref_names"][1]]
-    b_json["Aligned Percentage"] = (b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"]) / b_json[
-        "Merged R1R2 Read Num"]
-    b_json["WT Aligned Percentage"] = b_json["WT Aligned Read Num"] / (
-            b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"])
-    b_json["Beacon Placement Percentage"] = b_json["Beacon Aligned Read Num"] / (
-            b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"])
+    if len(cs2_info["results"]["ref_names"])>1:
+        b_json["Beacon Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"][cs2_info["results"]["ref_names"][1]]
+        b_json["Aligned Percentage"] = (b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"]) / b_json[
+            "Merged R1R2 Read Num"]
+        b_json["WT Aligned Percentage"] = b_json["WT Aligned Read Num"] / (
+                b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"])
+        b_json["Beacon Placement Percentage"] = b_json["Beacon Aligned Read Num"] / (
+                b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"])
 
     qw_stats = []
     for window in args.quantification_windows:
