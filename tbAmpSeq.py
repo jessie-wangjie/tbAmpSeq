@@ -311,7 +311,7 @@ def main():
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "WT"), stderr=error_fh, stdout=error_fh, shell=True)
 
-        if sample["AA/AN/SG/PN ID"].startswith("PN"):
+        if pd.notna(sample["AA/AN/SG/PN ID"]) and sample["AA/AN/SG/PN ID"].startswith("PN"):
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a PE --plot_center %s "
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
