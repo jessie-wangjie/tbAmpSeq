@@ -100,8 +100,16 @@ def main():
 
         sp1_info = {}
 
+        # control
+        if pd.isna(sample["AA/AN/SG/PN ID"]):
+            subprocess.call(
+                "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT "
+                "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
+                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
+                "--bam_output --needleman_wunsch_gap_extend 0" % (
+                    r1, r2, wt_amplicon, name, output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
         # atgRNA-ngRNA
-        if sample["AA/AN/SG/PN ID"].startswith("AN"):
+        elif sample["AA/AN/SG/PN ID"].startswith("AN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
             cur.execute("select sp.bases, beacon.bases, ng.bases, atgrna.rt_coordinate, atg.bases from atg_ng "
                         "join modified_rna as m1 on m1.id=atg_ng.atgrna "
@@ -282,14 +290,6 @@ def main():
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
-
-        else:
-            subprocess.call(
-                "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT "
-                "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
-                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--bam_output --needleman_wunsch_gap_extend 0" % (
-                    r1, r2, wt_amplicon, name, output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
 
         # Plot
         if sp1_info:
