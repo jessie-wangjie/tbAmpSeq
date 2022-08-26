@@ -174,7 +174,7 @@ def main():
                 sp1_info["cut"] + len(beacon)) + ":10"
 
         else:
-            assay_type = "Control"
+            assay = "Control"
 
         # cargo seq
         if assay == "3P":
