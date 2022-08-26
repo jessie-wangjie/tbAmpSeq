@@ -252,7 +252,7 @@ def main():
                 "--plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), 0, 1,
                     len(wt_amplicon) - 1), stderr=error_fh, stdout=error_fh, shell=True)
-            subprocess.call("allele2html.py -f %s -r %s" % (
+            subprocess.call("/home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "WT"), stderr=error_fh, stdout=error_fh, shell=True)
 
         elif assay == "AmpSeq":
