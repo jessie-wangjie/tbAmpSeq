@@ -85,6 +85,7 @@ def main():
                 "join primer as p2 on p2.id = primer_pair.reverse_primer "
                 "where primer_pair.file_registry_id$ = %s", [sample["PP ID"]])
             fp_id, rp_id = cur.fetchone()
+            print(fp_id+"\t"+rp_id)
 
             cur.execute(
                 "select dna_oligo.bases, target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from primer "
