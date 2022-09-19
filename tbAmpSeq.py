@@ -100,6 +100,14 @@ def main():
                 "where primer.file_registry_id$ = %s", [rp_id])
             rp_seq = cur.fetchone()[0]
 
+            genome_build = re.sub(".*/", "", genome_build)
+            reference_index = "/home/ubuntu/annotation/bwa_index/" + genome_build
+            fp_info = align_primer(fp_seq, reference_index, target_chr, "CACTCTTTCCCTACACGACGCTCTTCCGATCT")
+            rp_info = align_primer(rp_seq, reference_index, target_chr, "GGAGTTCAGACGTGTGCTCTTCCGATCT")
+
+            wt_start = fp_info["start"]
+            wt_end = rp_info["end"]
+
         # reference genome
         genome_fa = "/home/ubuntu/annotation/2bit/" + genome_build + ".2bit"
 
