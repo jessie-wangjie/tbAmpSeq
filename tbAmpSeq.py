@@ -80,7 +80,7 @@ def main():
             # target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
 
             cur.execute(
-                "select from p1.file_registry_id$, p2.file_registry_id$ from primer_pair "
+                "select p1.file_registry_id$, p2.file_registry_id$ from primer_pair "
                 "join primer as p1 on p1.id = primer_pair.forward_primer "
                 "join primer as p2 on p2.id = primer_pair.reverse_primer "
                 "where primer_pair.file_registry_id$ = %s", [sample["PP ID"]])
