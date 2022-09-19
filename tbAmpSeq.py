@@ -71,13 +71,33 @@ def main():
             wt_start = fp_info["start"]
             wt_end = rp_info["end"]
         else:
+            # cur.execute(
+            #    "select target_gene.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
+            #    "join primer as p1 on p1.id = primer_pair.forward_primer "
+            #    "join primer as p2 on p2.id = primer_pair.reverse_primer "
+            #    "join target_gene on target_gene.id = p1.gene_or_target_name "
+            #    "where primer_pair.file_registry_id$ = %s", [sample["PP ID"]])
+            # target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
+
             cur.execute(
-                "select p1.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
+                "select from p1.file_registry_id$, p2.file_registry_id$ from primer_pair "
                 "join primer as p1 on p1.id = primer_pair.forward_primer "
                 "join primer as p2 on p2.id = primer_pair.reverse_primer "
-                "join target_gene on target_gene.id = p1.gene_or_target_name "
                 "where primer_pair.file_registry_id$ = %s", [sample["PP ID"]])
-            target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
+            fp_id, rp_id = cur.fetchone()
+
+            cur.execute(
+                "select dna_oligo.bases, target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from primer "
+                "join target_gene on target_gene.id = primer.gene_or_target_name "
+                "join dna_oligo on dna_oligo.id = primer.id "
+                "where primer.file_registry_id$ = %s", [fp_id])
+            fp_seq, target_chr, genome_build, target_strand = cur.fetchone()
+
+            cur.execute(
+                "select dna_oligo.bases from primer "
+                "join dna_oligo on dna_oligo.id = primer.id "
+                "where primer.file_registry_id$ = %s", [rp_id])
+            rp_seq = cur.fetchone()[0]
 
         # reference genome
         genome_fa = "/home/ubuntu/annotation/2bit/" + genome_build + ".2bit"
