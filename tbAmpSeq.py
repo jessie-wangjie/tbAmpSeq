@@ -6,6 +6,7 @@ Information from Benchling
 
 import argparse
 import glob
+import pandas as pd
 
 from utils.base import *
 from utils.common_functions import *
@@ -62,6 +63,8 @@ def main():
                     "join target_gene on target_gene.id = primer.gene_or_target_name "
                     "where dna_oligo.bases = %s", [sample["Forward Primer Sequence"]])
                 target_chr, genome_build, target_strand = cur.fetchone()
+                fp_seq = sample["Forward Primer Sequence"]
+                rp_seq = sample["Reverse Primer Sequence"]
 
             genome_build = re.sub(".*/", "", genome_build)
             reference_index = "/home/ubuntu/annotation/bwa_index/" + genome_build
@@ -85,7 +88,6 @@ def main():
                 "join primer as p2 on p2.id = primer_pair.reverse_primer "
                 "where primer_pair.file_registry_id$ = %s", [sample["PP ID"]])
             fp_id, rp_id = cur.fetchone()
-            print(fp_id+"\t"+rp_id)
 
             cur.execute(
                 "select dna_oligo.bases, target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from primer "
