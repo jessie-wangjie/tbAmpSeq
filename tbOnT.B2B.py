@@ -36,12 +36,10 @@ def main():
 
     # Read in basespace project id
     cur.execute(
-        "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, re3.file_registry_id, re4.file_registry_id "
+        "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id "
         "from ampseq_sample_metasheet$raw "
         "join registry_entity as re1 on re1.id = aaan_id "
         "join registry_entity as re2 on re2.id = pp_id "
-        "join registry_entity as re3 on re3.id = forward_primer_seq "
-        "join registry_entity as re4 on re4.id = reverse_primer_seq "
         "where genomics_ampseq_project_queue = %s", [tbid])
 
     print(tbid)
