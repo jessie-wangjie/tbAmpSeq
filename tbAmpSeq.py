@@ -139,6 +139,7 @@ def main():
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
                 "--bam_output --needleman_wunsch_gap_extend 0" % (
                     r1, r2, wt_amplicon, name, output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
+
         # atgRNA-ngRNA
         elif sample["AA/AN/SG/PN ID"].startswith("AN"):
             # get spacer sequences, beacon sequences, ngRNA sequences

@@ -1,4 +1,4 @@
-CRISPResso2~=2.2.10
+CRISPResso2
 benchling-sdk
 psycopg2~=2.9.3
 python-dotenv~=0.20.0
