@@ -148,6 +148,7 @@ def window_quantification(cs2_folder, quantification_windows):
             stats[i] = g.loc[i]["#Reads"]
             if i == "modified":
                 stats.update(g.loc[i][["indels", "insertion", "deletion", "substitution", "whole_window_deletion"]])
+        print(stats)
 
         if int(flank_bp):
             include_idx = []
