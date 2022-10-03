@@ -68,7 +68,7 @@ def main():
                 "select p1.file_registry_id$, p2.file_registry_id$ from primer_pair "
                 "join primer as p1 on p1.id = primer_pair.forward_primer "
                 "join primer as p2 on p2.id = primer_pair.reverse_primer "
-                "where primer_pair.file_registry_id$ = %s", [sample["PP ID"]])
+                "where primer_pair.file_registry_id$ = %s", [pp_id])
             fp_id, rp_id = cur.fetchone()
 
             cur.execute(
