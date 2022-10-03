@@ -44,6 +44,8 @@ def main():
         "join registry_entity as re4 on re4.id = reverse_primer_seq "
         "where genomics_ampseq_project_queue = %s", [tbid])
 
+    print(tbid)
+    print(cur.fetchall())
     # create pipeline run entity
     # to check run suffix
     benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
