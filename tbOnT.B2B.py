@@ -42,8 +42,6 @@ def main():
         "join registry_entity as re2 on re2.id = pp_id "
         "where genomics_ampseq_project_queue = %s", [tbid])
 
-    print(tbid)
-    print(cur.fetchall())
     # create pipeline run entity
     # to check run suffix
     benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
@@ -53,7 +51,7 @@ def main():
 #    pipeline_run_entity = benchling.custom_entities.create(entity)
 
     for record in cur.fetchall():
-        name, aaan_id, pp_id, fp_seq, rp_seq = record
+        name, aaan_id, pp_id = record
         print(record)
 
         # Get primer information
