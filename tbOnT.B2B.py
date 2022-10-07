@@ -58,6 +58,9 @@ def main():
         name, aaan_id, pp_id, fp_seq, rp_seq = record
         print(record)
 
+        if not name:
+            continue
+
         # Get primer information
         if pp_id:
             # cur.execute(
