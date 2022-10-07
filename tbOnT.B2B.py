@@ -36,22 +36,26 @@ def main():
 
     # Read in basespace project id
     cur.execute(
-        "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id "
+        "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq "
         "from ampseq_sample_metasheet$raw "
-        "join registry_entity as re1 on re1.id = aaan_id "
-        "join registry_entity as re2 on re2.id = pp_id "
+        "left join registry_entity as re1 on re1.id = aaan_id "
+        "left join registry_entity as re2 on re2.id = pp_id "
         "where genomics_ampseq_project_queue = %s", [tbid])
+
 
     # create pipeline run entity
     # to check run suffix
     benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
-    entity = CustomEntityCreate(schema_id="ts_ytggkEM2", folder_id="lib_onlQar6Z", name=tbid + "a",
-                                registry_id="src_iMiN3Mw5", naming_strategy=NamingStrategy.NEW_IDS, fields=fields(
-            {"Genomics AmpSeq Project Queue": {"value": tbid}, "pipeline Name": {"value": "tbAmpseq"}}))
+    entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
+                                naming_strategy=NamingStrategy.NEW_IDS,
+                                name=tbid + "a",
+                                fields=fields(
+                                    {"Genomics AmpSeq Project Queue": {"value": tbid},
+                                     "pipeline Name": {"value": "tbAmpseq"}}))
 #    pipeline_run_entity = benchling.custom_entities.create(entity)
 
     for record in cur.fetchall():
-        name, aaan_id, pp_id = record
+        name, aaan_id, pp_id, fp_seq, rp_seq = record
         print(record)
 
         # Get primer information
