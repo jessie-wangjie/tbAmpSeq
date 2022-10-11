@@ -122,6 +122,8 @@ def main():
         wt_amplicon = get_seq(genome_fa, target_chr, wt_start, wt_end, target_strand)
         amplicon_fh.write(name + "\tWT\t" + wt_amplicon + "\n")
 
+        sp1_info = {}
+
         # Beacon amplicon
         # atgRNA-ngRNA
         if not aaan_id:
