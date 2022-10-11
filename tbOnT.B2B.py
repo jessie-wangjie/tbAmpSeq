@@ -352,7 +352,7 @@ def main():
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "WT"), stderr=error_fh, stdout=error_fh, shell=True)
 
-        if aaan_id.startswith("PN"):
+        if aaan_id and aaan_id.startswith("PN"):
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a PE --plot_center %s "
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
@@ -362,7 +362,7 @@ def main():
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "PE", beacon_qw1), stderr=error_fh, stdout=error_fh,
                     shell=True)
-        elif not aaan_id.startswith("SG"):
+        elif aaan_id and (not aaan_id.startswith("SG")):
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s "
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
