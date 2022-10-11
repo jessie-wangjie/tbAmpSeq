@@ -124,7 +124,15 @@ def main():
 
         # Beacon amplicon
         # atgRNA-ngRNA
-        if aaan_id.startswith("AN"):
+        if not aaan_id:
+            subprocess.call(
+                "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT "
+                "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
+                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
+                "--bam_output --needleman_wunsch_gap_extend 0" % (
+                    r1, r2, wt_amplicon, name, output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
+
+        elif aaan_id.startswith("AN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
             cur.execute("select sp.bases, beacon.bases, ng.bases, atgrna.rt_coordinate, atg.bases from atg_ng "
                         "join modified_rna as m1 on m1.id=atg_ng.atgrna "
@@ -314,14 +322,6 @@ def main():
                 wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
             cs2_stats = window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1])
-
-        else:
-            subprocess.call(
-                "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT "
-                "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
-                "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--bam_output --needleman_wunsch_gap_extend 0" % (
-                    r1, r2, wt_amplicon, name, output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
 
         # insert the cs2 stats to benchling
 #        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
