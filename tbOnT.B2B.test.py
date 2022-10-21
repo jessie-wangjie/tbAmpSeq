@@ -38,7 +38,7 @@ def main():
     cur.execute(
         "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq "
         "from ampseq_sample_metasheet$raw "
-        "left join registry_entity as re1 on re1.id = aaan_id "
+        "left join registry_entity as re1 on re1.id = aaanpnsg_id "
         "left join registry_entity as re2 on re2.id = pp_id "
         "where genomics_ampseq_project_queue = %s", [tbid])
 
