@@ -61,9 +61,6 @@ def main():
         if not name:
             continue
 
-        if not name == "H11-AA006":
-            continue
-
         # Get primer information
         if pp_id:
             # cur.execute(
