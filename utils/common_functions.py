@@ -108,7 +108,10 @@ def window_quantification(cs2_folder, quantification_windows):
     # Amplicon:Window_name:Window_region:flanking_bp. 
     # Bp positions in the amplicon sequence specifying the quantification window, 1-index
 
-    cs2_info = CRISPRessoShared.load_crispresso_info(cs2_folder)
+    try:
+        cs2_info = CRISPRessoShared.load_crispresso_info(cs2_folder)
+    except Exception:
+        return
 
     if not cs2_info["running_info"]["args"].write_detailed_allele_table:
         raise Exception('CRISPResso run must be run with the parameter --write_detailed_allele_table')

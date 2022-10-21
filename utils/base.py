@@ -14,6 +14,9 @@ cur = conn.cursor()
 api_key = os.getenv('API_KEY')
 api_url = os.getenv('API_URL')
 
+test_api_key = os.getenv('TEST_API_KEY')
+test_api_url = os.getenv('TEST_API_URL')
+
 schema_id = os.getenv('AMPSEQ_PIPELINE_RUN_SCHEMA_ID')
 folder_id = os.getenv('AMPSEQ_PIPELINE_RUN_FOLDER_ID')
 registry_id = os.getenv('AMPSEQ_PIPELINE_RUN_REGISTRY_ID')

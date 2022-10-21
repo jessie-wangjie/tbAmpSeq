@@ -45,7 +45,7 @@ def main():
 
     # create pipeline run entity
     # to check run suffix
-    benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
+    benchling = Benchling(url=test_api_url, auth_method=ApiKeyAuth(test_api_key))
     entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
                                 naming_strategy=NamingStrategy.NEW_IDS,
                                 name=tbid + "a",
