@@ -52,7 +52,7 @@ def main():
                                 fields=fields(
                                     {"Genomics AmpSeq Project Queue": {"value": tbid},
                                      "pipeline Name": {"value": "tbAmpseq"}}))
-#    pipeline_run_entity = benchling.custom_entities.create(entity)
+    pipeline_run_entity = benchling.custom_entities.create(entity)
 
     for record in cur.fetchall():
         name, aaan_id, pp_id, fp_seq, rp_seq = record
