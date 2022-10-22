@@ -23,12 +23,14 @@ def main():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-m", help='TB id')
     parser.add_argument("-i", help='Path to fastq')
+    parser.add_argument("-s", help='Path to fastq', default=None)
     parser.add_argument("-p", help='Number of CPUs to use', default=4)
-    parser.add_argument("-o", help='Output folder')
+    parser.add_argument("-o", help='Output folder', default="./")
 
     args = parser.parse_args()
     fastq = args.i
     tbid = args.m
+    sample = args.s
     ncpu = int(args.p)
     output = args.o
 
@@ -59,6 +61,9 @@ def main():
         print(record)
 
         if not name:
+            continue
+
+        if sample and name != sample:
             continue
 
         # Get primer information
