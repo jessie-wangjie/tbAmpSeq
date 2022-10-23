@@ -26,7 +26,7 @@ def main():
     parser.add_argument("-s", help='Path to fastq', default=None)
     parser.add_argument("-p", help='Number of CPUs to use', default=4)
     parser.add_argument("-o", help='Output folder', default="./")
-    parser.add_argument("-cs2", help='CRISPRESSO2 parameters', default=None)
+    parser.add_argument("-cs2", help='CRISPRESSO2 parameters', default="")
 
     args = parser.parse_args()
     fastq = args.i
