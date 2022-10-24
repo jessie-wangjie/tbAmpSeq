@@ -54,7 +54,7 @@ def main():
                                      "pipeline Name": {"value": "tbAmpseq"}}))
     pipeline_run_entity = benchling.custom_entities.create(entity)
 
-    for record in cur.fetchall():
+    for record in test_cur.fetchall():
         name, aaan_id, pp_id, fp_seq, rp_seq = record
         print(record)
 
