@@ -35,7 +35,7 @@ def main():
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
     # Read in basespace project id
-    cur.execute(
+    test_cur.execute(
         "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq "
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaanpnsg_id "
@@ -71,32 +71,32 @@ def main():
             #    "where primer_pair.file_registry_id$ = %s", [pp_id])
             # target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
 
-            cur.execute(
+            test_cur.execute(
                 "select p1.file_registry_id$, p2.file_registry_id$ from primer_pair "
                 "join primer as p1 on p1.id = primer_pair.forward_primer "
                 "join primer as p2 on p2.id = primer_pair.reverse_primer "
                 "where primer_pair.file_registry_id$ = %s", [pp_id])
-            fp_id, rp_id = cur.fetchone()
+            fp_id, rp_id = test_cur.fetchone()
 
-            cur.execute(
+            test_cur.execute(
                 "select dna_oligo.bases, target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from primer "
                 "join target_gene on target_gene.id = primer.gene_or_target_name "
                 "join dna_oligo on dna_oligo.id = primer.id "
                 "where primer.file_registry_id$ = %s", [fp_id])
-            fp_seq, target_chr, genome_build, target_strand = cur.fetchone()
+            fp_seq, target_chr, genome_build, target_strand = test_cur.fetchone()
 
-            cur.execute(
+            test_cur.execute(
                 "select dna_oligo.bases from primer "
                 "join dna_oligo on dna_oligo.id = primer.id "
                 "where primer.file_registry_id$ = %s", [rp_id])
-            rp_seq = cur.fetchone()[0]
+            rp_seq = test_cur.fetchone()[0]
         elif fp_seq:
-            cur.execute(
+            test_cur.execute(
                 "select target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from dna_oligo "
                 "join primer on primer.id=dna_oligo.id "
                 "join target_gene on target_gene.id = primer.gene_or_target_name "
                 "where dna_oligo.bases = %s", [fp_seq])
-            target_chr, genome_build, target_strand = cur.fetchone()
+            target_chr, genome_build, target_strand = test_cur.fetchone()
 
         # reference genome
         genome_build = re.sub(".*/", "", genome_build)
@@ -136,7 +136,7 @@ def main():
 
         elif aaan_id.startswith("AN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
-            cur.execute("select sp.bases, beacon.bases, ng.bases, atgrna.rt_coordinate, atg.bases from atg_ng "
+            test_cur.execute("select sp.bases, beacon.bases, ng.bases, atgrna.rt_coordinate, atg.bases from atg_ng "
                         "join modified_rna as m1 on m1.id=atg_ng.atgrna "
                         "join modified_rna as m2 on m2.id=atg_ng.ngrna "
                         "join atgrna on atgrna.id=m1.rna "
@@ -146,7 +146,7 @@ def main():
                         "join dna_oligo as ng on ng.id=ngrna.spacer "
                         "join dna_sequence as atg on atg.id=atgrna.id "
                         "where atg_ng.file_registry_id$ = %s", [aaan_id])
-            sp_seq, beacon_seq, ng_seq, rt_coord, atg_seq = cur.fetchone()
+            sp_seq, beacon_seq, ng_seq, rt_coord, atg_seq = test_cur.fetchone()
             sp1_info = get_cut_site(wt_amplicon, sp_seq)
             ng_info = get_cut_site(wt_amplicon, ng_seq)
 
@@ -198,7 +198,7 @@ def main():
         # atgRNA-atgRNA
         elif aaan_id.startswith("AA"):
             # Get spacers information
-            cur.execute("select sp1.bases, sp2.bases, beacon1.bases, beacon2.bases from atg_atg "
+            test_cur.execute("select sp1.bases, sp2.bases, beacon1.bases, beacon2.bases from atg_atg "
                         "join modified_rna as m1 on m1.id = atg_atg.atg1 "
                         "join modified_rna as m2 on m2.id = atg_atg.atg2 "
                         "join atgrna as a1 on a1.id = m1.rna "
@@ -208,7 +208,7 @@ def main():
                         "join dna_sequence as beacon1 on beacon1.id = a1.beacon "
                         "join dna_sequence as beacon2 on beacon2.id = a2.beacon "
                         "where atg_atg.file_registry_id$ = %s", [aaan_id])
-            sp1_seq, sp2_seq, beacon1_seq, beacon2_seq = cur.fetchone()
+            sp1_seq, sp2_seq, beacon1_seq, beacon2_seq = test_cur.fetchone()
 
             sp1_info = get_cut_site(wt_amplicon, sp1_seq)
             sp2_info = get_cut_site(wt_amplicon, sp2_seq)
@@ -246,7 +246,7 @@ def main():
         # pegRNA-ngRNA
         elif aaan_id.startswith("PN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
-            cur.execute("select sp.bases, ng.bases, pegrna.rt_coordinate, peg.bases from peg_ng "
+            test_cur.execute("select sp.bases, ng.bases, pegrna.rt_coordinate, peg.bases from peg_ng "
                         "join modified_rna as m1 on m1.id=peg_ng.modified_pegrna "
                         "join modified_rna as m2 on m2.id=peg_ng.modified_ngrna "
                         "join pegrna on pegrna.id=m1.rna "
@@ -255,7 +255,7 @@ def main():
                         "join dna_oligo as ng on ng.id=ngrna.spacer "
                         "join dna_sequence as peg on peg.id=pegrna.id "
                         "where peg_ng.file_registry_id$ = %s", [aaan_id])
-            sp_seq, ng_seq, rt_coord, peg_seq = cur.fetchone()
+            sp_seq, ng_seq, rt_coord, peg_seq = test_cur.fetchone()
             sp1_info = get_cut_site(wt_amplicon, sp_seq)
             ng_info = get_cut_site(wt_amplicon, ng_seq)
 
@@ -304,10 +304,10 @@ def main():
                                               [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4])
 
         elif aaan_id.startswith("SG"):
-            cur.execute("select dna_oligo.bases from sgrna "
+            test_cur.execute("select dna_oligo.bases from sgrna "
                         "join dna_oligo on dna_oligo.id=sgrna.spacer "
                         "where sgrna.file_registry_id$ = %s", [aaan_id])
-            sg_seq = cur.fetchone()[0]
+            sg_seq = test_cur.fetchone()[0]
             sp1_info = get_cut_site(wt_amplicon, sg_seq)
             wt_qw1 = "WT:sg_cut:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
 

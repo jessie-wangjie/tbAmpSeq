@@ -23,8 +23,8 @@ test_username = os.getenv('TEST_WAREHOUSE_USERNAME')
 test_password = os.getenv('TEST_WAREHOUSE_PASSWORD')
 test_url = os.getenv('TEST_WAREHOUSE_URL')
 
-# conn = psycopg2.connect(f"dbname=warehouse user={test_username} password={test_password} port=5432 host={test_url}")
-# cur = conn.cursor()
+test_conn = psycopg2.connect(f"dbname=warehouse user={test_username} password={test_password} port=5432 host={test_url}")
+test_cur = test_conn.cursor()
 
 test_api_key = os.getenv('TEST_API_KEY')
 test_api_url = os.getenv('TEST_API_URL')
