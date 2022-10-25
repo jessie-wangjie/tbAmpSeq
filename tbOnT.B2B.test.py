@@ -326,12 +326,12 @@ def main():
             cs2_stats = window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1])
 
         # insert the cs2 stats to benchling
-#        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
+        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
 #        cs2_stats["ampseq_pipeline_run"] = "bfi_fxxYR3ug"
-#        row = AssayResultCreate(schema_id="assaysch_WSXfG5XN", fields=AssayFieldsCreate.from_dict(cs2_stats),
-#                                project_id="src_axGfyKYn")
-#        print(cs2_stats)
-#        benchling.assay_results.create([row])
+        row = AssayResultCreate(schema_id="assaysch_xIhFX2um", fields=AssayFieldsCreate.from_dict(cs2_stats),
+                                project_id="src_vy0VnPHZ")
+        print(cs2_stats)
+        benchling.assay_results.create([row])
 
         # plot
         if sp1_info:
