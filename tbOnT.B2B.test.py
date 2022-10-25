@@ -11,7 +11,7 @@ from benchling_api_client.models.naming_strategy import NamingStrategy
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
 from benchling_sdk.helpers.serialization_helpers import fields
-from benchling_sdk.models import CustomEntityCreate
+from benchling_sdk.models import CustomEntityCreate, AssayResultCreate
 
 from utils.base import *
 from utils.common_functions import *
@@ -327,7 +327,6 @@ def main():
 
         # insert the cs2 stats to benchling
         cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
-#        cs2_stats["ampseq_pipeline_run"] = "bfi_fxxYR3ug"
         row = AssayResultCreate(schema_id="assaysch_xIhFX2um", fields=AssayFieldsCreate.from_dict(cs2_stats),
                                 project_id="src_vy0VnPHZ")
         print(cs2_stats)
