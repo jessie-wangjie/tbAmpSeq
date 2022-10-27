@@ -2,8 +2,8 @@ import psycopg2
 import os
 from dotenv import load_dotenv, dotenv_values
 
-config = dotenv_values(".env")
-print(config)
+config = dotenv_values(".test.env")
+print(config.keys())
 
 username = config['WAREHOUSE_USERNAME']
 password = config['WAREHOUSE_PASSWORD']
