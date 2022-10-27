@@ -1,6 +1,5 @@
 import psycopg2
-import os
-from dotenv import load_dotenv, dotenv_values
+from dotenv import dotenv_values
 
 config = dotenv_values("/home/ubuntu/bin/tbOnT/utils/.test.env")
 print(config.keys())
