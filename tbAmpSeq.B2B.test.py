@@ -12,6 +12,7 @@ from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
 from benchling_sdk.helpers.serialization_helpers import fields
 from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate
+from benchling_sdk.errors import BenchlingError
 
 from utils.base_test import *
 from utils.common_functions import *
@@ -55,7 +56,10 @@ def main():
                                 fields=fields(
                                     {"Genomics AmpSeq Project Queue": {"value": tbid},
                                      "pipeline Name": {"value": "tbAmpseq"}}))
-    pipeline_run_entity = benchling.custom_entities.create(entity)
+    try:
+        pipeline_run_entity = benchling.custom_entities.create(entity)
+    except BenchlingError as error:
+        print(error.status_code)
 
     for record in cur.fetchall():
         cs2_stats = {}
