@@ -11,7 +11,7 @@ from benchling_api_client.models.naming_strategy import NamingStrategy
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
 from benchling_sdk.helpers.serialization_helpers import fields
-from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate
+from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate, CustomEntity
 from benchling_sdk.errors import BenchlingError
 
 from utils.base_test import *
@@ -59,7 +59,8 @@ def main():
     try:
         pipeline_run_entity = benchling.custom_entities.create(entity)
     except BenchlingError as error:
-        print(error.status_code)
+        pipeline_run_entity = benchling.registry.registries(name=tbid + "a")
+        print(pipeline_run_entity)
 
     for record in cur.fetchall():
         cs2_stats = {}
