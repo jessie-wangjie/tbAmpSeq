@@ -59,7 +59,7 @@ def main():
     try:
         pipeline_run_entity = benchling.custom_entities.create(entity)
     except BenchlingError as error:
-        pipeline_run_entity = benchling.registry.registries(name=tbid + "a")
+        pipeline_run_entity = benchling.registry.registries
         print(pipeline_run_entity)
 
     for record in cur.fetchall():
