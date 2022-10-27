@@ -11,11 +11,10 @@ from benchling_api_client.models.naming_strategy import NamingStrategy
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
 from benchling_sdk.helpers.serialization_helpers import fields
-from benchling_sdk.models import CustomEntityCreate
+from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate
 
 from utils.base import *
 from utils.common_functions import *
-
 
 def main():
     # Parse command line options
@@ -40,16 +39,16 @@ def main():
 
     # Read in basespace project id
     cur.execute(
-        "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq "
+        "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq, "
+        "project_name, experimenter, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, ampseq_project_name "
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaan_id "
         "left join registry_entity as re2 on re2.id = pp_id "
         "where genomics_ampseq_project_queue = %s", [tbid])
 
-
     # create pipeline run entity
-    # to check run suffix
-    benchling = Benchling(url=test_api_url, auth_method=ApiKeyAuth(test_api_key))
+    # TODO: to check run suffix
+    benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
     entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
                                 naming_strategy=NamingStrategy.NEW_IDS,
                                 name=tbid + "a",
@@ -59,8 +58,13 @@ def main():
 #    pipeline_run_entity = benchling.custom_entities.create(entity)
 
     for record in cur.fetchall():
-        name, aaan_id, pp_id, fp_seq, rp_seq = record
-        print(record)
+        cs2_stats = {}
+        name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats["sample_name"], \
+        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_prep_id"], cs2_stats["ampseq_project_name"] = record
+        cs2_stats["miseq_sample_name"] = name
+        cs2_stats["aaan_id"] = aaan_id
+        cs2_stats["ppid"] = pp_id
+        print([name, aaan_id, pp_id])
 
         if not name:
             continue
@@ -199,8 +203,8 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats = window_quantification(os.path.join(output, "CRISPResso_on_" + name),
-                                  [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3])
+            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
+                                              [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
 
         # atgRNA-atgRNA
         elif aaan_id.startswith("AA"):
@@ -248,7 +252,7 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats = window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1])
+            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1]))
 
         # pegRNA-ngRNA
         elif aaan_id.startswith("PN"):
@@ -307,8 +311,8 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats = window_quantification(os.path.join(output, "CRISPResso_on_" + name),
-                                              [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4])
+            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
+                                                   [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
 
         elif aaan_id.startswith("SG"):
             cur.execute("select dna_oligo.bases from sgrna "
@@ -330,15 +334,14 @@ def main():
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats = window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1])
+            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
         # insert the cs2 stats to benchling
-#        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
-#        cs2_stats["ampseq_pipeline_run"] = "bfi_fxxYR3ug"
-#        row = AssayResultCreate(schema_id="assaysch_WSXfG5XN", fields=AssayFieldsCreate.from_dict(cs2_stats),
-#                                project_id="src_axGfyKYn")
-#        print(cs2_stats)
+        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
+        row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(cs2_stats), project_id=result_project_id)
 #        benchling.assay_results.create([row])
+
+        pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
         # plot
         if sp1_info:
