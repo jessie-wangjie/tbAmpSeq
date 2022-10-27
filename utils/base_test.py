@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv, dotenv_values
 
 config = dotenv_values(".test.env")
+print(config)
 
 username = config['WAREHOUSE_USERNAME']
 password = config['WAREHOUSE_PASSWORD']
