@@ -15,7 +15,7 @@ from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFie
 from benchling_sdk.errors import BenchlingError
 
 from utils.base_test import *
-from utils.common_functions import *
+from utils.common_functions_test import *
 
 def main():
     # Parse command line options
