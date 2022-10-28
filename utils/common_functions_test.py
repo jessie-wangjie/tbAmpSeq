@@ -132,11 +132,11 @@ def window_quantification(cs2_folder, quantification_windows):
 
     if "beacon_aligned_read_num" in b_json:
         b_json["aligned_percent"] = format((b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json[
-            "merged_r1r2_read_num"], ".2%")
+            "merged_r1r2_read_num"], ".2f")
         b_json["wt_aligned_percent"] = format(b_json["wt_aligned_read_num"] / (
-            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2%")
+            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
         b_json["beacon_placement_percent"] = format(b_json["beacon_aligned_read_num"] / (
-            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2%")
+            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
 
     qw_stats = []
     for window in quantification_windows:
