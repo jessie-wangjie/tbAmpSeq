@@ -342,6 +342,7 @@ def main():
 
         # insert the cs2 stats to benchling
         cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.first().id
+        print(cs2_stats)
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(cs2_stats))
         benchling.assay_results.create([row])
 
