@@ -10,12 +10,13 @@ import glob
 from benchling_api_client.models.naming_strategy import NamingStrategy
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
-from benchling_sdk.helpers.serialization_helpers import fields
-from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate, CustomEntity
 from benchling_sdk.errors import BenchlingError
+from benchling_sdk.helpers.serialization_helpers import fields
+from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate
 
 from utils.base_test import *
 from utils.common_functions_test import *
+
 
 def main():
     # Parse command line options
@@ -64,9 +65,9 @@ def main():
 
     for record in cur.fetchall():
         cs2_stats = {}
-        name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats["samplename"], \
-        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], cs2_stats["ampseq_project"], \
-        cs2_stats["aaanid"], cs2_stats["ppid"] = record
+        name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats[
+            "samplename"], cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], \
+        cs2_stats["ampseq_project"], cs2_stats["aaanid"], cs2_stats["ppid"] = record
         cs2_stats["miseq_sample_name"] = name
         print([name, aaan_id, pp_id])
 
