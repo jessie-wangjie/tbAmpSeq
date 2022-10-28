@@ -13,7 +13,7 @@ import pandas as pd
 import zipfile
 from CRISPResso2 import CRISPRessoShared
 from CRISPResso2 import CRISPRessoCOREResources
-form CRISPResso2 import CRISPRessoCORE
+from CRISPResso2 import CRISPRessoCORE
 
 
 def align_primer(seq, index, chromosome, adapter=""):
