@@ -42,7 +42,7 @@ def main():
     # Read in basespace project id
     cur.execute(
         "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq, "
-        "project_name, experimenter, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_batch_id, ampseq_project_name "
+        "project_name, experimenter, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_batch_id, ampseq_project_name, "
         "aaanpnsg_id, pp_id "
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaanpnsg_id "

@@ -2,7 +2,6 @@ import psycopg2
 from dotenv import dotenv_values
 
 config = dotenv_values("/home/ubuntu/bin/tbOnT/utils/.test.env")
-print(config.keys())
 
 username = config['WAREHOUSE_USERNAME']
 password = config['WAREHOUSE_PASSWORD']
