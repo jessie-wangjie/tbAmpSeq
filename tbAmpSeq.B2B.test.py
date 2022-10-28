@@ -63,10 +63,10 @@ def main():
 
     for record in cur.fetchall():
         cs2_stats = {}
-        name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats["sample_name"], \
-        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_prep_id"], cs2_stats["ampseq_project_name"] = record
+        name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats["samplename"], \
+        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], cs2_stats["ampseq_project"] = record
         cs2_stats["miseq_sample_name"] = name
-        cs2_stats["aaan_id"] = aaan_id
+        cs2_stats["aaanid"] = aaan_id
         cs2_stats["ppid"] = pp_id
         print([name, aaan_id, pp_id])
 
