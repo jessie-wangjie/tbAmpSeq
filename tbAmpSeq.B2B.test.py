@@ -42,6 +42,7 @@ def main():
     cur.execute(
         "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq, "
         "project_name, experimenter, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_batch_id, ampseq_project_name "
+        "aaanpnsg_id, pp_id "
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaanpnsg_id "
         "left join registry_entity as re2 on re2.id = pp_id "
@@ -64,10 +65,9 @@ def main():
     for record in cur.fetchall():
         cs2_stats = {}
         name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats["samplename"], \
-        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], cs2_stats["ampseq_project"] = record
+        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], cs2_stats["ampseq_project"], \
+        cs2_stats["aaanid"], cs2_stats["ppid"] = record
         cs2_stats["miseq_sample_name"] = name
-        cs2_stats["aaanid"] = aaan_id
-        cs2_stats["ppid"] = pp_id
         print([name, aaan_id, pp_id])
 
         if not name:
