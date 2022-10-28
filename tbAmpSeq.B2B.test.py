@@ -60,7 +60,6 @@ def main():
         pipeline_run_entity = benchling.custom_entities.create(entity)
     except BenchlingError as error:
         pipeline_run_entity = benchling.custom_entities.list(name=tbid + "a")
-        print(pipeline_run_entity.first().id)
 
     for record in cur.fetchall():
         cs2_stats = {}
@@ -342,7 +341,7 @@ def main():
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
         # insert the cs2 stats to benchling
-        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
+        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.first().id
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(cs2_stats))
         benchling.assay_results.create([row])
 
