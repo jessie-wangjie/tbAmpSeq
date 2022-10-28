@@ -13,6 +13,7 @@ import pandas as pd
 import zipfile
 from CRISPResso2 import CRISPRessoShared
 from CRISPResso2 import CRISPRessoCOREResources
+form CRISPResso2 import CRISPRessoCORE
 
 
 def align_primer(seq, index, chromosome, adapter=""):
@@ -123,6 +124,7 @@ def window_quantification(cs2_folder, quantification_windows):
 
     # generate the stats JSON for the result schema
     b_json = {"samplename": cs2_info["running_info"]["args"].name}
+    b_json["total_read_num"] = CRISPRessoCORE.get_n_reads_fastq(cs2_info["running_info"]["args"].fastq_r1)
     b_json["merged_r1r2_read_num"] = int(cs2_info["running_info"]["alignment_stats"]["N_TOT_READS"])
     b_json["wt_aligned_read_num"] = int(cs2_info["results"]["alignment_stats"]["counts_total"]["WT"])
     if "Beacon" in cs2_info["results"]["alignment_stats"]["counts_total"]:

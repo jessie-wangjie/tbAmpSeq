@@ -69,6 +69,7 @@ def main():
             "samplename"], cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], \
         cs2_stats["ampseq_project"], cs2_stats["aaanid"], cs2_stats["ppid"] = record
         cs2_stats["miseq_sample_name"] = name
+        cs2_stats["genomics_ampseq_project_queue"] = tbid
         print([name, aaan_id, pp_id])
 
         if not name:
