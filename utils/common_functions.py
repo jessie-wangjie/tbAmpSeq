@@ -9,11 +9,12 @@ functions need by tbOnT pipeline
 import os
 import re
 import subprocess
-import pandas as pd
 import zipfile
-from CRISPResso2 import CRISPRessoShared
-from CRISPResso2 import CRISPRessoCOREResources
+
+import pandas as pd
 from CRISPResso2 import CRISPRessoCORE
+from CRISPResso2 import CRISPRessoCOREResources
+from CRISPResso2 import CRISPRessoShared
 
 
 def align_primer(seq, index, chromosome, adapter=""):
@@ -131,14 +132,15 @@ def window_quantification(cs2_folder, quantification_windows):
         b_json["beacon_aligned_read_num"] = int(cs2_info["results"]["alignment_stats"]["counts_total"]["Beacon"])
     elif "PE" in cs2_info["results"]["alignment_stats"]["counts_total"]:
         b_json["beacon_aligned_read_num"] = int(cs2_info["results"]["alignment_stats"]["counts_total"]["PE"])
+    else:
+        b_json["beacon_aligned_read_num"] = 0
 
-    if "beacon_aligned_read_num" in b_json:
-        b_json["aligned_percentage"] = format((b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json[
-            "merged_r1r2_read_num"], ".2f")
-        b_json["wt_aligned_percentage"] = format(b_json["wt_aligned_read_num"] / (
-            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
-        b_json["beacon_placement_percentage"] = format(b_json["beacon_aligned_read_num"] / (
-            b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
+    b_json["aligned_percentage"] = format((b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json[
+        "merged_r1r2_read_num"], ".2f")
+    b_json["wt_aligned_percentage"] = format(b_json["wt_aligned_read_num"] / (
+        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
+    b_json["beacon_placement_percentage"] = format(b_json["beacon_aligned_read_num"] / (
+        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
 
     qw_stats = []
     for window in quantification_windows:
