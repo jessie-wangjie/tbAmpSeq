@@ -337,7 +337,7 @@ def main():
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
         # insert the cs2 stats to benchling
-        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
+#        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(cs2_stats), project_id=result_project_id)
 #        benchling.assay_results.create([row])
 
