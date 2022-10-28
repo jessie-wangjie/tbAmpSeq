@@ -9,11 +9,13 @@ functions need by tbOnT pipeline
 import os
 import re
 import subprocess
-import pandas as pd
 import zipfile
-from CRISPResso2 import CRISPRessoShared
-from CRISPResso2 import CRISPRessoCOREResources
+
+import pandas as pd
 from CRISPResso2 import CRISPRessoCORE
+from CRISPResso2 import CRISPRessoCOREResources
+from CRISPResso2 import CRISPRessoShared
+
 
 def align_primer(seq, index, chromosome, adapter=""):
     seq = seq.upper()
@@ -183,6 +185,9 @@ def window_quantification(cs2_folder, quantification_windows):
                 b_json["beacon_sub_read_num"] = 0
             b_json["beacon_indel_percent"] = format(b_json["beacon_indel_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
             b_json["beacon_sub_percent"] = format(b_json["beacon_sub_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
+            b_json["perfect_beacon_percent"] = format(
+                (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / (
+                        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
 
     pd.DataFrame(qw_stats).to_csv(cs2_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
                                   sep="\t", header=True, index=False, na_rep=0)
