@@ -273,6 +273,7 @@ def main():
             coord = re.match(r"\[(.*), (.*)\]", rt_coord)
             if sp1_info["strand"] == "+":
                 rt_seq = reverse_complement(peg_seq[int(coord.group(1)) - 1:int(coord.group(2))])
+                print(rt_seq)
             else:
                 rt_seq = peg_seq[int(coord.group(1)) - 1:int(coord.group(2))].upper()
 
