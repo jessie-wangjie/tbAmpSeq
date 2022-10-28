@@ -60,7 +60,7 @@ def main():
         pipeline_run_entity = benchling.custom_entities.create(entity)
     except BenchlingError as error:
         pipeline_run_entity = benchling.custom_entities.list(name=tbid + "a")
-        print(pipeline_run_entity[0].id)
+        print(pipeline_run_entity.first().id)
 
     for record in cur.fetchall():
         cs2_stats = {}
