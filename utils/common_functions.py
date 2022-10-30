@@ -29,7 +29,7 @@ def align_primer(seq, index, chromosome, adapter=""):
     pos = subprocess.check_output(["grep", "EM"], stdin=bwa_out.stdout).split()[4:]
     for p in pos:
         m = re.match(r"(.*):([+|-])(\d+)", p.decode())
-        if chromosome == m.group(1) and int(m.group(3)) > 136496200:
+        if chromosome == m.group(1):
             return {"chr": m.group(1), "start": int(m.group(3)), "end": int(m.group(3)) + len(seq) - 1,
                     "strand": m.group(2), "seq": seq}
 
