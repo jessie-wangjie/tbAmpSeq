@@ -225,6 +225,7 @@ def main():
             sp2_info = get_cut_site(wt_amplicon, sp2_seq)
 
             beacon = get_beacon_seq(beacon1_seq, sp1_info["strand"], beacon2_seq, sp2_info["strand"])
+            print(beacon)
 
             # beacon seq
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[sp2_info["cut"]:]
