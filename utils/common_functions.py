@@ -37,7 +37,7 @@ def align_primer(seq, index, chromosome, adapter=""):
 def get_cut_site(seq, guide):
     # return 1-index
     # cut is always the left of the cutting site
-    guide = guide.replace("U", "T")
+    guide = guide.upper().replace("U", "T")
     if guide in seq:
         p5 = seq.find(guide) + 1
         p3 = p5 + len(guide) - 1

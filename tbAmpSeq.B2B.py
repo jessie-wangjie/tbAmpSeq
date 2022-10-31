@@ -225,7 +225,6 @@ def main():
             sp2_info = get_cut_site(wt_amplicon, sp2_seq)
 
             beacon = get_beacon_seq(beacon1_seq, sp1_info["strand"], beacon2_seq, sp2_info["strand"])
-            print(beacon)
 
             # beacon seq
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[sp2_info["cut"]:]
@@ -274,7 +273,6 @@ def main():
             coord = re.match(r"\[(.*), (.*)\]", rt_coord)
             if sp1_info["strand"] == "+":
                 rt_seq = reverse_complement(peg_seq[int(coord.group(1)) - 1:int(coord.group(2))])
-                print(rt_seq)
             else:
                 rt_seq = peg_seq[int(coord.group(1)) - 1:int(coord.group(2))].upper()
 
