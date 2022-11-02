@@ -16,6 +16,7 @@ from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFie
 from utils.base import *
 from utils.common_functions import *
 
+
 def main():
     # Parse command line options
     parser = argparse.ArgumentParser(description='Process meta data',
@@ -257,7 +258,7 @@ def main():
         # pegRNA-ngRNA
         elif aaan_id.startswith("PN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
-            cur.execute("select sp.bases, ng.bases, pegrna.rt_coordinate, peg.bases from peg_ng "
+            cur.execute("select sp.bases, ng.bases, pegrna.rt_coordinate, pegrna.pbs_coordinate, scaffold.bases, peg.bases from peg_ng "
                         "join modified_rna as m1 on m1.id=peg_ng.modified_pegrna "
                         "join modified_rna as m2 on m2.id=peg_ng.modified_ngrna "
                         "join pegrna on pegrna.id=m1.rna "
@@ -265,19 +266,19 @@ def main():
                         "join dna_oligo as sp on sp.id=pegrna.spacer "
                         "join dna_oligo as ng on ng.id=ngrna.spacer "
                         "join dna_sequence as peg on peg.id=pegrna.id "
+                        "join dna_sequence as scaffold on peg.id=pegrna.scaffold "
                         "where peg_ng.file_registry_id$ = %s", [aaan_id])
-            sp_seq, ng_seq, rt_coord, peg_seq = cur.fetchone()
+            sp_seq, ng_seq, rt_coord, pbs_coord, scaffold_seq, peg_seq = cur.fetchone()
             sp1_info = get_cut_site(wt_amplicon, sp_seq)
             ng_info = get_cut_site(wt_amplicon, ng_seq)
 
             coord = re.match(r"\[(.*), (.*)\]", rt_coord)
-            if sp1_info["strand"] == "+":
-                rt_seq = reverse_complement(peg_seq[int(coord.group(1)) - 1:int(coord.group(2))])
-            else:
-                rt_seq = peg_seq[int(coord.group(1)) - 1:int(coord.group(2))].upper()
+            rt_seq = peg_seq[int(coord.group(1)) - 1:int(coord.group(2))].upper()
+            coord = re.match(r"\[(.*), (.*)\]", pbs_coord)
+            pbs_seq = peg_seq[int(coord.group(1)) - 1:int(coord.group(2))].upper()
 
-            beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + rt_seq + wt_amplicon[sp1_info["cut"] + len(rt_seq):]
-            amplicon_fh.write(name + "\tPE\t" + beacon_amplicon + "\n")
+           # beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + rt_seq + wt_amplicon[sp1_info["cut"] + len(rt_seq):]
+           # amplicon_fh.write(name + "\tPE\t" + beacon_amplicon + "\n")
 
             # define quantification window
             # WT amplicon, spacer cutting 2bp
@@ -295,15 +296,16 @@ def main():
                 sp1_info["cut"] + len(rt_seq) + 1) + ":0"
 
             # Beacon amplicon, ngRNA cutting 2bp
-            ng_info = get_cut_site(beacon_amplicon, ng_seq)
-            beacon_qw4 = "PE:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
+           # ng_info = get_cut_site(beacon_amplicon, ng_seq)
+            # beacon_qw4 = "PE:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
             subprocess.call(
-                "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,PE --guide_seq %s "
+                "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT --prime_editing_pegRNA_spacer_seq %s "
+                "--prime_editing_pegRNA_extension_seq %s --prime_editing_pegRNA_scaffold_seq %s --prime_editing_nicking_guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
                 "--bam_output --needleman_wunsch_gap_extend 0 %s" % (
-                    r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + ng_info["seq"], name, output,
+                    r1, r2, wt_amplicon, sp1_info["seq"], rt_seq + pbs_seq, scaffold_seq, ng_info["seq"], name, output,
                     ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
             subprocess.call(
