@@ -277,9 +277,6 @@ def main():
             coord = re.match(r"\[(.*), (.*)\]", pbs_coord)
             pbs_seq = peg_seq[int(coord.group(1)) - 1:int(coord.group(2))].upper()
 
-           # beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + rt_seq + wt_amplicon[sp1_info["cut"] + len(rt_seq):]
-           # amplicon_fh.write(name + "\tPE\t" + beacon_amplicon + "\n")
-
             # define quantification window
             # WT amplicon, spacer cutting 2bp
             wt_qw1 = "WT:spacer_cut:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
@@ -306,6 +303,8 @@ def main():
 
             # Beacon amplicon, ngRNA cutting 2bp
             beacon_amplicon = read_ref_cs2(os.path.join(output, "CRISPResso_on_" + name), "Prime-edited")
+            amplicon_fh.write(name + "\tPrime-edited\t" + beacon_amplicon + "\n")
+
             ng_info = get_cut_site(beacon_amplicon, ng_seq)
             beacon_qw4 = "Prime-edited:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
@@ -367,14 +366,24 @@ def main():
 
         if aaan_id and aaan_id.startswith("PN"):
             subprocess.call(
-                "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a PE --plot_center %s "
+                "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Prime-edited --plot_center %s "
+                "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
+                    sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
+                    stdout=error_fh, shell=True)
+            subprocess.call(
+                "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Scaffold-incorporated --plot_center %s "
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
                     stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), "PE", beacon_qw1), stderr=error_fh, stdout=error_fh,
+                os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=error_fh, stdout=error_fh,
                     shell=True)
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+                os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=error_fh, stdout=error_fh,
+                    shell=True)
+
         elif aaan_id and (not aaan_id.startswith("SG")):
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s "
