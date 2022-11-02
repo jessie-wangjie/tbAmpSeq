@@ -288,11 +288,11 @@ def main():
             wt_qw2 = "WT:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
             # Beacon amplicon, whole beacon insertion, w/ flank 10bp
-            beacon_qw1 = "PE:RT_whole:" + str(sp1_info["cut"] + 1) + "-" + str(sp1_info["cut"] + len(rt_seq)) + ":0"
+            beacon_qw1 = "Prime-edited:RT_whole:" + str(sp1_info["cut"] + 1) + "-" + str(sp1_info["cut"] + len(rt_seq)) + ":0"
 
             # Beacon amplicon, RT 5'
-            beacon_qw2 = "PE:RT_3P:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
-            beacon_qw3 = "PE:RT_5P:" + str(sp1_info["cut"] + len(rt_seq)) + "-" + str(
+            beacon_qw2 = "Prime-edited:RT_3P:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
+            beacon_qw3 = "Prime-edited:RT_5P:" + str(sp1_info["cut"] + len(rt_seq)) + "-" + str(
                 sp1_info["cut"] + len(rt_seq) + 1) + ":0"
 
             subprocess.call(
@@ -305,9 +305,9 @@ def main():
                     ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
             # Beacon amplicon, ngRNA cutting 2bp
-            beacon_amplicon = read_ref_cs2(os.path.join(output, "CRISPResso_on_" + name),"Prime-edited")
+            beacon_amplicon = read_ref_cs2(os.path.join(output, "CRISPResso_on_" + name), "Prime-edited")
             ng_info = get_cut_site(beacon_amplicon, ng_seq)
-            beacon_qw4 = "PE:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
+            beacon_qw4 = "Prime-edited:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
