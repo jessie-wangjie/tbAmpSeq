@@ -194,3 +194,12 @@ def window_quantification(cs2_folder, quantification_windows):
     pd.Series(b_json).to_json(cs2_folder + "/CRISPResso_stats.json")
 
     return b_json
+
+
+def read_ref_cs2(cs2_folder, ref_name):
+    try:
+        cs2_info = CRISPRessoShared.load_crispresso_info(cs2_folder)
+        return cs2_info["results"]["refs"][ref_name]["sequence"]
+    except Exception:
+        return
+

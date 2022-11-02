@@ -305,16 +305,17 @@ def main():
                     ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
             # Beacon amplicon, ngRNA cutting 2bp
-            # ng_info = get_cut_site(beacon_amplicon, ng_seq)
-            # beacon_qw4 = "PE:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
+            beacon_amplicon = read_ref_cs2(os.path.join(output, "CRISPResso_on_" + name),"Prime-edited")
+            ng_info = get_cut_site(beacon_amplicon, ng_seq)
+            beacon_qw4 = "PE:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
             subprocess.call(
-                "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
+                "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
-                    wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
+                    wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4), stderr=error_fh, stdout=error_fh, shell=True)
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
-                                                   [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
+                                                   [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
 
         elif aaan_id.startswith("SG"):
             cur.execute("select dna_oligo.bases from sgrna "
