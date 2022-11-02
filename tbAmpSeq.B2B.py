@@ -266,7 +266,7 @@ def main():
                         "join dna_oligo as sp on sp.id=pegrna.spacer "
                         "join dna_oligo as ng on ng.id=ngrna.spacer "
                         "join dna_sequence as peg on peg.id=pegrna.id "
-                        "join dna_sequence as scaffold on peg.id=pegrna.scaffold "
+                        "join dna_sequence as scaffold on scaffold.id=pegrna.scaffold "
                         "where peg_ng.file_registry_id$ = %s", [aaan_id])
             sp_seq, ng_seq, rt_coord, pbs_coord, scaffold_seq, peg_seq = cur.fetchone()
             sp1_info = get_cut_site(wt_amplicon, sp_seq)
