@@ -31,6 +31,7 @@ if __name__ == '__main__':
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=5', stream=True)
         for run in response.json().get("Items"):
             samples = {}
+            print(run["ExperimentName"])
             if run["Status"] != "Complete":
                 current_run[run["ExperimentName"]] = run["Href"]
             elif run["ExperimentName"] in current_run:
