@@ -34,6 +34,7 @@ if __name__ == '__main__':
             if run["Status"] != "Complete":
                 current_run[run["ExperimentName"]] = run["Href"]
             elif run["ExperimentName"] in current_run:
+                print(run["Href"])
                 response = requests.get(
                     f'{current_run[run["ExperimentName"]]}/properties/Input.BioSamples/items?access_token={bs_access_token}',
                     stream=True)
