@@ -39,11 +39,8 @@ if __name__ == '__main__':
                     stream=True)
                 for item in response.json().get("Items"):
                     project = item.get("BioSample").get("DefaultProject").get("Name")
-                    if project not in samples:
-                        samples[project] = [item.get("BioSample").get("BioSampleName")]
-                    else:
-                        samples[project].append(item.get("BioSample").get("BioSampleName"))
-                print(samples.keys())
+                    samples[project] = item.get("BioSample").get("DefaultProject").get("Id")
+                print(samples)
                 send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
 
