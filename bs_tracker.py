@@ -25,7 +25,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {"TB_MISEQ_000071":"1"}
+    current_run = {"TB_MISEQ_000071":"https://api.basespace.illumina.com/v2/runs/247010831"}
     while True:
         response = requests.get(
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=5', stream=True)
@@ -34,7 +34,6 @@ if __name__ == '__main__':
             if run["Status"] != "Complete":
                 current_run[run["ExperimentName"]] = run["Href"]
             elif run["ExperimentName"] in current_run:
-                print(run["Href"])
                 response = requests.get(
                     f'{current_run[run["ExperimentName"]]}/properties/Input.BioSamples/items?access_token={bs_access_token}',
                     stream=True)
