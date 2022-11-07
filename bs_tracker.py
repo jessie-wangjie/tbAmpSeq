@@ -35,7 +35,7 @@ if __name__ == '__main__':
                 current_run[run["ExperimentName"]] = run["Href"]
             elif run["ExperimentName"] in current_run:
                 response = requests.get(
-                    f'{current_run[run["ExperimentName"]]}/properties/Input.BioSamples/items&limit=1000?access_token={bs_access_token}',
+                    f'{current_run[run["ExperimentName"]]}/properties/Input.BioSamples/items&?access_token={bs_access_token}&limit=1000',
                     stream=True)
                 for item in response.json().get("Items"):
                     project = item.get("BioSample").get("DefaultProject").get("Name")
