@@ -20,3 +20,6 @@ registry_id = os.getenv('AMPSEQ_PIPELINE_RUN_REGISTRY_ID')
 
 result_schema_id = os.getenv('AMPSEQ_RESULTS_SCHEMA_ID')
 result_project_id = os.getenv('AMPSEQ_RESULTS_PROJECT_ID')
+
+bs_api_server = os.getenv('apiServer')
+bs_access_token = os.getenv('accessToken')
