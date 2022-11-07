@@ -43,7 +43,7 @@ if __name__ == '__main__':
                         samples[project] = [item.get("BioSample").get("BioSampleName")]
                     else:
                         samples[project].append(item.get("BioSample").get("BioSampleName"))
-                print(samples.keys())
+                    print(project)
                 send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
 
