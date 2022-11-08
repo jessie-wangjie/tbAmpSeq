@@ -14,10 +14,10 @@ def send_email(run_id, samples):
     message = "Subject:" + subject + "\n" + "\n".join(samples)
 
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server = smtplib.SMTP('smtp.office365.com', 587)
         server.ehlo()
         server.starttls()
-        server.login("jessie.wangjie@gmail.com", "wquyfnwwpbygpxmt")
+        server.login("jwang@tome.bio", "wquyfnwwpbygpxmt")
         server.sendmail(sender, receivers, message)
         print("Successfully sent email")
     except Exception as exception:
