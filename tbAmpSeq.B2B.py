@@ -67,7 +67,7 @@ def main():
         cs2_stats["ppid"] = pp_id
         print([name, aaan_id, pp_id])
 
-        if not name:
+        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
             continue
 
         if sample and name != sample:
