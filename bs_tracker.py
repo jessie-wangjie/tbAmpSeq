@@ -1,5 +1,5 @@
 # basespace tracking
-
+import subprocess
 import requests
 import time
 import smtplib
@@ -24,7 +24,7 @@ def send_email(run_id, samples):
         print("Error: %s!\n\n" % exception)
 
 
-def main():
+if __name__ == '__main__':
     current_run = {"TB_MISEQ_000071": "https://api.basespace.illumina.com/v2/runs/247010831"}
     while True:
         response = requests.get(
@@ -42,6 +42,9 @@ def main():
                     samples[project] = item.get("BioSample").get("DefaultProject").get("Id")
                 # send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
-                return samples
+
+                # download fastq files from basespace
+                for s, id in samples.items():
+                    subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s))
 
         time.sleep(18000)
