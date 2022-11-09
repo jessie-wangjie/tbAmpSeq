@@ -93,7 +93,7 @@ def main():
             r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
             r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
         except:
-            print("fastq files for " + name + "don't exist.")
+            raise Exception("fastq files for " + name + "don't exist.")
 
         if target_strand == "antisense":
             r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
