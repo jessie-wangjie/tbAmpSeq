@@ -46,5 +46,6 @@ if __name__ == '__main__':
                 # download fastq files from basespace
                 for s, id in samples.items():
                     subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s), shell=True)
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.py -m %s -i %s -p 8 -o %s" % (s, s, s + "_tbAmpSeq"), shell=True)
 
         time.sleep(18000)
