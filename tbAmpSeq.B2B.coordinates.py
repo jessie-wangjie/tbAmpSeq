@@ -89,10 +89,7 @@ def main():
         genome_fa = "/home/ubuntu/annotation/2bit/" + genome_build + ".2bit"
 
         # get r1 and r2 fastq
-        try:
-            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")
-            print(r1)
-        except:
+        if len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
             raise Exception("fastq files for " + name + "don't exist.")
 
         if target_strand == "antisense":
