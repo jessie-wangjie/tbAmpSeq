@@ -14,7 +14,7 @@ def send_email(run_id, samples):
     message = "Subject:" + subject + "\n" + "\n".join(samples)
 
     try:
-        server = smtplib.SMTP('smtp.office365.com', 587)
+        server = smtplib.SMTP('email-smtp.us-east-1.amazonaws.com', 587)
         server.ehlo()
         server.starttls()
         server.login("jwang@tome.bio", "wquyfnwwpbygpxmt")
