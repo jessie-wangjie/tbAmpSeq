@@ -6,6 +6,7 @@ Information from Benchling
 
 import argparse
 import glob
+from logging import warn
 
 from benchling_api_client.models.naming_strategy import NamingStrategy
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
@@ -35,6 +36,11 @@ def main():
     ncpu = int(args.p)
     cs2 = args.cs2
     output = args.o
+
+    try:
+        os.makedirs(output)
+    except:
+        warn('Folder %s already exists.' % output)
 
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 

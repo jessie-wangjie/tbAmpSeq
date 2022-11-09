@@ -36,6 +36,11 @@ def main():
     cs2 = args.cs2
     output = args.o
 
+    try:
+        os.makedirs(output)
+    except:
+        warn('Folder %s already exists.' % output)
+
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
     # Read in basespace project id
@@ -56,12 +61,14 @@ def main():
                                 fields=fields(
                                     {"Genomics AmpSeq Project Queue": {"value": tbid},
                                      "pipeline Name": {"value": "tbAmpseq"}}))
-#    pipeline_run_entity = benchling.custom_entities.create(entity)
+    #    pipeline_run_entity = benchling.custom_entities.create(entity)
 
     for record in cur.fetchall():
         cs2_stats = {}
-        name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats["sample_name"], \
-        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_prep_id"], cs2_stats["ampseq_project_name"] = record
+        name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats[
+            "sample_name"], \
+        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_prep_id"], cs2_stats[
+            "ampseq_project_name"] = record
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["aaan_id"] = aaan_id
         cs2_stats["ppid"] = pp_id
@@ -173,7 +180,7 @@ def main():
                     wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
-                                              [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
+                                                   [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
 
         # atgRNA-atgRNA
         elif aaan_id.startswith("AA"):
@@ -221,21 +228,23 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1]))
+            cs2_stats.update(
+                window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1]))
 
         # pegRNA-ngRNA
         elif aaan_id.startswith("PN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
-            cur.execute("select sp.bases, ng.bases, pegrna.rt_coordinate, pegrna.pbs_coordinate, scaffold.bases, peg.bases from peg_ng "
-                        "join modified_rna as m1 on m1.id=peg_ng.modified_pegrna "
-                        "join modified_rna as m2 on m2.id=peg_ng.modified_ngrna "
-                        "join pegrna on pegrna.id=m1.rna "
-                        "join ngrna on ngrna.id=m2.rna "
-                        "join dna_oligo as sp on sp.id=pegrna.spacer "
-                        "join dna_oligo as ng on ng.id=ngrna.spacer "
-                        "join dna_sequence as peg on peg.id=pegrna.id "
-                        "join dna_sequence as scaffold on scaffold.id=pegrna.scaffold "
-                        "where peg_ng.file_registry_id$ = %s", [aaan_id])
+            cur.execute(
+                "select sp.bases, ng.bases, pegrna.rt_coordinate, pegrna.pbs_coordinate, scaffold.bases, peg.bases from peg_ng "
+                "join modified_rna as m1 on m1.id=peg_ng.modified_pegrna "
+                "join modified_rna as m2 on m2.id=peg_ng.modified_ngrna "
+                "join pegrna on pegrna.id=m1.rna "
+                "join ngrna on ngrna.id=m2.rna "
+                "join dna_oligo as sp on sp.id=pegrna.spacer "
+                "join dna_oligo as ng on ng.id=ngrna.spacer "
+                "join dna_sequence as peg on peg.id=pegrna.id "
+                "join dna_sequence as scaffold on scaffold.id=pegrna.scaffold "
+                "where peg_ng.file_registry_id$ = %s", [aaan_id])
             sp_seq, ng_seq, rt_coord, pbs_coord, scaffold_seq, peg_seq = cur.fetchone()
             sp1_info = get_cut_site(wt_amplicon, sp_seq)
             ng_info = get_cut_site(wt_amplicon, ng_seq)
@@ -253,7 +262,8 @@ def main():
             wt_qw2 = "WT:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
             # Beacon amplicon, whole beacon insertion, w/ flank 10bp
-            beacon_qw1 = "Prime-edited:RT_whole:" + str(sp1_info["cut"] + 1) + "-" + str(sp1_info["cut"] + len(rt_seq)) + ":0"
+            beacon_qw1 = "Prime-edited:RT_whole:" + str(sp1_info["cut"] + 1) + "-" + str(
+                sp1_info["cut"] + len(rt_seq)) + ":0"
 
             # Beacon amplicon, RT 5'
             beacon_qw2 = "Prime-edited:RT_3P:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
@@ -279,7 +289,8 @@ def main():
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
-                    wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4), stderr=error_fh, stdout=error_fh, shell=True)
+                    wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4), stderr=error_fh, stdout=error_fh,
+                shell=True)
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
@@ -307,9 +318,10 @@ def main():
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
         # insert the cs2 stats to benchling
-#        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
-        row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(cs2_stats), project_id=result_project_id)
-#        benchling.assay_results.create([row])
+        #        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
+        row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(cs2_stats),
+                                project_id=result_project_id)
+        #        benchling.assay_results.create([row])
 
         pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
@@ -320,9 +332,10 @@ def main():
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     sp1_info["cut"] - 1, sp1_info["cut"], len(wt_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                    stdout=error_fh, shell=True)
+                stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
+                os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=error_fh, stdout=error_fh,
+                            shell=True)
         else:
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s "
@@ -338,19 +351,21 @@ def main():
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                    stdout=error_fh, shell=True)
+                stdout=error_fh, shell=True)
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Scaffold-incorporated --plot_center %s "
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                    stdout=error_fh, shell=True)
+                stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=error_fh, stdout=error_fh,
-                    shell=True)
+                os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=error_fh,
+                            stdout=error_fh,
+                            shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=error_fh, stdout=error_fh,
-                    shell=True)
+                os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=error_fh,
+                            stdout=error_fh,
+                            shell=True)
 
         elif aaan_id and (not aaan_id.startswith("SG")):
             subprocess.call(
@@ -358,13 +373,14 @@ def main():
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                    stdout=error_fh, shell=True)
+                stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=error_fh, stdout=error_fh,
-                    shell=True)
+                            shell=True)
 
         error_fh.close()
     amplicon_fh.close()
+
 
 if __name__ == "__main__":
     main()
