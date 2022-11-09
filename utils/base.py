@@ -23,3 +23,6 @@ result_project_id = os.getenv('AMPSEQ_RESULTS_PROJECT_ID')
 
 bs_api_server = os.getenv('apiServer')
 bs_access_token = os.getenv('accessToken')
+
+aws_ses_id = os.getenv('AWS_SES_ID')
+aws_ses_password = os.getenv('AWS_SES_PASSWORD')
