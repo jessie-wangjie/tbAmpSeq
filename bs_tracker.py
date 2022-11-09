@@ -24,8 +24,8 @@ def send_email(run_id, samples):
         print("Error: %s!\n\n" % exception)
 
 
-if __name__ == '__main__':
-    current_run = {"TB_MISEQ_000071":"https://api.basespace.illumina.com/v2/runs/247010831"}
+def main():
+    current_run = {"TB_MISEQ_000071": "https://api.basespace.illumina.com/v2/runs/247010831"}
     while True:
         response = requests.get(
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=5', stream=True)
@@ -40,9 +40,8 @@ if __name__ == '__main__':
                 for item in response.json().get("Items"):
                     project = item.get("BioSample").get("DefaultProject").get("Name")
                     samples[project] = item.get("BioSample").get("DefaultProject").get("Id")
-                print(samples)
-                send_email(run["ExperimentName"], samples.keys())
+                # send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
+                return samples
 
-        print(current_run)
         time.sleep(18000)
