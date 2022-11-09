@@ -17,7 +17,7 @@ def send_email(run_id, samples):
         server = smtplib.SMTP('email-smtp.us-east-1.amazonaws.com', 587)
         server.ehlo()
         server.starttls()
-        server.login("jwang@tome.bio", "wquyfnwwpbygpxmt")
+        server.login(aws_ses_id, aws_ses_password)
         server.sendmail(sender, receivers, message)
         print("Successfully sent email")
     except Exception as exception:
