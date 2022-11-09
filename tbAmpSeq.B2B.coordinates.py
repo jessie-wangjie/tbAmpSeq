@@ -90,8 +90,8 @@ def main():
 
         # get r1 and r2 fastq
         try:
-            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
-            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
+            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")
+            print(r1)
         except:
             raise Exception("fastq files for " + name + "don't exist.")
 
