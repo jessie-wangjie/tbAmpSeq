@@ -45,6 +45,6 @@ if __name__ == '__main__':
 
                 # download fastq files from basespace
                 for s, id in samples.items():
-                    subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s))
+                    subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s), shell=True)
 
         time.sleep(18000)
