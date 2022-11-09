@@ -89,6 +89,9 @@ def main():
         genome_fa = "/home/ubuntu/annotation/2bit/" + genome_build + ".2bit"
 
         # get r1 and r2 fastq
+        try:
+            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
+            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
         if target_strand == "antisense":
             r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
             r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
