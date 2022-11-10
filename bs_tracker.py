@@ -25,7 +25,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {"TB_MISEQ_000071": "https://api.basespace.illumina.com/v2/runs/247010831"}
+    current_run = {}
     while True:
         response = requests.get(
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=5', stream=True)
@@ -40,7 +40,7 @@ if __name__ == '__main__':
                 for item in response.json().get("Items"):
                     project = item.get("BioSample").get("DefaultProject").get("Name")
                     samples[project] = item.get("BioSample").get("DefaultProject").get("Id")
-                # send_email(run["ExperimentName"], samples.keys())
+                send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
 
                 # download fastq files from basespace
@@ -48,4 +48,4 @@ if __name__ == '__main__':
                     subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s), shell=True)
                     subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.py -m %s -i %s -p 8 -o %s" % (s, s, s + "_tbAmpSeq"), shell=True)
 
-        time.sleep(18000)
+        time.sleep(7200)
