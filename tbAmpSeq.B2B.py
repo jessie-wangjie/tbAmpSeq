@@ -149,7 +149,7 @@ def main():
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--bam_output --needleman_wunsch_gap_extend 0 %s" % (
+                "--needleman_wunsch_gap_extend 0 %s" % (
                     r1, r2, wt_amplicon, name, output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
         elif aaan_id.startswith("AN"):
