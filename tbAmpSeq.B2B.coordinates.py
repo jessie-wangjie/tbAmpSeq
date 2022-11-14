@@ -90,6 +90,13 @@ def main():
                 "join target_gene on target_gene.id = p1.gene_or_target_name "
                 "where primer_pair.file_registry_id$ = %s", [pp_id])
             target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
+        else:
+            cur.execute(
+                "select target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from dna_oligo "
+                "join primer on primer.id=dna_oligo.id "
+                "join target_gene on target_gene.id = primer.gene_or_target_name "
+                "where dna_oligo.bases = %s", [fp_seq])
+            target_chr, genome_build, target_strand = cur.fetchone()
 
         # reference genome
         genome_build = re.sub(".*/", "", genome_build)
