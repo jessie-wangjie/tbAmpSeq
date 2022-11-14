@@ -103,6 +103,12 @@ def main():
         reference_index = "/home/ubuntu/annotation/bwa_index/" + genome_build
         genome_fa = "/home/ubuntu/annotation/2bit/" + genome_build + ".2bit"
 
+        if fp_seq:
+            fp_info = align_primer(fp_seq, reference_index, target_chr, "CACTCTTTCCCTACACGACGCTCTTCCGATCT")
+            rp_info = align_primer(rp_seq, reference_index, target_chr, "GGAGTTCAGACGTGTGCTCTTCCGATCT")
+            wt_start = fp_info["start"]
+            wt_end = rp_info["end"]
+
         # get r1 and r2 fastq
         if target_strand == "antisense":
             r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
