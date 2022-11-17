@@ -35,7 +35,7 @@ if __name__ == "__main__":
         x='sample_name:O', y='value:Q', color='key:N').transform_filter(selector)
 
     chart = heatmap | bar
-    chart.save(tbid + "report.json")
+    chart.save(tbid + ".report.json")
 
     # Create test directories
     TEST_DIR = "test_workflow"
