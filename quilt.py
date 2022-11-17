@@ -1,17 +1,8 @@
 import argparse
 import glob
-import os
+import altair as alt
 import pandas as pd
 import quilt3
-import altair as alt
-
-
-def chart_heatmap(df, opts):
-    file = CSV.split(".")[0]
-    title = f'{opts.z}_{file}'
-    return alt.Chart(df, title=title).mark_circle(size=100).encode(x=opts.y, y=opts.x,
-                                                                   color=alt.Color(opts.z, scale=alt.Scale(scheme=opts.color)),
-                                                                   tooltip=list(df.columns)).properties(width=550)
 
 if __name__ == "__main__":
 
@@ -25,8 +16,17 @@ if __name__ == "__main__":
     files = glob.glob(tbid + "/*/CRISPResso_stats.json")
     stats = pd.DataFrame()
     for s in files:
-        stats = pd.concat([stats, pd.read_json(s,orient="index").T])
-    print(stats)
+        stats = pd.concat([stats, pd.read_json(s, orient="index").T])
+    stats["x"] = stats["well"].str.get(-1)
+    stats["y"] = stats["well"].str.get(0)
+
+    # draw plate plots
+    chart = alt.Chart(stats).mark_circle().encode(
+        x='x:O',
+        y='y:O',
+        size='beacon_placement_percentage:Q'
+    )
+    chart.save(tbid + "plate.json")
 
     # Create test directories
     TEST_DIR = "test_workflow"
@@ -36,12 +36,24 @@ if __name__ == "__main__":
 #    p = quilt3.Package()
 #    p.set("data.csv", "s3://tb-ngs-quilt/CRISPResso_on_9/CRISPResso_quantification_of_editing_frequency.txt",
 #      meta={"type": "csv"})
+    #
 
-#    top_hash = p.build("jwang/test_data")
+    # edit a preexisting package
+    quilt3.Package.install(
+        "jwang/test_data",
+        "s3://tb-ngs-quilt",
+    )
+    p = quilt3.Package.browse('jwang/test_data')
 
-#    p.push(
-#        "jwang/test_data",
-#        "s3://tb-ngs-quilt",
-#        message="Updated version my package"
-#    )
+    # adding data
+    p.set(tbid + "plate.json")
+
+    # Saving a package manifest locally
+    top_hash = p.build("jwang/test_data")
+    # Pushing a package to a remote registry
+    p.push(
+        "jwang/test_data",
+        "s3://tb-ngs-quilt",
+        message="Updated version my package"
+    )
 
