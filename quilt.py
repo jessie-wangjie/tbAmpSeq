@@ -56,14 +56,14 @@ if __name__ == "__main__":
     p = quilt3.Package.browse('jwang/test_data')
 
     # adding data
-    p.set(tbid + ".report.json")
+#    p.set(tbid + ".report.json")
 
     # Saving a package manifest locally
-    top_hash = p.build("jwang/test_data")
+#    top_hash = p.build("jwang/test_data")
     # Pushing a package to a remote registry
-    p.push(
-        "jwang/test_data",
-        "s3://tb-ngs-quilt",
-        message="Updated version my package"
-    )
+#    p.push(
+#        "jwang/test_data",
+#        "s3://tb-ngs-quilt",
+#        message="Updated version my package"
+#    )
 
