@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     data = pd.DataFrame()
     for s in files:
-        stats = pd.concat([data, pd.read_json(s, orient="index").T])
+        data = pd.concat([data, pd.read_json(s, orient="index").T])
     data["x"] = data["well"].str.get(-1)
     data["y"] = data["well"].str.get(0)
 
