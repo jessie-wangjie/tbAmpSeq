@@ -47,7 +47,8 @@ def main():
     # Read in basespace project id
     cur.execute(
         "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq, "
-        "project_name, experimenter, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, ampseq_project_name "
+        "project_name, experimenter, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, ampseq_project_name, "
+        "plate, well_position "
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaan_id "
         "left join registry_entity as re2 on re2.id = pp_id "
@@ -67,7 +68,8 @@ def main():
     for record in cur.fetchall():
         cs2_stats = {}
         name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats["sample_name"], \
-        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_prep_id"], cs2_stats["ampseq_project_name"] = record
+        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_prep_id"], cs2_stats["ampseq_project_name"], \
+        plate, well = record
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["aaan_id"] = aaan_id
         cs2_stats["ppid"] = pp_id
@@ -143,7 +145,7 @@ def main():
         sp1_info = {}
 
         # Beacon amplicon
-        # atgRNA-ngRNA
+        # control
         if not aaan_id:
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT "
@@ -152,6 +154,7 @@ def main():
                 "--needleman_wunsch_gap_extend 0 %s" % (
                     r1, r2, wt_amplicon, name, output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
+        # atgRNA-ngRNA
         elif aaan_id.startswith("AN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
             cur.execute("select sp.bases, beacon.bases, ng.bases, atgrna.rt_coordinate, atg.bases from atg_ng "
@@ -322,6 +325,7 @@ def main():
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
 
+        # sgRNA
         elif aaan_id.startswith("SG"):
             cur.execute("select dna_oligo.bases from sgrna "
                         "join dna_oligo on dna_oligo.id=sgrna.spacer "
@@ -349,6 +353,8 @@ def main():
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(cs2_stats), project_id=result_project_id)
 #        benchling.assay_results.create([row])
 
+        cs2_stats["plate"] = plate
+        cs2_stats["well"] = well
         pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
         # plot
