@@ -25,7 +25,7 @@ if __name__ == "__main__":
     files = glob.glob(tbid + "/*/CRISPResso_stats.json")
     stats = pd.DataFrame()
     for s in files:
-        stats = pd.concat([stats, pd.read_json(s,orient="index")])
+        stats = pd.concat([stats, pd.read_json(s,orient="index").T])
     print(stats)
 
     # Create test directories
