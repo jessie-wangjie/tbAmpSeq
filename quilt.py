@@ -24,10 +24,10 @@ if __name__ == "__main__":
 
     # plots
     selector = alt.selection_single(empty='all', fields=['sample_name'])
-    base = alt.Chart(data).properties(width=250, height=250)
+    base = alt.Chart(data)
 
     # draw plate plots
-    heatmap = base.mark_circle().encode(x='x:O', y='y:O', size='beacon_placement_percentage:Q',
+    heatmap = base.mark_circle().properties(width=250, height=250).encode(x='x:O', y='y:O', size='beacon_placement_percentage:Q',
                                         color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'))).add_selection(selector)
 
     # draw bar plots
