@@ -31,8 +31,11 @@ if __name__ == "__main__":
                                         color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'))).add_selection(selector)
 
     # draw bar plots
-    bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"], as_=['beacon', 'percent']).mark_bar().encode(
-        x='beacon:N', y='percent:Q', column='sample_name:O', color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
+#    bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"], as_=['beacon', 'percent']).mark_bar().encode(
+#        x='beacon:N', y='percent:Q', column='sample_name:O', color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
+
+    bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"],
+                        as_=["key", "value"]).mark_bar().encode(x="key:N", y="value:Q", color="key:N")
 
     chart = heatmap | bar
     chart.save(tbid + ".report.json")
