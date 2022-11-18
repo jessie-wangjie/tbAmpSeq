@@ -27,8 +27,8 @@ if __name__ == "__main__":
     base = alt.Chart(data)
 
     # draw plate plots
-    heatmap = base.mark_circle().properties(width=250, height=250).encode(x='x:O', y='y:O', size='beacon_placement_percentage:Q',
-                                        color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'))).add_selection(selector)
+#    heatmap = base.mark_circle().properties(width=250, height=250).encode(x='x:O', y='y:O', size='beacon_placement_percentage:Q',
+#                                        color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'))).add_selection(selector)
 
     # draw bar plots
 #    bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"], as_=['beacon', 'percent']).mark_bar().encode(
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"],
                         as_=["key", "value"]).mark_bar().encode(x="key:N", y="value:Q", color="key:N")
 
-    chart = heatmap | bar
+    chart = bar
     chart.save(tbid + ".report.json")
 
     # Create test directories
