@@ -41,7 +41,7 @@ if __name__ == "__main__":
         x='beacon:N', y='percent:Q', column='sample_name:O',
         color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
 
-    chart = alt.hconcat(heatmap, bar).resolve_legend(color="independent")
+    chart = alt.hconcat(heatmap, bar).resolve_scale(color="independent")
     chart.save(tbid + ".report.json")
 
     # Create test directories
