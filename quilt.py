@@ -7,7 +7,8 @@ import quilt3
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Generate quilt package', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description='Generate quilt package',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-m", help='TB id')
 
     args = parser.parse_args()
@@ -27,17 +28,20 @@ if __name__ == "__main__":
     base = alt.Chart(data)
 
     # draw plate plots
-#    heatmap = base.mark_circle().properties(width=250, height=250).encode(x='x:O', y='y:O', size='beacon_placement_percentage:Q',
-#                                        color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'))).add_selection(selector)
+    heatmap = base.mark_circle().properties(width=250, height=250).encode(x='x:O', y='y:O',
+                                                                          size='beacon_placement_percentage:Q',
+                                                                          color=alt.condition(selector, 'sample_name:O',
+                                                                                              alt.value(
+                                                                                                  'lightgray'))).add_selection(
+        selector)
 
     # draw bar plots
-#    bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"], as_=['beacon', 'percent']).mark_bar().encode(
-#        x='beacon:N', y='percent:Q', column='sample_name:O', color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
-
     bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"],
-                        as_=["key", "value"]).mark_bar().encode(x="key:N", y="value:Q", color="key:N")
+                              as_=['beacon', 'percent']).mark_bar().encode(
+        x='beacon:N', y='percent:Q', column='sample_name:O',
+        color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
 
-    chart = bar
+    chart = alt.hconcat(heatmap, bar).resolve_legend(color="independent")
     chart.save(tbid + ".report.json")
 
     # Create test directories
@@ -45,9 +49,9 @@ if __name__ == "__main__":
     SUB_DIR = "subdir"
 
     # create test data
-#    p = quilt3.Package()
-#    p.set("data.csv", "s3://tb-ngs-quilt/CRISPResso_on_9/CRISPResso_quantification_of_editing_frequency.txt",
-#      meta={"type": "csv"})
+    #    p = quilt3.Package()
+    #    p.set("data.csv", "s3://tb-ngs-quilt/CRISPResso_on_9/CRISPResso_quantification_of_editing_frequency.txt",
+    #      meta={"type": "csv"})
 
     # edit a preexisting package
     quilt3.Package.install(
@@ -61,10 +65,9 @@ if __name__ == "__main__":
 
     # Saving a package manifest locally
 #    top_hash = p.build("jwang/test_data")
-    # Pushing a package to a remote registry
+# Pushing a package to a remote registry
 #    p.push(
 #        "jwang/test_data",
 #        "s3://tb-ngs-quilt",
 #        message="Updated version my package"
 #    )
-
