@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     # draw bar plots
     bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"], as_=['beacon', 'percent']).mark_bar().encode(
-        x='beacon:N', y='percent:Q', color='beacon', column='sample_name:O')
+        x='beacon:N', y='percent:Q', color='beacon:N', column='sample_name:O')
         # color=alt.condition(selector, alt.ColorValue("steelblue"), alt.ColorValue("grey"))).add_selection(selector)
 
     chart = heatmap | bar
