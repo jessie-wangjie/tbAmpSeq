@@ -28,12 +28,11 @@ if __name__ == "__main__":
 
     # draw plate plots
     heatmap = base.mark_circle().encode(x='x:O', y='y:O', size='beacon_placement_percentage:Q',
-                                        color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'), legend=None)).add_selection(selector)
+                                        color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'))).add_selection(selector)
 
     # draw bar plots
     bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"], as_=['beacon', 'percent']).mark_bar().encode(
-        x='sample_name:O', y='percent:Q', color=alt.Color('beacon:N'))
-        # color=alt.condition(selector, alt.ColorValue("steelblue"), alt.ColorValue("grey"))).add_selection(selector)
+        x='sample_name:O', y='percent:Q', color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
 
     chart = heatmap | bar
     chart.save(tbid + ".report.json")
