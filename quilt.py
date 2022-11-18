@@ -23,7 +23,7 @@ if __name__ == "__main__":
     data["y"] = data["well"].str.get(0)
 
     # plots
-    selector = alt.selection(empty='all', fields=['sample_name'])
+    selector = alt.selection_single(empty='all', fields=['sample_name'])
     base = alt.Chart(data).properties(width=250, height=250).add_selection(selector)
 
     # draw plate plots
