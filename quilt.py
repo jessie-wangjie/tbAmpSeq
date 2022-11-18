@@ -29,11 +29,8 @@ if __name__ == "__main__":
 
     # draw plate plots
     heatmap = base.mark_circle().properties(width=250, height=250).encode(x='x:O', y='y:O',
-                                                                          size='beacon_placement_percentage:Q',
-                                                                          color=alt.condition(selector, 'sample_name:O',
-                                                                                              alt.value(
-                                                                                                  'lightgray'))).add_selection(
-        selector)
+                size='beacon_placement_percentage:Q',
+                color=alt.condition(selector, 'sample_name:O',alt.value('lightgray')), legend=None).add_selection(selector)
 
     # draw bar plots
     bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"],
