@@ -23,7 +23,7 @@ if __name__ == "__main__":
     data["y"] = data["well"].str.get(0)
 
     # plots
-    selector = alt.selection_single(empty='all', fields=['sample_name'])
+    selector = alt.selection(empty='all', fields=['sample_name'])
     base = alt.Chart(data).properties(width=250, height=250).add_selection(selector)
 
     # draw plate plots
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     # draw bar plots
     bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"]).mark_bar().encode(
-        x='sample_name:O', y='value:Q', color='key:N').transform_filter(selector)
+        x='sample_name:O', y='value:Q', color='key:N').add_selection(selector)
 
     chart = heatmap | bar
     chart.save(tbid + ".report.json")
@@ -54,14 +54,14 @@ if __name__ == "__main__":
     p = quilt3.Package.browse('jwang/test_data')
 
     # adding data
-    p.set(tbid + ".report.json")
+    # p.set(tbid + ".report.json")
 
     # Saving a package manifest locally
-    top_hash = p.build("jwang/test_data")
+#    top_hash = p.build("jwang/test_data")
     # Pushing a package to a remote registry
-    p.push(
-        "jwang/test_data",
-        "s3://tb-ngs-quilt",
-        message="Updated version my package"
-    )
+#    p.push(
+#        "jwang/test_data",
+#        "s3://tb-ngs-quilt",
+#        message="Updated version my package"
+#    )
 
