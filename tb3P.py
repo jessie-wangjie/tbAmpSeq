@@ -58,7 +58,7 @@ def get_seq(twobit_file, chromosome, start, end, strand):
     return seq.upper()
 
 
-def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand="", attR2):
+def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand="", attR2="CTCC"):
     beacon = seq1.upper()
     if sp1_strand == "+":
         beacon = reverse_complement(seq1)
