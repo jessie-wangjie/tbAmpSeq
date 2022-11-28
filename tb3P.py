@@ -280,7 +280,7 @@ def main():
             subprocess.call(
                 "flash %s %s --min-overlap 10 --max-overlap 100 --allow-outies -z -d %s" % (R2, R1, preprocess_output),
                 shell=True, stderr=error_fh, stdout=error_fh)
-            CRISPRessoShared.force_merge_pairs(os.path.join(preprocess_output, "out.notCombined_1.fastq.gz"),os.path.join(preprocess_output, "out.notCombined_2.fastq.gz"),os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"))
+            CRISPRessoShared.force_merge_pairs(os.path.join(preprocess_output, "out.notCombined_2.fastq.gz"),os.path.join(preprocess_output, "out.notCombined_1.fastq.gz"),os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"))
             subprocess.call("zcat %s %s | gzip -c > %s" %(os.path.join(preprocess_output, "out.extendedFrags.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged.fastq.gz")), shell=True)
             subprocess.call("cp %s %s" %(os.path.join(preprocess_output, "out.forcemerged.fastq.gz"), os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")), shell=True)
         else:
