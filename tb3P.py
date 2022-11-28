@@ -108,7 +108,7 @@ def main():
         if sample["Sample name"] == "PROTOCOLS":
             break
 
-        if sample["Sample name"] and sname != sample["Sample name"]:
+        if sname and sname != sample["Sample name"]:
             continue
 
         if pd.isna(sample["Sample name"]):
