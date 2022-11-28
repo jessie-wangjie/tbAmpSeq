@@ -9,6 +9,7 @@ import glob
 import os
 import re
 import subprocess
+
 import pandas as pd
 
 
@@ -87,13 +88,15 @@ def main():
     parser.add_argument("-p", help='Number of CPUs to use', default=4)
     parser.add_argument("-o", help='Output folder', default=4)
     parser.add_argument("-s", help='specific sample', default=None)
+    parser.add_argument("-cs2", help='CRISPRESSO2 parameters', default="")
 
     args = parser.parse_args()
     fastq = args.i
     ncpu = int(args.p)
     info = pd.read_excel(args.m, skiprows=22)
     output = args.o
-    name = args.s
+    sname = args.s
+    cs2 = args.cs2
 
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
@@ -105,8 +108,12 @@ def main():
         if sample["Sample name"] == "PROTOCOLS":
             break
 
+        if sample["Sample name"] and sname != sample["Sample name"]:
+            continue
+
         if pd.isna(sample["Sample name"]):
             continue
+
 
         wt_amplicon = ""
         beacon_amplicon = ""
@@ -365,30 +372,31 @@ def main():
             RP2_fastq = os.path.join(preprocess_output, "RP2.fastq.gz")
             noRP_fastq = os.path.join(preprocess_output, "noRP.fastq.gz")
             if gene_strand == "-":
-                fq = subprocess.call(
+                subprocess.call(
                     "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
-                    reverse_complement(FP_info["seq"]), RP1_fastq, unmapped_fastq, reverse_complement(RP2_info["seq"]),
-                    noRP_fastq, RP2_fastq), shell=True, stdout=error_fh, stderr=error_fh)
+                        reverse_complement(FP_info["seq"]), RP1_fastq, unmapped_fastq,
+                        reverse_complement(RP2_info["seq"]),
+                        noRP_fastq, RP2_fastq), shell=True, stdout=error_fh, stderr=error_fh)
             else:
                 if sample["Reverse Primer 2 link to Illumina Adapater"] == "P7":
-                    fq = subprocess.call(
+                    subprocess.call(
                         "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
                         reverse_complement(RP1_info["seq"]), RP1_fastq, unmapped_fastq,
                         reverse_complement(RP2_info["seq"]), noRP_fastq, RP2_fastq), shell=True, stdout=error_fh,
                         stderr=error_fh)
                 else:
-                    fq = subprocess.call(
+                    subprocess.call(
                         "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -g %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -g %s --action=none --untrimmed-output %s -o %s -" % (
                         FP_info["seq"], RP1_fastq, unmapped_fastq, RP2_info["seq"], noRP_fastq, RP2_fastq), shell=True,
                         stdout=error_fh, stderr=error_fh)
             #            subprocess.call("ls %s" %(RP1_fastq))
             subprocess.call(
-                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s" % (
-                RP1_fastq, wt_amplicon + "," + beacon_amplicon, spacer_info["seq"], name + "_WT_Beacon", output, ncpu),
+                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s" % (
+                RP1_fastq, wt_amplicon + "," + beacon_amplicon, spacer_info["seq"], name + "_WT_Beacon", output, ncpu, cs2),
                 stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call(
-                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name Cargo --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s" % (
-                RP2_fastq, cargo_amplicon, name + "_Cargo", output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
+                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name Cargo --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s" % (
+                RP2_fastq, cargo_amplicon, name + "_Cargo", output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
             if type == "single_atg":
                 subprocess.call(
