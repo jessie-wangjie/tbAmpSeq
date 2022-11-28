@@ -9,6 +9,7 @@ import glob
 import os
 import re
 import subprocess
+
 import pandas as pd
 
 
@@ -57,7 +58,7 @@ def get_seq(twobit_file, chromosome, start, end, strand):
     return seq.upper()
 
 
-def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
+def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand="", attR2):
     beacon = seq1.upper()
     if sp1_strand == "+":
         beacon = reverse_complement(seq1)
@@ -67,7 +68,7 @@ def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
             beacon2 = reverse_complement(seq2)
         idx = beacon.find(beacon2[0:6])
         beacon = beacon[0:idx] + beacon2
-    idx = beacon.find("CTCC")
+    idx = beacon.find(attR2)
     attL1 = beacon[:idx]
     attR2 = beacon[idx:]
     return {"seq": beacon, "attL1": attL1, "attR2": attR2}
@@ -115,13 +116,22 @@ def main():
         gene_strand = sample["direction of transcription of target gene"]
         name = sample["MiSeq samplesheet name (no space, no underscore)"]
 
+        if pd.notna(sample["attR2"]):
+            attR2 = sample["attR2"]
+        else:
+            attR2 = "CTCC"
+
         # reference genome
         reference_index = "/home/ubuntu/annotation/bwa_index/" + re.sub(".* ", "", sample["Genome Build"])
         genome_fa = "/home/ubuntu/annotation/2bit/" + re.sub(".* ", "", sample["Genome Build"]) + ".2bit"
         if "Payload ID" in sample and pd.notna(sample["Payload ID"]):
             cargo_fa = "/home/ubuntu/annotation/2bit/" + sample["Payload ID"] + ".2bit"
-            attL2_info = align_primer("CTCAGTGGTGTACGGTACAAA",
-                                      "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"])
+            if pd.notna(sample["attL2"]):
+                attL2_info = align_primer(sample["attL2"],
+                                          "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"])
+            else:
+                attL2_info = align_primer("CTCAGTGGTGTACGGTACAAA",
+                                          "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"])
 
         # get R1 and R2
         print(name)
@@ -175,7 +185,7 @@ def main():
             ng_info = get_cut_site(wt_amplicon, sample["atgRNA2 spacer sequence"])
             if pd.notna(sample["atgRNA1 RT seq"]):
                 rt_info = get_cut_site(wt_amplicon, sample["atgRNA1 RT seq"])
-            beacon = get_beacon_seq(sample["atgRNA1 beacon seq"], spacer_info["strand"])
+            beacon = get_beacon_seq(sample["atgRNA1 beacon seq"], spacer_info["strand"],attR2=attR2)
             # beacon seq
             beacon_amplicon = wt_amplicon[0:spacer_info["cut"]] + beacon["seq"] + wt_amplicon[spacer_info["cut"]:]
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
@@ -206,7 +216,7 @@ def main():
             spacer_info = get_cut_site(wt_amplicon, sample["atgRNA1 spacer sequence"])
             spacer2_info = get_cut_site(wt_amplicon, sample["atgRNA2 spacer sequence"])
             beacon = get_beacon_seq(sample["atgRNA1 beacon seq"], spacer_info["strand"], sample["atgRNA2 beacon seq"],
-                                    spacer2_info["strand"])
+                                    spacer2_info["strand"],attR2=attR2)
             print(beacon)
             # beacon seq
             beacon_amplicon = wt_amplicon[0:spacer_info["cut"]] + beacon["seq"] + wt_amplicon[spacer2_info["cut"]:]
