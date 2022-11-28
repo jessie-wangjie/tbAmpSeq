@@ -6,7 +6,6 @@ Input from Excel
 
 import argparse
 import glob
-from utils.common_functions import *
 import pandas as pd
 
 
