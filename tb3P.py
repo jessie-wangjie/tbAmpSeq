@@ -6,10 +6,7 @@ Input from Excel
 
 import argparse
 import glob
-import os
-import re
-import subprocess
-
+from utils.common_functions import *
 import pandas as pd
 
 
@@ -24,7 +21,7 @@ def align_primer(seq, index, adapter=""):
     bwa_out = subprocess.Popen("echo -e '%s' | bwa fastmap %s -" % (fastq, index), stdout=subprocess.PIPE, shell=True)
     pos = subprocess.check_output(["grep", "EM"], stdin=bwa_out.stdout).split()[4:]
     for p in pos:
-        if "alt" not in p.decode():
+        if "chr7" in p.decode():
             print(p.decode())
             m = re.match(r"(.*):([+|-])(\d+)", p.decode())
             break
