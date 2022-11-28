@@ -23,7 +23,7 @@ def align_primer(seq, index, adapter=""):
     bwa_out = subprocess.Popen("echo -e '%s' | bwa fastmap %s -" % (fastq, index), stdout=subprocess.PIPE, shell=True)
     pos = subprocess.check_output(["grep", "EM"], stdin=bwa_out.stdout).split()[4:]
     for p in pos:
-        if "chr7" in p.decode():
+        if "alt" not in p.decode() and "chr11" not in p.decode():
             print(p.decode())
             m = re.match(r"(.*):([+|-])(\d+)", p.decode())
             break
