@@ -22,6 +22,8 @@ def get_row_around_cut_assymetrical(row, start, end):
 
 
 def main():
+    pd.set_option('display.max_rows', None)
+
     parser = argparse.ArgumentParser(description="Summarize the INDELs in the quantification windows")
     parser.add_argument("-f", "--CRISPResso2_folder", type=str,
                         help="CRISPResso output folder containing finished analysis", required=True)
@@ -71,6 +73,8 @@ def main():
         g = df.groupby("classification").sum()
         print("\n\n")
         print(g)
+        gg = df.groupby("n_indel").sum()
+        print(gg)
         for i in g.index:
             stats[i] = g.loc[i]["#Reads"]
             if i == "modified":
