@@ -376,6 +376,7 @@ def main():
             RP1_fastq = os.path.join(preprocess_output, "RP1.fastq.gz")
             RP2_fastq = os.path.join(preprocess_output, "RP2.fastq.gz")
             noRP_fastq = os.path.join(preprocess_output, "noRP.fastq.gz")
+            RP2_fastq = noRP_fastq
             if gene_strand == "-":
                 subprocess.call(
                     "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
