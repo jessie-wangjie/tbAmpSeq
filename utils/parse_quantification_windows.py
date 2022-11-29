@@ -73,7 +73,7 @@ def main():
         print("\n\n")
         print(g["#Reads"])
         gg = df.groupby("n_indel").sum()
-        g["n_indel"] = gg
+        g["n_indel"] = [gg["n_indel"]]
         for i in g.index:
             stats[i] = g.loc[i]["#Reads"]
             if i == "modified":
