@@ -69,12 +69,11 @@ def main():
 
         df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))),
                           axis=1, result_type='expand')
-        print(df)
         g = df.groupby("classification").sum()
         print("\n\n")
-        print(g)
+        print(g["#Reads"])
         gg = df.groupby("n_indel").sum()
-        print(gg)
+        g["n_indel"] = gg
         for i in g.index:
             stats[i] = g.loc[i]["#Reads"]
             if i == "modified":
