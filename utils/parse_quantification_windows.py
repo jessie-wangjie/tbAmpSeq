@@ -5,10 +5,11 @@ Based on CRISPResso2
 
 import argparse
 import os
-import pandas as pd
 import zipfile
-from CRISPResso2 import CRISPRessoShared
+
+import pandas as pd
 from CRISPResso2 import CRISPRessoCOREResources
+from CRISPResso2 import CRISPRessoShared
 
 
 def arrstr_to_arr(val):
@@ -118,12 +119,14 @@ def get_modified_in_quantification_window(row, include_idx):
     deletion = row["#Reads"] * (payload["deletion_n"] > 0)
     substitution = row["#Reads"] * (payload["substitution_n"] > 0)
     indels = row["#Reads"] * ((payload["insertion_n"] > 0) | (payload["deletion_n"] > 0))
+    n_indel = payload["insertion_n"] + payload["deletion_n"]
     if set(include_idx).issubset(payload["deletion_positions"]):
         whole_window_deletion = row["#Reads"]
     else:
         whole_window_deletion = 0
     return {"#Reads": row["#Reads"], "classification": classification, "indels": indels, "insertion": insertion,
-            "deletion": deletion, "substitution": substitution, "whole_window_deletion": whole_window_deletion}
+            "deletion": deletion, "substitution": substitution, "whole_window_deletion": whole_window_deletion,
+            "n_indel": n_indel}
 
 
 if __name__ == "__main__":
