@@ -69,7 +69,7 @@ def main():
 
         df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))),
                           axis=1, result_type='expand')
-        g = df.loc[:, df.columns != "n_indel"].groupby("classification").sum()
+        g = df.groupby("classification").sum()
         print(g)
         gg = df.groupby(["classification","n_indel"]).sum()
         g["modified", "n_indel"] = gg.loc["modified", "#Reads"]
