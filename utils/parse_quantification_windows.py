@@ -71,7 +71,7 @@ def main():
                           axis=1, result_type='expand')
         g = df.groupby("classification").sum()
         print("\n\n")
-        print(g["#Reads"])
+        print(g)
         gg = df.groupby("n_indel").sum()
         g["n_indel"] = [gg["n_indel"]]
         for i in g.index:
