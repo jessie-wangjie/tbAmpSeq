@@ -376,7 +376,6 @@ def main():
             RP1_fastq = os.path.join(preprocess_output, "RP1.fastq.gz")
             RP2_fastq = os.path.join(preprocess_output, "RP2.fastq.gz")
             noRP_fastq = os.path.join(preprocess_output, "noRP.fastq.gz")
-            RP2_fastq = noRP_fastq
             if gene_strand == "-":
                 subprocess.call(
                     "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
@@ -400,6 +399,7 @@ def main():
                 "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s" % (
                 RP1_fastq, wt_amplicon + "," + beacon_amplicon, spacer_info["seq"], name + "_WT_Beacon", output, ncpu, cs2),
                 stderr=error_fh, stdout=error_fh, shell=True)
+            RP2_fastq = noRP_fastq
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name Cargo --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s" % (
                 RP2_fastq, cargo_amplicon, name + "_Cargo", output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
