@@ -69,7 +69,7 @@ def main():
 
         df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))),
                           axis=1, result_type='expand')
-        g = df[:, df.columns != "n_indel"].groupby("classification").sum()
+        g = df.loc[:, df.columns != "n_indel"].groupby("classification").sum()
         print(g)
         gg = df.groupby(["classification","n_indel"]).sum()
         print(gg)
