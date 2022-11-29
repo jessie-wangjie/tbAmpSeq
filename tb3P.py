@@ -255,7 +255,7 @@ def main():
 
                 # define quantification window
                 cargo_qw1 = "Cargo:spacer_cut:" + str(spacer_info["cut"]) + "-" + str(spacer_info["cut"] + 1) + ":0"
-                cargo_qw2 = "Cargo:AttL1:" + str(spacer_info["cut"] + 1) + "-" + str(spacer_info["cut"] + 30) + ":0"
+                cargo_qw2 = "Cargo:AttL1:" + str(spacer_info["cut"] + 1) + "-" + str(spacer_info["cut"] + len(beacon["attL1"])) + ":0"
             else:
                 cargo_amplicon = get_seq(cargo_fa, RP2_info["chr"], RP2_info["start"], attL2_info["start"] - 1, "+") + \
                                  beacon["attR2"] + wt_amplicon[spacer2_info["cut"]:]
