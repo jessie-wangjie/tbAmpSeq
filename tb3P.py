@@ -311,6 +311,9 @@ def main():
                                 stdout=error_fh)
             subprocess.call("samtools view -f4 %s | cut -f1 >> %s" % (plasmid_sam, unmapped_id), shell=True,
                             stderr=error_fh, stdout=error_fh)
+            subprocess.call("bowtie2 --local -p 8 -x %s -U %s -S %s" % (
+            "/home/ubuntu/annotation/bowtie2_index/" + sample["Payload ID"], input_file, plasmid_sam), shell=True,
+                            stderr=error_fh, stdout=error_fh)
             subprocess.call(
                 "samtools view -h -N %s %s | samtools fastq -0 %s -" % (unmapped_id, plasmid_sam, unmapped_fastq),
                 shell=True, stderr=error_fh, stdout=error_fh)
