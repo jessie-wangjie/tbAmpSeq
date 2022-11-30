@@ -109,7 +109,7 @@ def main():
                 sep="\t", header=True, index=False, na_rep=0)
 
     pd.DataFrame(qw_stats).to_csv(args.output_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
-                                  sep="\t", header=True, index=False, na_rep=0)
+                                  sep="\t", header=False, index=True, na_rep=0)
 
     pd.Series(b_json).to_json(args.output_folder + "/CRISPResso_stats.json")
 
