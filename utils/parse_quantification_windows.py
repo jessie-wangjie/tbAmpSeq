@@ -101,9 +101,9 @@ def main():
             else:
                 b_json["Beacon Sub Read Num"] = 0
             b_json["Beacon Sub Percentage"] = b_json["Beacon Sub Read Num"] / b_json["Beacon Aligned Read Num"]
-            gg = df.groupby(["classification", "n_indel"]).cumsum()
+            gg = df.groupby(["classification", "n_indel"]).sum()
             print(gg)
-            print(gg.loc["modified", "#Reads"])
+            print(gg.loc["modified", "#Reads"].cumsum())
 
 
     pd.DataFrame(qw_stats).to_csv(args.output_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
