@@ -104,7 +104,9 @@ def main():
             gg = df.groupby(["classification", "n_indel"]).sum()
             print(gg)
             print(gg.loc["modified", "#Reads"].cumsum())
-
+            pd.DataFrame(gg.loc["modified", "#Reads"]).to_csv(
+                args.output_folder + "/CRISPResso_quantification_of_editing_frequency.beacon.txt",
+                sep="\t", header=True, index=False, na_rep=0)
 
     pd.DataFrame(qw_stats).to_csv(args.output_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
                                   sep="\t", header=True, index=False, na_rep=0)
