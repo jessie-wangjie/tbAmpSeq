@@ -72,9 +72,8 @@ def main():
         g = df.groupby("classification").sum()
         print(g)
         gg = df.groupby(["classification","n_indel"]).sum()
-        print(g.loc["modified", "n_indel"])
-        g.loc["modified", "n_indel"] = [gg.loc["modified", "#Reads"].T]
-        print(g)
+        print(gg)
+        print(gg["modified", "#Reads"])
         for i in g.index:
             stats[i] = g.loc[i]["#Reads"]
             if i == "modified":
