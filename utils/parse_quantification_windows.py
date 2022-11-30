@@ -101,7 +101,7 @@ def main():
             else:
                 b_json["Beacon Sub Read Num"] = 0
             b_json["Beacon Sub Percentage"] = b_json["Beacon Sub Read Num"] / b_json["Beacon Aligned Read Num"]
-            gg = df.groupby(["classification", "n_indel"]).sum()
+            gg = df.groupby(["classification", "n_indel"]).cumsum()
             print(gg)
             print(gg.loc["modified", "#Reads"])
 
