@@ -105,10 +105,10 @@ def main():
             print(gg)
             print(gg.loc["modified", "#Reads"].cumsum())
             pd.DataFrame(gg.loc["modified", "#Reads"]).to_csv(
-                args.output_folder + "/CRISPResso_quantification_of_editing_frequency.beacon.txt",
-                sep="\t", header=True, index=False, na_rep=0)
+                args.output_folder + "/CRISPResso_quantification_of_editing_frequency.beacon.txt")
 
-    pd.DataFrame(qw_stats).to_csv(args.output_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt")
+    pd.DataFrame(qw_stats).to_csv(args.output_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
+                                  sep="\t", header=True, index=False, na_rep=0)
 
     pd.Series(b_json).to_json(args.output_folder + "/CRISPResso_stats.json")
 
