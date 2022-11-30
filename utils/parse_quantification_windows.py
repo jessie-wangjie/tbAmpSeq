@@ -70,10 +70,6 @@ def main():
         df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))),
                           axis=1, result_type='expand')
         g = df.groupby("classification").sum()
-        print(g)
-        gg = df.groupby(["classification","n_indel"]).sum()
-        print(gg)
-        print(gg.loc["modified", "#Reads"])
         for i in g.index:
             stats[i] = g.loc[i]["#Reads"]
             if i == "modified":
@@ -105,6 +101,10 @@ def main():
             else:
                 b_json["Beacon Sub Read Num"] = 0
             b_json["Beacon Sub Percentage"] = b_json["Beacon Sub Read Num"] / b_json["Beacon Aligned Read Num"]
+            gg = df.groupby(["classification", "n_indel"]).sum()
+            print(gg)
+            print(gg.loc["modified", "#Reads"])
+
 
     pd.DataFrame(qw_stats).to_csv(args.output_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
                                   sep="\t", header=True, index=False, na_rep=0)
