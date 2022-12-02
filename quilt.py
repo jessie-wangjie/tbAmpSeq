@@ -30,13 +30,13 @@ if __name__ == "__main__":
     base = alt.Chart(data)
 
     # draw plate plots
-    heatmap = base.mark_circle().properties(width=150, height=400).encode(x=alt.X('x:O'), y='y:O',
+    heatmap = base.mark_circle().properties(width=300, height=200).encode(x=alt.X('x:O'), y='y:O',
                 size='beacon_placement_percentage:Q',
                 color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'), legend=None)).add_selection(selector)
 
     # draw bar plots
     bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"],
-                              as_=['beacon', 'percent']).mark_bar(opacity=0.7).encode(
+                              as_=['beacon', 'percent']).mark_bar(opacity=0.7).properties(width=500, height=200).encode(
         x='sample_name:O', y=alt.Y('percent:Q', stack=None),
         color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
 
@@ -55,7 +55,6 @@ if __name__ == "__main__":
     p = quilt3.Package.browse("jwang/" + tbid)
 
     # adding data
-    p.delete(tbid)
     p.set("stats.csv", tbid + "/stats.csv")
     p.set("report.json", tbid + "/report.json")
     p.set_dir("alignment_html", tbid + "/alignment_html/")
