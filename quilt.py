@@ -22,7 +22,7 @@ if __name__ == "__main__":
         data = pd.concat([data, pd.read_json(s, orient="index").T])
     data["x"] = data["well"].str.get(-1)
     data["y"] = data["well"].str.get(0)
-    print(data)
+    data.to_csv(tbid + "/stats.csv")
 
     # plots
     selector = alt.selection_single(empty='all', fields=['sample_name'])
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
 
     chart = alt.hconcat(heatmap, bar).resolve_scale(color="independent")
-    chart.save(tbid + ".report.json")
+    chart.save(tbid + "/report.json")
 
     # create test data
     p = quilt3.Package()
@@ -54,7 +54,8 @@ if __name__ == "__main__":
 #    p = quilt3.Package.browse("jwang/" + tbid)
 
     # adding data
-    p.set(tbid + ".report.json")
+    p.set(tbid + "/stats.csv")
+    p.set(tbid + "/report.json")
     p.set_dir(tbid + "/alignment_html")
 
     # Pushing a package to a remote registry
