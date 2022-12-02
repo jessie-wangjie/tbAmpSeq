@@ -63,7 +63,7 @@ if __name__ == "__main__":
     p.set("quilt_summarize.json", tbid + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
-#    p.push(
-#        "jwang/" + tbid,
-#        "s3://tb-ngs-quilt",
-#    )
+    p.push(
+        "jwang/" + tbid,
+        "s3://tb-ngs-quilt",
+    )
