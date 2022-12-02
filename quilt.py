@@ -29,9 +29,9 @@ if __name__ == "__main__":
     base = alt.Chart(data)
 
     # draw plate plots
-    heatmap = base.mark_circle().properties(width=250, height=250).encode(x='x:O', y='y:O',
+    heatmap = base.mark_circle().properties(width=250, height=250).encode(x='x:Q', y='y:O',
                 size='beacon_placement_percentage:Q',
-                color=alt.condition(selector, 'sample_name:O',alt.value('lightgray'), legend=None)).add_selection(selector)
+                color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'), legend=None)).add_selection(selector)
 
     # draw bar plots
     bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"],
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     p.set("quilt_summarize.json", tbid + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
-    p.push(
-        "jwang/" + tbid,
-        "s3://tb-ngs-quilt",
-    )
+#    p.push(
+#        "jwang/" + tbid,
+#        "s3://tb-ngs-quilt",
+#    )
