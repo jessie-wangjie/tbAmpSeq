@@ -22,6 +22,7 @@ if __name__ == "__main__":
         data = pd.concat([data, pd.read_json(s, orient="index").T])
     data["x"] = data["well"].str.get(-1)
     data["y"] = data["well"].str.get(0)
+    print(data)
 
     # plots
     selector = alt.selection_single(empty='all', fields=['sample_name'])
@@ -41,30 +42,24 @@ if __name__ == "__main__":
     chart = alt.hconcat(heatmap, bar).resolve_scale(color="independent")
     chart.save(tbid + ".report.json")
 
-    # Create test directories
-    TEST_DIR = "test_workflow"
-    SUB_DIR = "subdir"
-
     # create test data
-    #    p = quilt3.Package()
-    #    p.set("data.csv", "s3://tb-ngs-quilt/CRISPResso_on_9/CRISPResso_quantification_of_editing_frequency.txt",
-    #      meta={"type": "csv"})
+    p = quilt3.Package()
+#    p.set("data.csv", "s3://tb-ngs-quilt/CRISPResso_on_9/CRISPResso_quantification_of_editing_frequency.txt", meta={"type": "csv"})
 
     # edit a preexisting package
-    quilt3.Package.install(
-        "jwang/test_data",
-        "s3://tb-ngs-quilt",
-    )
-    p = quilt3.Package.browse('jwang/test_data')
+#    quilt3.Package.install(
+#        "jwang/" + tbid,
+#        "s3://tb-ngs-quilt",
+#    )
+#    p = quilt3.Package.browse("jwang/" + tbid)
 
     # adding data
     p.set(tbid + ".report.json")
+    p.set_dir(tbid + "/alignment_html")
 
-    # Saving a package manifest locally
-    top_hash = p.build("jwang/test_data")
     # Pushing a package to a remote registry
-    p.push(
-        "jwang/test_data",
-        "s3://tb-ngs-quilt",
-        message="Updated version my package"
-    )
+#    p.push(
+#        "jwang/" + tbid,
+#        "s3://tb-ngs-quilt",
+#        message="Updated version my package"
+#    )
