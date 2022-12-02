@@ -21,7 +21,7 @@ if __name__ == "__main__":
     for s in files:
         data = pd.concat([data, pd.read_json(s, orient="index").T])
     data["x"] = data["well"].str.extract(r"(\d+)")
-    print(data["x"])
+    data["x"] = data["x"].astype('int')
     data["y"] = data["well"].str.get(0)
     data.to_csv(tbid + "/stats.csv")
 
