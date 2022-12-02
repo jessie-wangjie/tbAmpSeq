@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     # draw bar plots
     bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"],
-                              as_=['beacon', 'percent']).mark_bar(opacity=0.7).properties(width=500, height=200).encode(
+                              as_=['beacon', 'percent']).mark_bar(opacity=0.7).properties(width=600, height=200).encode(
         x='sample_name:O', y=alt.Y('percent:Q', stack=None),
         color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
 
