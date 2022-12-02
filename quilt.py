@@ -20,7 +20,7 @@ if __name__ == "__main__":
     data = pd.DataFrame()
     for s in files:
         data = pd.concat([data, pd.read_json(s, orient="index").T])
-    data["x"] = data["well"].str.get(-1)
+    data["x"] = data["well"].str.extract(r"(\d+)")
     data["y"] = data["well"].str.get(0)
     data.to_csv(tbid + "/stats.csv")
 
@@ -43,20 +43,25 @@ if __name__ == "__main__":
     chart.save(tbid + "/report.json")
 
     # create test data
-    p = quilt3.Package()
+#    p = quilt3.Package()
 #    p.set("data.csv", "s3://tb-ngs-quilt/CRISPResso_on_9/CRISPResso_quantification_of_editing_frequency.txt", meta={"type": "csv"})
 
     # edit a preexisting package
-#    quilt3.Package.install(
-#        "jwang/" + tbid,
-#        "s3://tb-ngs-quilt",
-#    )
-#    p = quilt3.Package.browse("jwang/" + tbid)
+    quilt3.Package.install(
+        "jwang/" + tbid,
+        "s3://tb-ngs-quilt",
+    )
+    p = quilt3.Package.browse("jwang/" + tbid)
 
     # adding data
-    p.set(tbid + "/stats.csv")
-    p.set(tbid + "/report.json")
-    p.set_dir(tbid + "/alignment_html")
+    p.delete(tbid)
+    p.set(tbid + "/stats.csv", "stats.csv")
+    p.set(tbid + "/report.json", "report.json")
+    p.set_dir(tbid + "/alignment_html/", "alignment_html")
+    preview = pd.Series(["report.json", "stats.csv"])
+    preview.to_json(tbid + "/quilt_summarize.json", orient="records")
+    p.set(tbid + "/quilt_summarize.json", "quilt_summarize.json")
+
 
     # Pushing a package to a remote registry
     p.push(
