@@ -21,6 +21,7 @@ if __name__ == "__main__":
     for s in files:
         data = pd.concat([data, pd.read_json(s, orient="index").T])
     data["x"] = data["well"].str.extract(r"(\d+)")
+    print(data["x"])
     data["y"] = data["well"].str.get(0)
     data.to_csv(tbid + "/stats.csv")
 
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     base = alt.Chart(data)
 
     # draw plate plots
-    heatmap = base.mark_circle().properties(width=250, height=250).encode(x='x:Q', y='y:O',
+    heatmap = base.mark_circle().properties(width=150, height=400).encode(x=alt.X('x:O'), y='y:O',
                 size='beacon_placement_percentage:Q',
                 color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'), legend=None)).add_selection(selector)
 
