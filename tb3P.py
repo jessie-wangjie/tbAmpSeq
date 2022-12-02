@@ -280,9 +280,9 @@ def main():
             subprocess.call(
                 "flash %s %s --min-overlap 10 --max-overlap 100 --allow-outies -z -d %s" % (R2, R1, preprocess_output),
                 shell=True, stderr=error_fh, stdout=error_fh)
-            CRISPRessoShared.force_merge_pairs(os.path.join(preprocess_output, "out.notCombined_1.fastq.gz"),os.path.join(preprocess_output, "out.notCombined_2.fastq.gz"),os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"))
-            subprocess.call("zcat %s %s | gzip -c > %s" %(os.path.join(preprocess_output, "out.extendedFrags.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged.fastq.gz")), shell=True)
-            subprocess.call("cp %s %s" %(os.path.join(preprocess_output, "out.forcemerged.fastq.gz"), os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")), shell=True)
+#            CRISPRessoShared.force_merge_pairs(os.path.join(preprocess_output, "out.notCombined_1.fastq.gz"),os.path.join(preprocess_output, "out.notCombined_2.fastq.gz"),os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"))
+#            subprocess.call("zcat %s %s | gzip -c > %s" %(os.path.join(preprocess_output, "out.extendedFrags.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged.fastq.gz")), shell=True)
+#            subprocess.call("cp %s %s" %(os.path.join(preprocess_output, "out.forcemerged.fastq.gz"), os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")), shell=True)
         else:
             subprocess.call(
                 "flash %s %s --min-overlap 10 --max-overlap 100 --allow-outies -z -d %s" % (R1, R2, preprocess_output),
@@ -299,7 +299,7 @@ def main():
             unmapped_id = os.path.join(preprocess_output, "out.extendedFrags.unmapped_plasmid.id")
             unmapped_fastq = os.path.join(preprocess_output, "out.extendedFrags.unmapped_plasmid.fastq")
             subprocess.call("bowtie2 --local -p 8 -x %s -U %s -S %s" % (
-            "/home/ubuntu/annotation/bowtie2_index/" + sample["Payload ID"], R2, plasmid_sam), shell=True,
+            "/home/ubuntu/annotation/bowtie2_index/" + sample["Payload ID"], input_file, plasmid_sam), shell=True,
                             stderr=error_fh, stdout=error_fh)
             if sample["Reverse Primer 2 link to Illumina Adapater"] == "P7":
                 subprocess.call("samtools view -F4 %s | awk '{ if($4>=%s) print $1}' > %s" % (
@@ -310,9 +310,6 @@ def main():
                 plasmid_sam, plasmid_right[sample["Payload ID"]], unmapped_id), shell=True, stderr=error_fh,
                                 stdout=error_fh)
             subprocess.call("samtools view -f4 %s | cut -f1 >> %s" % (plasmid_sam, unmapped_id), shell=True,
-                            stderr=error_fh, stdout=error_fh)
-            subprocess.call("bowtie2 --local -p 8 -x %s -U %s -S %s" % (
-            "/home/ubuntu/annotation/bowtie2_index/" + sample["Payload ID"], input_file, plasmid_sam), shell=True,
                             stderr=error_fh, stdout=error_fh)
             subprocess.call(
                 "samtools view -h -N %s %s | samtools fastq -0 %s -" % (unmapped_id, plasmid_sam, unmapped_fastq),
