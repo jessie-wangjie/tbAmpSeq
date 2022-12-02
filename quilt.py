@@ -55,13 +55,12 @@ if __name__ == "__main__":
 
     # adding data
     p.delete(tbid)
-    p.set(tbid + "/stats.csv", "stats.csv")
-    p.set(tbid + "/report.json", "report.json")
-    p.set_dir(tbid + "/alignment_html/", "alignment_html")
+    p.set("stats.csv", tbid + "/stats.csv")
+    p.set("report.json", tbid + "/report.json")
+    p.set_dir("alignment_html", tbid + "/alignment_html/")
     preview = pd.Series(["report.json", "stats.csv"])
     preview.to_json(tbid + "/quilt_summarize.json", orient="records")
-    p.set(tbid + "/quilt_summarize.json", "quilt_summarize.json")
-
+    p.set("quilt_summarize.json", tbid + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
     p.push(
