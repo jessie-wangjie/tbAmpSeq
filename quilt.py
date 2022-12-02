@@ -59,8 +59,7 @@ if __name__ == "__main__":
     p.set_dir(tbid + "/alignment_html")
 
     # Pushing a package to a remote registry
-#    p.push(
-#        "jwang/" + tbid,
-#        "s3://tb-ngs-quilt",
-#        message="Updated version my package"
-#    )
+    p.push(
+        "jwang/" + tbid,
+        "s3://tb-ngs-quilt",
+    )
