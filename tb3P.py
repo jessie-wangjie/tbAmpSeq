@@ -192,7 +192,8 @@ def main():
             ng_info = get_cut_site(wt_amplicon, sample["atgRNA2 spacer sequence"])
             if pd.notna(sample["atgRNA1 RT seq"]):
                 rt_info = get_cut_site(wt_amplicon, sample["atgRNA1 RT seq"])
-            beacon = get_beacon_seq(sample["atgRNA1 beacon seq"], spacer_info["strand"],attR2=attR2)
+            beacon = get_beacon_seq(sample["atgRNA1 beacon seq"], spacer_info["strand"], attR2=attR2)
+            print(beacon)
             # beacon seq
             beacon_amplicon = wt_amplicon[0:spacer_info["cut"]] + beacon["seq"] + wt_amplicon[spacer_info["cut"]:]
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
