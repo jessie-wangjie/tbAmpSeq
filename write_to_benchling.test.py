@@ -6,7 +6,7 @@ Information from Benchling
 
 import argparse
 import glob
-import pandas as pd
+import json
 from benchling_api_client.models.naming_strategy import NamingStrategy
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
