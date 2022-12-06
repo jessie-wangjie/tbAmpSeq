@@ -40,7 +40,11 @@ def main():
     # insert the cs2 stats to benchling
     files = glob.glob(tbid + "/*/CRISPResso_stats.json")
     for s in files:
-        row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(json.load(open(s))), project_id=result_project_id)
+        data = json.load(open(s))
+        del data["well"]
+        del data["plate"]
+        del data["samplename"]
+        row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
         print(row)
         benchling.assay_results.create([row])
 
