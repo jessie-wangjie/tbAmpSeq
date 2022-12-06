@@ -45,6 +45,7 @@ def main():
         del data["plate"]
         del data["samplename"]
         data["aaan_id"] = "bfi_CQUrVTAL"
+        data["ppid"] = "bfi_szYqmr3G"
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
         print(row)
         benchling.assay_results.create([row])
