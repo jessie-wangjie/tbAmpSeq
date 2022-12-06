@@ -42,6 +42,7 @@ def main():
     data = pd.DataFrame()
     for s in files:
         data = pd.concat([data, pd.read_json(s, orient="index").T])
+        print(data)
     print(data.to_json())
     row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data.to_json()), project_id=result_project_id)
     benchling.assay_results.create([row])
