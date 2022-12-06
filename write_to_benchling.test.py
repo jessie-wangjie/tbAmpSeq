@@ -44,7 +44,7 @@ def main():
         del data["well"]
         del data["plate"]
         del data["samplename"]
-        data["aaan_id"] = "bfi_CQUrVTAL"
+        data["aaan_id"] = "AA092"
         data["ppid"] = "bfi_szYqmr3G"
         data["ampseq_pipeline_run"] = pipeline_run_entity.id
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
