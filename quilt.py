@@ -5,6 +5,17 @@ import altair as alt
 import pandas as pd
 import quilt3
 
+
+class Capturing(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stdout = self._stdout
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Generate quilt package',
@@ -63,7 +74,11 @@ if __name__ == "__main__":
     p.set("quilt_summarize.json", tbid + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
-    p.push(
-        "jwang/" + tbid,
-        "s3://tb-ngs-quilt",
-    )
+    with Capturing() as output:
+        p.push(
+            "jwang/" + tbid,
+            "s3://tb-ngs-quilt",
+        )
+    base_url = output[1].split()[-1]
+    full_url = f"{base_url}/tree/{p.top_hash}"
+    print(full_url)
