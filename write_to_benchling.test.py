@@ -41,7 +41,6 @@ def main():
     files = glob.glob(tbid + "/*/CRISPResso_stats.json")
     for s in files:
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(json.load(open(s))), project_id=result_project_id)
-        print(row)
         benchling.assay_results.create([row])
 
 if __name__ == "__main__":
