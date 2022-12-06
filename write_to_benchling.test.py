@@ -41,11 +41,10 @@ def main():
     files = glob.glob(tbid + "/*/CRISPResso_stats.json")
     data = pd.DataFrame()
     for s in files:
-        data = pd.concat([data, pd.read_json(s, orient="index").T])
+        data = json.load(s)
         print(data)
-    print(data.to_json())
-    row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data.to_json()), project_id=result_project_id)
-    benchling.assay_results.create([row])
+#    row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
+#    benchling.assay_results.create([row])
 
 if __name__ == "__main__":
     main()
