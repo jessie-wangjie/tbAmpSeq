@@ -124,10 +124,9 @@ def window_quantification(cs2_folder, quantification_windows):
     df_alleles["ref_positions"] = df_alleles["ref_positions"].apply(arrstr_to_arr)
 
     # generate the stats JSON for the result schema
-#    b_json = {"samplename": cs2_info["running_info"]["args"].name}
-    b_json["total_read_num"] = CRISPRessoCORE.get_n_reads_fastq(cs2_info["running_info"]["args"].fastq_r1)
-    b_json["merged_r1r2_read_num"] = int(cs2_info["running_info"]["alignment_stats"]["N_TOT_READS"])
-    b_json["wt_aligned_read_num"] = int(cs2_info["results"]["alignment_stats"]["counts_total"]["WT"])
+    b_json = {"total_read_num": CRISPRessoCORE.get_n_reads_fastq(cs2_info["running_info"]["args"].fastq_r1),
+              "merged_r1r2_read_num": int(cs2_info["running_info"]["alignment_stats"]["N_TOT_READS"]),
+              "wt_aligned_read_num": int(cs2_info["results"]["alignment_stats"]["counts_total"]["WT"])}
     if "Beacon" in cs2_info["results"]["alignment_stats"]["counts_total"]:
         b_json["beacon_aligned_read_num"] = int(cs2_info["results"]["alignment_stats"]["counts_total"]["Beacon"])
     elif "PE" in cs2_info["results"]["alignment_stats"]["counts_total"]:
