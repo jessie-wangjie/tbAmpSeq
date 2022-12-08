@@ -102,7 +102,7 @@ def main():
                 b_json["Beacon Sub Read Num"] = 0
             b_json["Beacon Sub Percentage"] = b_json["Beacon Sub Read Num"] / b_json["Beacon Aligned Read Num"]
             gg = df.groupby(["classification", "n_indel"]).sum()
-            print(gg.index.values)
+            print(gg.get_level_values(0))
             pd.DataFrame(gg.loc["modified", "#Reads"]).to_csv(
                 args.output_folder + "/CRISPResso_quantification_of_editing_frequency.beacon.txt",sep="\t")
 
