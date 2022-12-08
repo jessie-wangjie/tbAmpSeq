@@ -104,6 +104,7 @@ def main():
             gg = df.groupby(["classification", "n_indel"]).sum()
             print(gg.index.get_level_values("classification"))
             if "modified" in gg.index.get_level_values("classification"):
+                print("AAAAAA")
                 pd.DataFrame(gg.loc["modified", "#Reads"]).to_csv(
                     args.output_folder + "/CRISPResso_quantification_of_editing_frequency.beacon.txt", sep="\t")
 
