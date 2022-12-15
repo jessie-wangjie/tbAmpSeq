@@ -43,10 +43,10 @@ if __name__ == "__main__":
 
     # plots
     # draw plate plots
-    heatmap = alt.Chart(data).mark_arc().properties(width=300, height=200).encode(x=alt.X('x:O'), y='y:O',
-                theta=alt.Theta('beacon_placement_percentage:Q',scale=alt.Scale(domain=[0,1])), color=alt.ColorValue("#1f77b4"))
+    heatmap = alt.Chart(data).mark_rect().properties(width=300, height=200).encode(x=alt.X('x:O'), y='y:O',
+                color=alt.Color('beacon_placement_percentage:Q',scale=alt.Scale(domain=[0,1])))
 
-    heatmap2 = heatmap.mark_arc().encode(theta=alt.Theta('perfect_beacon_percent:Q'), color=alt.ColorValue("#ff7f01"))
+    heatmap2 = heatmap.mark_circle().encode(size='perfect_beacon_percent:Q', color=alt.ColorValue("#ff7f01"))
 
     chart = alt.hconcat(heatmap+heatmap2)
     chart.save(tbid + "/report.json")
