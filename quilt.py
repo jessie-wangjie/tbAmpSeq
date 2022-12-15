@@ -53,7 +53,7 @@ if __name__ == "__main__":
     heatmap2 = heatmap.mark_point().encode(size='perfect_beacon_percent:Q',
                                            color=alt.ColorValue("orange"))
 
-    chart = alt.hconcat(heatmap+heatmap2)
+    chart = alt.hconcat(heatmap+heatmap2,)
     chart.save(tbid + "/report.json")
 
     # draw bar plots
