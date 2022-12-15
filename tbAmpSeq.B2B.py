@@ -54,17 +54,6 @@ def main():
         "left join registry_entity as re2 on re2.id = pp_id "
         "where genomics_ampseq_project_queue = %s", [tbid])
 
-    # create pipeline run entity
-    # TODO: to check run suffix
-    benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
-    entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
-                                naming_strategy=NamingStrategy.NEW_IDS,
-                                name=tbid + "a",
-                                fields=fields(
-                                    {"Genomics AmpSeq Project Queue": {"value": tbid},
-                                     "pipeline Name": {"value": "tbAmpseq"}}))
-#    pipeline_run_entity = benchling.custom_entities.create(entity)
-
     for record in cur.fetchall():
         cs2_stats = {}
         name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats["sample_name"], \
