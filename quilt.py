@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # plots
     # draw plate plots
     heatmap = alt.Chart(data).mark_circle().properties(width=300, height=200).encode(x=alt.X('x:O'), y='y:O',
-                size='beacon_placement_percentage:Q', color=alt.ColorValue("#1f77b4"))
+                size='beacon_placement_percentage:Q', color=alt.ColorValue("#1f77b4"), scale=alt.Scale(zero=True))
 
     heatmap2 = heatmap.mark_circle().encode(size='perfect_beacon_percent:Q', color=alt.ColorValue("#ff7f01"))
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     chart.save(tbid + "/report.json")
 
     # create test data
-    p = quilt3.Package()
+#    p = quilt3.Package()
 
     # edit a preexisting package
 #    quilt3.Package.install(
@@ -62,19 +62,19 @@ if __name__ == "__main__":
 #    p = quilt3.Package.browse("jwang/" + tbid)
 
     # adding data
-    p.set("stats.csv", tbid + "/stats.csv")
-    p.set("report.json", tbid + "/report.json")
-    p.set_dir("alignment_html", tbid + "/alignment_html/")
-    preview = pd.Series(["report.json", "stats.csv"])
-    preview.to_json(tbid + "/quilt_summarize.json", orient="records")
-    p.set("quilt_summarize.json", tbid + "/quilt_summarize.json")
+#    p.set("stats.csv", tbid + "/stats.csv")
+#    p.set("report.json", tbid + "/report.json")
+#    p.set_dir("alignment_html", tbid + "/alignment_html/")
+#    preview = pd.Series(["report.json", "stats.csv"])
+#    preview.to_json(tbid + "/quilt_summarize.json", orient="records")
+#    p.set("quilt_summarize.json", tbid + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
-    with Capturing() as output:
-        p.push(
-            "jwang/" + tbid,
-            "s3://tb-ngs-quilt",
-        )
-    base_url = output[1].split()[-1]
-    full_url = f"{base_url}/tree/{p.top_hash}"
-    print(full_url)
+#    with Capturing() as output:
+#        p.push(
+#            "jwang/" + tbid,
+#            "s3://tb-ngs-quilt",
+#        )
+#    base_url = output[1].split()[-1]
+#    full_url = f"{base_url}/tree/{p.top_hash}"
+#    print(full_url)
