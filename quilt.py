@@ -49,7 +49,7 @@ if __name__ == "__main__":
     heatmap = base.mark_circle().properties(width=300, height=200).encode(x=alt.X('x:O'), y='y:O',
                 size='beacon_placement_percentage:Q', color=alt.ColorValue("#1f77b4"))
 
-    heatmap2 = heatmap.mark_circle().encode(size='perfect_beacon_percent:Q', color=alt.ColorValue("#ff7f01"))
+    heatmap2 = heatmap.mark_circle().encode(size='perfect_beacon_percent:N', color=alt.ColorValue("#ff7f01"))
 
     chart = alt.hconcat(heatmap+heatmap2)
     chart.save(tbid + "/report.json")
