@@ -47,8 +47,7 @@ if __name__ == "__main__":
 
     # draw plate plots
     heatmap = base.mark_circle().properties(width=300, height=200).encode(x=alt.X('x:O'), y='y:O',
-                size='beacon_placement_percentage:Q',
-                color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'), legend=None)).add_selection(selector)
+                size='beacon_placement_percentage:Q')
 
     heatmap2 = heatmap.mark_point().encode(size='perfect_beacon_percent:Q',
                                            color=alt.ColorValue("orange"))
