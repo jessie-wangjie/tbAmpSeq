@@ -49,7 +49,7 @@ if __name__ == "__main__":
     heatmap = base.mark_circle().properties(width=300, height=200).encode(x=alt.X('x:O'), y='y:O',
                 size='beacon_placement_percentage:Q')
 
-    heatmap2 = heatmap.mark_point().encode(size='perfect_beacon_percent:Q',
+    heatmap2 = heatmap.mark_circle().encode(size='perfect_beacon_percent:Q',
                                            color=alt.ColorValue("orange"))
 
     chart = alt.hconcat(heatmap+heatmap2,)
