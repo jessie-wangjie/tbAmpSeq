@@ -50,7 +50,7 @@ if __name__ == "__main__":
                 size='beacon_placement_percentage:Q',
                 color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'), legend=None)).add_selection(selector)
 
-    heatmap2 = heatmap.mark_circle().encode(size='perfect_beacon_percent:Q',
+    heatmap2 = heatmap.mark_point().encode(size='perfect_beacon_percent:Q',
                                            color=alt.ColorValue("orange"))
 
     chart = alt.hconcat(heatmap, heatmap2)
