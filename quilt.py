@@ -40,7 +40,7 @@ if __name__ == "__main__":
                  "merged_r1r2_read_num", "aligned_percentage", "wt_aligned_read_num", "beacon_aligned_read_num",
                  "wt_aligned_percentage", "beacon_placement_percentage", "beacon_indel_read_num", "beacon_sub_read_num",
                  "beacon_indel_percentage", "beacon_sub_percentage", "perfect_beacon_percent"]]
-    data.to_csv(tbid + "/stats.csv")
+    data.to_csv(tbid + "/stats.csv", index=False)
 
     # plots
     selector = alt.selection_single(empty='all', fields=['sample_name'])
