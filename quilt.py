@@ -5,7 +5,6 @@ from io import StringIO
 
 import altair as alt
 import pandas as pd
-import quilt3
 
 
 class Capturing(list):
@@ -51,14 +50,20 @@ if __name__ == "__main__":
                 size='beacon_placement_percentage:Q',
                 color=alt.condition(selector, 'sample_name:O', alt.value('lightgray'), legend=None)).add_selection(selector)
 
-    # draw bar plots
-    bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"],
-                              as_=['beacon', 'percent']).mark_bar(opacity=0.7).properties(width=600, height=200).encode(
-        x='sample_name:O', y=alt.Y('percent:Q', stack=None),
-        color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
+    heatmap2 = heatmap.mark_circle().encode(size='perfect_beacon_percent:Q',
+                                           color=alt.ColorValue("orange"))
 
-    chart = alt.hconcat(heatmap, bar).resolve_scale(color="independent")
+    chart = alt.hconcat(heatmap, heatmap2)
     chart.save(tbid + "/report.json")
+
+    # draw bar plots
+#    bar = base.transform_fold(["beacon_placement_percentage", "perfect_beacon_percent"],
+#                              as_=['beacon', 'percent']).mark_bar(opacity=0.7).properties(width=600, height=200).encode(
+#        x='sample_name:O', y=alt.Y('percent:Q', stack=None),
+#        color=alt.condition(selector, alt.Color("beacon:N"), alt.ColorValue("grey"))).add_selection(selector)
+
+#    chart = alt.hconcat(heatmap, bar).resolve_scale(color="independent")
+#    chart.save(tbid + "/report.json")
 
     # create test data
 #    p = quilt3.Package()
