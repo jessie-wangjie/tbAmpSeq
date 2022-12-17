@@ -49,7 +49,7 @@ if __name__ == "__main__":
     heatmap2 = heatmap.mark_circle().encode(size=alt.Size('perfect_beacon_percent:Q', scale=alt.Scale(domain=[0, 1])),
                                             color=alt.ColorValue("#ff7f01"))
 
-    chart = alt.hconcat(heatmap+heatmap2).resolve_scale(color='independent').configure_axis(grid=True)
+    chart = alt.hconcat(heatmap+heatmap2).resolve_scale(color='independent')
     chart.save(tbid + "/report.json")
 
     # create test data
