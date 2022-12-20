@@ -130,7 +130,7 @@ def main():
             plasmid_left = {"Pdy0186": 140, "PL249": 140, "PL268": 592, "PL210": 15, "PL753": 150, "pDY181": 3155,
                             "PL1113": 402, "OJ611": 616, "AdVG010": 14065, "AdVG013": 14065, "AdVG012": 14065,
                             "ADEG014": 8, "PL983": 1055, "pDY679": 1055, "PL1051": 1055, "PL995": 1055}
-            plasmid_right = {"pDY181": 3195, "PL1113": 442, "OJ611": 656}
+            plasmid_right = {"pDY181": 3195, "PL1113": 442, "OJ611": 656, "PL753": 175}
             input_file = os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")
             plasmid_sam = os.path.join(preprocess_output, "out.extendedFrags.plasmid.sam")
             unmapped_id = os.path.join(preprocess_output, "out.extendedFrags.unmapped_plasmid.id")
