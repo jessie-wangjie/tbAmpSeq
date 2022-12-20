@@ -6,14 +6,7 @@ Information from Benchling
 
 import argparse
 import glob
-from logging import warn
-
-from benchling_api_client.models.naming_strategy import NamingStrategy
-from benchling_sdk.auth.api_key_auth import ApiKeyAuth
-from benchling_sdk.benchling import Benchling
-from benchling_sdk.helpers.serialization_helpers import fields
-from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate
-
+from logging import warning
 from utils.base import *
 from utils.common_functions import *
 
@@ -40,7 +33,7 @@ def main():
     try:
         os.makedirs(output)
     except:
-        warn('Folder %s already exists.' % output)
+        warning('Folder %s already exists.' % output)
 
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
@@ -336,11 +329,6 @@ def main():
                 wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
-
-        # insert the cs2 stats to benchling
-#        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
-        row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(cs2_stats), project_id=result_project_id)
-#        benchling.assay_results.create([row])
 
         cs2_stats["plate"] = plate
         cs2_stats["well"] = well
