@@ -90,7 +90,7 @@ def main():
             else:
                 cargo_amplicon = get_seq(genome_fa, FP_info["chr"], cut + 1, FP_info["end"], gene_strand) + get_seq(cargo_fa,
                                          RP_info["chr"], attL2_info["start"], RP_info["end"], "+")
-                cargo_qw1 = "Cargo:AttL2:" + str(cut - FP_info["start"]) + "-" + str(cut - FP_info["start"] + len(attL2_info["seq"])) + ":0"
+                cargo_qw1 = "Cargo:AttL2:" + str(FP_info["start"] - cut) + "-" + str(FP_info["start"] - cut + len(attL2_info["seq"])) + ":0"
                 print(cargo_qw1)
         else:
             if FP_info["start"] < cut:
