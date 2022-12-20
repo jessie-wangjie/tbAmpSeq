@@ -138,12 +138,12 @@ def main():
             subprocess.call("bowtie2 --local -p 8 -x %s -U %s -S %s" % (
                 "/home/ubuntu/annotation/bowtie2_index/" + sample["Payload ID"], input_file, plasmid_sam), shell=True,
                             stderr=error_fh, stdout=error_fh)
+            print(sample["Cargo Primer link to Illumina Adapater"])
             if sample["Cargo Primer link to Illumina Adapater"] == "P7":
                 subprocess.call("samtools view -F4 %s | awk '{ if($4>=%s) print $1}' > %s" % (
                     plasmid_sam, plasmid_left[sample["Payload ID"]], unmapped_id), shell=True, stderr=error_fh,
                                 stdout=error_fh)
             else:
-                print("aaa")
                 subprocess.call("bedtools bamtobed -i %s | awk '{ if($3<=%s) print $4}' > %s" % (
                     plasmid_sam, plasmid_right[sample["Payload ID"]], unmapped_id), shell=True, stderr=error_fh,
                                 stdout=error_fh)
