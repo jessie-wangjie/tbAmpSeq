@@ -66,7 +66,6 @@ def main():
         else:
             FP_adapter = sample["Genomic Primer link to Illumina adapter"]
         FP_info = align_primer(sample["Genomic Primer Sequence"], reference_index, sample["cryptic chromosome"], illumina[FP_adapter])
-        print(FP_info)
 
         if "Cargo Primer link to Illumina adapater" not in sample:
             RP_adapter = "P7"
@@ -82,6 +81,8 @@ def main():
 
         if gene_strand == "-":
             if FP_info["start"] < cut:
+                print(get_seq(cargo_fa, RP_info["chr"], RP_info["start"], attL2_info["start"] - 1, "+"))
+                print(get_seq(genome_fa, FP_info["chr"], cut, FP_info["end"], gene_strand))
                 cargo_amplicon = get_seq(cargo_fa, RP_info["chr"], RP_info["start"], attL2_info["start"] - 1,
                                          "+") + get_seq(genome_fa, FP_info["chr"], cut, FP_info["end"], gene_strand)
                 cargo_qw1 = "Cargo:AttR1:" + str(
