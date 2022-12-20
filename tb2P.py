@@ -76,8 +76,8 @@ def main():
 
         # cargo seq
         cut = int(sample["cryptic coordinate"])
-        attL2_info = align_primer("CTCAGTGGTGTACGGTACAAA", "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"])
-        attR1_info = align_primer("TTTGTCTGGTCAACCACCGCGGT", "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"])
+        attL2_info = align_primer("CTCAGTGGTGTACGGTACAAA", "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"], sample["Payload ID"])
+        attR1_info = align_primer("TTTGTCTGGTCAACCACCGCGGT", "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"], sample["Payload ID"])
 
         if gene_strand == "-":
             if FP_info["start"] < cut:
