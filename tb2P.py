@@ -81,8 +81,6 @@ def main():
         attR1_info = align_primer("TTTGTCTGGTCAACCACCGCGGT", "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"], sample["Payload ID"])
 
         if gene_strand == "-":
-            print(FP_info["start"])
-            print(cut)
             if FP_info["start"] < cut:
                 cargo_amplicon = get_seq(cargo_fa, RP_info["chr"], RP_info["start"], attL2_info["start"] - 1,
                                          "+") + get_seq(genome_fa, FP_info["chr"], FP_info["start"], cut, gene_strand)
@@ -90,7 +88,7 @@ def main():
                     attL2_info["start"] - RP_info["start"] - len(attR1_info["seq"])) + "-" + str(
                         attL2_info["start"] - RP_info["start"]) + ":0"
             else:
-                cargo_amplicon = get_seq(genome_fa, FP_info["chr"], cut, FP_info["end"], gene_strand) + get_seq(cargo_fa,
+                cargo_amplicon = get_seq(genome_fa, FP_info["chr"], cut + 1, FP_info["end"], gene_strand) + get_seq(cargo_fa,
                                          RP_info["chr"], attL2_info["start"], RP_info["end"], "+")
                 cargo_qw1 = "Cargo:AttL2:" + str(cut - FP_info["start"]) + "-" + str(cut - FP_info["start"] + len(attL2_info["seq"])) + ":0"
         else:
