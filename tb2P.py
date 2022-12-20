@@ -143,6 +143,7 @@ def main():
                     plasmid_sam, plasmid_left[sample["Payload ID"]], unmapped_id), shell=True, stderr=error_fh,
                                 stdout=error_fh)
             else:
+                print("aaa")
                 subprocess.call("bedtools bamtobed -i %s | awk '{ if($3<=%s) print $4}' > %s" % (
                     plasmid_sam, plasmid_right[sample["Payload ID"]], unmapped_id), shell=True, stderr=error_fh,
                                 stdout=error_fh)
