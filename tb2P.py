@@ -82,10 +82,8 @@ def main():
 
         if gene_strand == "-":
             if FP_info["start"] < cut:
-                print(FP_info["start"])
-                print(cut-1)
                 cargo_amplicon = get_seq(cargo_fa, RP_info["chr"], RP_info["start"], attL2_info["start"] - 1,
-                                         "+") + get_seq(genome_fa, FP_info["chr"], FP_info["start"], cut - 1, gene_strand)
+                                         "+") + get_seq(genome_fa, FP_info["chr"], FP_info["start"], cut, gene_strand)
                 cargo_qw1 = "Cargo:AttR1:" + str(
                     attL2_info["start"] - RP_info["start"] - len(attR1_info["seq"])) + "-" + str(
                         attL2_info["start"] - RP_info["start"]) + ":0"
