@@ -65,7 +65,7 @@ def main():
             FP_adapter = "P5"
         else:
             FP_adapter = sample["Genomic Primer link to Illumina adapter"]
-        FP_info = align_primer(sample["Genomic Primer Sequence"], reference_index, illumina[FP_adapter])
+        FP_info = align_primer(sample["Genomic Primer Sequence"], reference_index, sample["cryptic chromosome"], illumina[FP_adapter])
         print(FP_info)
 
         if "Cargo Primer link to Illumina adapater" not in sample:
@@ -73,7 +73,7 @@ def main():
         else:
             RP_adapter = sample["Cargo Primer link to Illumina adapater"]
         RP_info = align_primer(sample["Cargo Primer Sequence"],
-                               "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"], illumina[RP_adapter])
+                               "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"], sample["Payload ID"], illumina[RP_adapter])
 
         # cargo seq
         cut = int(sample["cryptic coordinate"])

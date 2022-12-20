@@ -27,7 +27,6 @@ def align_primer(seq, index, chromosome, adapter=""):
     fastq = ">seq" + "\n" + seq + "\n+" + "\n" + seq
     bwa_out = subprocess.Popen("echo -e '%s' | bwa fastmap %s -" % (fastq, index), stdout=subprocess.PIPE, shell=True)
     pos = subprocess.check_output(["grep", "EM"], stdin=bwa_out.stdout).split()[4:]
-    print(pos)
     for p in pos:
         m = re.match(r"(.*):([+|-])(\d+)", p.decode())
         if chromosome == m.group(1):
