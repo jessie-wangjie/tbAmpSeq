@@ -82,22 +82,19 @@ def main():
 
         if gene_strand == "-":
             if FP_info["start"] < cut:
-                print(FP_info["chr"])
-                print(cut)
-                print(FP_info["end"])
                 cargo_amplicon = get_seq(cargo_fa, RP_info["chr"], RP_info["start"], attL2_info["start"] - 1,
-                                         "+") + get_seq(genome_fa, FP_info["chr"], cut, FP_info["end"], gene_strand)
+                                         "+") + get_seq(genome_fa, FP_info["chr"], FP_info["start"], cut-1, gene_strand)
                 cargo_qw1 = "Cargo:AttR1:" + str(
                     attL2_info["start"] - RP_info["start"] - len(attR1_info["seq"])) + "-" + str(
                         attL2_info["start"] - RP_info["start"]) + ":0"
             else:
-                cargo_amplicon = get_seq(genome_fa, FP_info["chr"], FP_info["start"], cut - 1, gene_strand) + get_seq(cargo_fa,
+                cargo_amplicon = get_seq(genome_fa, FP_info["chr"], cut, FP_info["end"], gene_strand) + get_seq(cargo_fa,
                                          RP_info["chr"], attL2_info["start"], RP_info["end"], "+")
                 cargo_qw1 = "Cargo:AttL2:" + str(cut - FP_info["start"]) + "-" + str(cut - FP_info["start"] + len(attL2_info["seq"])) + ":0"
         else:
             if FP_info["start"] < cut:
                 cargo_amplicon = get_seq(genome_fa, FP_info["chr"], FP_info["start"], cut - 1, gene_strand) + get_seq(cargo_fa,
-                                         RP_info["chr"], attL2_info[ "start"], RP_info["end"], "+")
+                                         RP_info["chr"], attL2_info["start"], RP_info["end"], "+")
                 cargo_qw1 = "Cargo:AttL2:" + str(cut - FP_info["start"]) + "-" + str(cut - FP_info["start"] + len(attL2_info["seq"])) + ":0"
             else:
                 cargo_amplicon = get_seq(cargo_fa, RP_info["chr"], RP_info["start"], attL2_info["start"] - 1,
