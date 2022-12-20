@@ -73,7 +73,7 @@ def main():
             RP_adapter = sample["Cargo Primer link to Illumina adapater"]
         RP_info = align_primer(sample["Cargo Primer Sequence"],
                                "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"], sample["Payload ID"], illumina[RP_adapter])
-        print(RP_info)
+        print(FP_info)
 
         # cargo seq
         cut = int(sample["cryptic coordinate"])
