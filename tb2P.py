@@ -66,6 +66,7 @@ def main():
         else:
             FP_adapter = sample["Genomic Primer link to Illumina adapter"]
         FP_info = align_primer(sample["Genomic Primer Sequence"], reference_index, illumina[FP_adapter])
+        print(FP_info)
 
         if "Cargo Primer link to Illumina adapater" not in sample:
             RP_adapter = "P7"
@@ -80,8 +81,6 @@ def main():
         attR1_info = align_primer("TTTGTCTGGTCAACCACCGCGGT", "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"], sample["Payload ID"])
 
         if gene_strand == "-":
-            print(FP_info["start"])
-            print(cut)
             if FP_info["start"] < cut:
                 cargo_amplicon = get_seq(cargo_fa, RP_info["chr"], RP_info["start"], attL2_info["start"] - 1,
                                          "+") + get_seq(genome_fa, FP_info["chr"], cut, FP_info["end"], gene_strand)
