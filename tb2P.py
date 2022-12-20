@@ -80,6 +80,7 @@ def main():
         attL2_info = align_primer("CTCAGTGGTGTACGGTACAAA", "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"], sample["Payload ID"])
         attR1_info = align_primer("TTTGTCTGGTCAACCACCGCGGT", "/home/ubuntu/annotation/bwa_index/" + sample["Payload ID"], sample["Payload ID"])
 
+
         if gene_strand == "-":
             # attR
             if FP_info["start"] < cut:
@@ -98,12 +99,12 @@ def main():
             if FP_info["start"] < cut:
                 cargo_amplicon = get_seq(genome_fa, FP_info["chr"], FP_info["start"], cut - 1, gene_strand) + get_seq(cargo_fa,
                                          RP_info["chr"], attL2_info["start"], RP_info["end"], "+")
-                cargo_qw1 = "Cargo:AttL2:" + str(cut - FP_info["start"]) + "-" + str(cut - FP_info["start"] + len(attL2_info["seq"])) + ":0"
+                cargo_qw1 = "Cargo:AttL2:" + str(cut - FP_info["start"] + 1) + "-" + str(cut - FP_info["start"] + len(attL2_info["seq"])) + ":0"
             else:
                 cargo_amplicon = get_seq(cargo_fa, RP_info["chr"], RP_info["start"], attL2_info["start"] - 1,
                                          "+") + get_seq(genome_fa, FP_info["chr"], cut, FP_info["end"], gene_strand)
                 cargo_qw1 = "Cargo:AttR1:" + str(
-                    attL2_info["start"] - RP_info["start"] - len(attR1_info["seq"])) + "-" + str(
+                    attL2_info["start"] - RP_info["start"] - len(attR1_info["seq"]) + 1) + "-" + str(
                         attL2_info["start"] - RP_info["start"]) + ":0"
 
         amplicon_fh.write(name + "\tCargo\t" + cargo_amplicon + "\n")
