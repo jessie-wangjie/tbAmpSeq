@@ -121,6 +121,11 @@ def main():
         error_fh = open(os.path.join(output, name + ".job.log"), 'wb')
 
         # WT amplicon
+        print(genome_fa)
+        print(target_chr)
+        print(wt_start)
+        print(wt_end)
+        print(target_strand)
         wt_amplicon = get_seq(genome_fa, target_chr, wt_start, wt_end, target_strand)
         amplicon_fh.write(name + "\tWT\t" + wt_amplicon + "\n")
 
