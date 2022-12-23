@@ -97,7 +97,7 @@ def main():
                 "select target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from dna_oligo "
                 "join primer on primer.id=dna_oligo.id "
                 "join target_gene on target_gene.id = primer.gene_or_target_name "
-                "where dna_oligo.bases = \"%%s\"", [fp_seq])
+                "where dna_oligo.bases = ''%%s''", [fp_seq])
             target_chr, genome_build, target_strand = cur.fetchone()
 
         # reference genome
