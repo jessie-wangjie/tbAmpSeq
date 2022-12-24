@@ -401,7 +401,7 @@ def main():
                 stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call(
                 "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name Cargo --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s" % (
-                RP2_fastq, cargo_amplicon, name + "_Cargo", output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
+                unmapped_fastq, cargo_amplicon, name + "_Cargo", output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
             if type == "single_atg":
                 subprocess.call(
