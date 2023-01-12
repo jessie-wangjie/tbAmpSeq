@@ -109,6 +109,8 @@ def main():
             break
 
         if sname and sname != sample["Sample name"]:
+            print(sname)
+            print(sample["Sample name"])
             continue
 
         if pd.isna(sample["Sample name"]):
