@@ -377,11 +377,17 @@ def main():
             RP2_fastq = os.path.join(preprocess_output, "RP2.fastq.gz")
             noRP_fastq = os.path.join(preprocess_output, "noRP.fastq.gz")
             if gene_strand == "-":
-                subprocess.call(
-                    "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
+                if sample["Reverse Primer 2 link to Illumina Adapater"] == "P5":
+                    subprocess.call(
+                        "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
                         reverse_complement(FP_info["seq"]), RP1_fastq, unmapped_fastq,
                         reverse_complement(RP2_info["seq"]),
                         noRP_fastq, RP2_fastq), shell=True, stdout=error_fh, stderr=error_fh)
+                else:
+                    subprocess.call(
+                        "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
+                        RP1_info["seq"], RP1_fastq, unmapped_fastq, RP2_info["seq"], noRP_fastq, RP2_fastq), shell=True,
+                        stdout=error_fh, stderr=error_fh)
             else:
                 if sample["Reverse Primer 2 link to Illumina Adapater"] == "P7":
                     subprocess.call(
