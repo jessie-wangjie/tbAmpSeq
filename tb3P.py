@@ -108,9 +108,7 @@ def main():
         if sample["Sample name"] == "PROTOCOLS":
             break
 
-        if sname and sname != sample["Sample name"]:
-            print(sname)
-            print(sample["Sample name"])
+        if sname and sname != sample["MiSeq samplesheet name (no space, no underscore)"]:
             continue
 
         if pd.isna(sample["Sample name"]):
