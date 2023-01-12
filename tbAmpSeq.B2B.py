@@ -240,7 +240,7 @@ def main():
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--needleman_wunsch_gap_extend 0 %s" % (
+                "--needleman_wunsch_gap_extend 0 %s --bam_output" % (
                     r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output,
                     ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
@@ -293,7 +293,7 @@ def main():
                 "--prime_editing_pegRNA_extension_seq %s --prime_editing_pegRNA_scaffold_seq %s --prime_editing_nicking_guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--needleman_wunsch_gap_extend 0 %s" % (
+                "--needleman_wunsch_gap_extend 0 %s --bam_output" % (
                     r1, r2, wt_amplicon, sp1_info["seq"], rt_seq + pbs_seq, scaffold_seq, ng_info["seq"], name, output,
                     ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
@@ -325,7 +325,7 @@ def main():
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--needleman_wunsch_gap_extend 0 %s" % (
+                "--needleman_wunsch_gap_extend 0 %s --bam_output" % (
                     r1, r2, wt_amplicon, sp1_info["seq"], name, output, ncpu, cs2), stderr=error_fh, stdout=error_fh,
                 shell=True)
 
