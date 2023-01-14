@@ -48,7 +48,7 @@ def main():
         data["aaanid"] = "bfi_bBH1gNMA"
         data["ppid"] = "bfi_szYqmr3G"
         data["ampseq_pipeline_run"] = "bfi_DAriR0ky"
-        data["project_name"] = "bfi_g6uFKkXL"
+        data["modatg_batch_id"] = "bfi_g6uFKkXL"
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
         print(row)
         benchling.assay_results.create([row])
