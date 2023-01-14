@@ -38,6 +38,14 @@ def main():
 
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
+    ngs_id = re.sub(".*(BTB\d+).*","\\1",tbid)
+    ngs_stats = {}
+    cur.execute(
+        "select id, name, email, eln_id"
+        "from ampseq_sample_metasheet$raw "
+        "where file_registry_id$ = %s", [ngs_id])
+    ngs_stats["ampseq_project"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
+
     # Read in basespace project id
     cur.execute(
         "select miseq_sample_name, re1.file_registry_id, aaan_id, re2.file_registry_id, pp_id, forward_primer_seq, "
@@ -49,11 +57,13 @@ def main():
         "where genomics_ampseq_project_queue = %s", [tbid])
 
     for record in cur.fetchall():
-        cs2_stats = {}
-        name, aaan_id, cs2_stats["aaan_id"], pp_id, cs2_stats["ppid"], fp_seq, rp_seq, cs2_stats["project_name"], \
-        cs2_stats["experimenter"], cs2_stats["sample_name"], cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], \
-        cs2_stats["lnp_prep_id"], cs2_stats["ampseq_project_name"], plate, well = record
+        cs2_stats = ngs_stats
+        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], fp_seq, rp_seq, cs2_stats["project_name"], \
+        cs2_stats["experimenter"], cs2_stats["samplename"], cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], \
+        cs2_stats["lnp_batch_id"], cs2_stats["ampseq_project_name"], plate, well = record
         cs2_stats["miseq_sample_name"] = name
+        cs2_stats["genomics_ampseq_project_queue"] = tbid
+
         print([name, aaan_id, pp_id])
 
         if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
