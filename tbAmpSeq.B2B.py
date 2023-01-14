@@ -42,6 +42,7 @@ def main():
     ngs_stats = {}
     cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s", [ngs_id])
     ngs_stats["ampseq_project"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
+    ngs_stats["project_name"] = ngs_id
 
     # Read in basespace project id
     cur.execute(

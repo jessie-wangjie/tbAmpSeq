@@ -44,6 +44,7 @@ def main():
         data = json.load(open(s))
         del data["well"]
         del data["plate"]
+        del data["email"]
         data["aaanid"] = "bfi_bBH1gNMA"
         data["ppid"] = "bfi_szYqmr3G"
         data["ampseq_pipeline_run"] = "bfi_DAriR0ky"
