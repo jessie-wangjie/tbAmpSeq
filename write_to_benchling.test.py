@@ -44,7 +44,7 @@ def main():
         data = json.load(open(s))
         del data["well"]
         del data["plate"]
-        data["aaan_id"] = "bfi_bBH1gNMA"
+        data["aaanid"] = "bfi_bBH1gNMA"
         data["ppid"] = "bfi_szYqmr3G"
         data["ampseq_pipeline_run"] = "bfi_DAriR0ky"
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
