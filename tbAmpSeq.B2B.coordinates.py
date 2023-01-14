@@ -8,12 +8,6 @@ import argparse
 import glob
 from logging import warn
 
-from benchling_api_client.models.naming_strategy import NamingStrategy
-from benchling_sdk.auth.api_key_auth import ApiKeyAuth
-from benchling_sdk.benchling import Benchling
-from benchling_sdk.helpers.serialization_helpers import fields
-from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate
-
 from utils.base import *
 from utils.common_functions import *
 
@@ -44,35 +38,28 @@ def main():
 
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
+    ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
+    ngs_stats = {}
+    cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s", [ngs_id])
+    ngs_stats["ampseq_project"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
+    ngs_stats["project_name"] = ngs_id
+
     # Read in basespace project id
     cur.execute(
-        "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq, "
-        "project_name, experimenter, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, ampseq_project_name "
+        "select miseq_sample_name, re1.file_registry_id, aaan_id, re2.file_registry_id, pp_id, forward_primer_seq, "
+        "reverse_primer_seq, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, "
+        "plate, well_position "
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaan_id "
         "left join registry_entity as re2 on re2.id = pp_id "
         "where genomics_ampseq_project_queue = %s", [tbid])
 
-    # create pipeline run entity
-    # TODO: to check run suffix
-    benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
-    entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
-                                naming_strategy=NamingStrategy.NEW_IDS,
-                                name=tbid + "a",
-                                fields=fields(
-                                    {"Genomics AmpSeq Project Queue": {"value": tbid},
-                                     "pipeline Name": {"value": "tbAmpseq"}}))
-    #    pipeline_run_entity = benchling.custom_entities.create(entity)
-
     for record in cur.fetchall():
-        cs2_stats = {}
-        name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats[
-            "sample_name"], \
-        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_prep_id"], cs2_stats[
-            "ampseq_project_name"] = record
+        cs2_stats = ngs_stats
+        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], fp_seq, rp_seq, cs2_stats["samplename"], \
+        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], plate, well = record
         cs2_stats["miseq_sample_name"] = name
-        cs2_stats["aaan_id"] = aaan_id
-        cs2_stats["ppid"] = pp_id
+        cs2_stats["genomics_ampseq_project_queue"] = tbid
         print([name, aaan_id, pp_id])
 
         if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
@@ -132,7 +119,7 @@ def main():
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--bam_output --needleman_wunsch_gap_extend 0 %s" % (
+                "--needleman_wunsch_gap_extend 0 %s --bam_output --suppress_report" % (
                     r1, r2, wt_amplicon, name, output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
         elif aaan_id.startswith("AN"):
@@ -184,7 +171,7 @@ def main():
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--bam_output --needleman_wunsch_gap_extend 0 %s" % (
+                "--needleman_wunsch_gap_extend 0 %s --bam_output --suppress_report" % (
                     r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + ng_info["seq"], name, output,
                     ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
@@ -233,7 +220,7 @@ def main():
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--needleman_wunsch_gap_extend 0 %s" % (
+                "--needleman_wunsch_gap_extend 0 %s --bam_output --suppress_report" % (
                     r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output,
                     ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
@@ -289,7 +276,7 @@ def main():
                 "--prime_editing_pegRNA_extension_seq %s --prime_editing_pegRNA_scaffold_seq %s --prime_editing_nicking_guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--needleman_wunsch_gap_extend 0 %s" % (
+                "--needleman_wunsch_gap_extend 0 %s --bam_output --suppress_report" % (
                     r1, r2, wt_amplicon, sp1_info["seq"], rt_seq + pbs_seq, scaffold_seq, ng_info["seq"], name, output,
                     ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
@@ -321,7 +308,7 @@ def main():
                 "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT --guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--needleman_wunsch_gap_extend 0 %s" % (
+                "--needleman_wunsch_gap_extend 0 %s --bam_output --suppress_report" % (
                     r1, r2, wt_amplicon, sp1_info["seq"], name, output, ncpu, cs2), stderr=error_fh, stdout=error_fh,
                 shell=True)
 
@@ -331,12 +318,8 @@ def main():
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
-        # insert the cs2 stats to benchling
-        #        cs2_stats["ampseq_pipeline_run"] = pipeline_run_entity.id
-        row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(cs2_stats),
-                                project_id=result_project_id)
-        #        benchling.assay_results.create([row])
-
+        cs2_stats["plate"] = plate
+        cs2_stats["well"] = well
         pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
         # plot
@@ -346,7 +329,7 @@ def main():
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     sp1_info["cut"] - 1, sp1_info["cut"], len(wt_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                stdout=error_fh, shell=True)
+                    stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=error_fh, stdout=error_fh,
                             shell=True)
@@ -365,21 +348,19 @@ def main():
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                stdout=error_fh, shell=True)
+                    stdout=error_fh, shell=True)
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Scaffold-incorporated --plot_center %s "
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                stdout=error_fh, shell=True)
+                    stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=error_fh,
-                            stdout=error_fh,
-                            shell=True)
+                    stdout=error_fh,shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=error_fh,
-                            stdout=error_fh,
-                            shell=True)
+                    stdout=error_fh,shell=True)
 
         elif aaan_id and (not aaan_id.startswith("SG")):
             subprocess.call(
@@ -387,7 +368,7 @@ def main():
                 "--plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     sp1_info["cut"] - 1, sp1_info["cut"], len(beacon_amplicon) - sp1_info["cut"]), stderr=error_fh,
-                stdout=error_fh, shell=True)
+                    stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=error_fh, stdout=error_fh,
                             shell=True)
