@@ -7,6 +7,7 @@ Information from Benchling
 import argparse
 import glob
 from logging import warning
+
 from utils.base import *
 from utils.common_functions import *
 
@@ -39,9 +40,9 @@ def main():
 
     # Read in basespace project id
     cur.execute(
-        "select miseq_sample_name, re1.file_registry_id, re2.file_registry_id, forward_primer_seq, reverse_primer_seq, "
-        "project_name, experimenter, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, ampseq_project_name, "
-        "plate, well_position "
+        "select miseq_sample_name, re1.file_registry_id, aaan_id, re2.file_registry_id, pp_id, forward_primer_seq, "
+        "reverse_primer_seq, project_name, experimenter, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, "
+        "ampseq_project_name, plate, well_position "
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaan_id "
         "left join registry_entity as re2 on re2.id = pp_id "
@@ -49,12 +50,10 @@ def main():
 
     for record in cur.fetchall():
         cs2_stats = {}
-        name, aaan_id, pp_id, fp_seq, rp_seq, cs2_stats["project_name"], cs2_stats["experimenter"], cs2_stats["sample_name"], \
-        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_prep_id"], cs2_stats["ampseq_project_name"], \
-        plate, well = record
+        name, aaan_id, cs2_stats["aaan_id"], pp_id, cs2_stats["ppid"], fp_seq, rp_seq, cs2_stats["project_name"], \
+        cs2_stats["experimenter"], cs2_stats["sample_name"], cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], \
+        cs2_stats["lnp_prep_id"], cs2_stats["ampseq_project_name"], plate, well = record
         cs2_stats["miseq_sample_name"] = name
-        cs2_stats["aaan_id"] = aaan_id
-        cs2_stats["ppid"] = pp_id
         print([name, aaan_id, pp_id])
 
         if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
