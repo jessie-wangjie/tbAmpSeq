@@ -50,11 +50,11 @@ def main():
     b_json["WT Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"]["WT"]
     if len(cs2_info["results"]["ref_names"])>1:
         b_json["Beacon Aligned Read Num"] = cs2_info["results"]["alignment_stats"]["counts_total"][cs2_info["results"]["ref_names"][1]]
-        b_json["Aligned Percentage"] = (b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"]) / b_json[
+        b_json["Aligned Percentage"] = 100 * (b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"]) / b_json[
             "Merged R1R2 Read Num"]
-        b_json["WT Aligned Percentage"] = b_json["WT Aligned Read Num"] / (
+        b_json["WT Aligned Percentage"] = 100 * b_json["WT Aligned Read Num"] / (
                 b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"])
-        b_json["Beacon Placement Percentage"] = b_json["Beacon Aligned Read Num"] / (
+        b_json["Beacon Placement Percentage"] = 100 * b_json["Beacon Aligned Read Num"] / (
                 b_json["WT Aligned Read Num"] + b_json["Beacon Aligned Read Num"])
 
     qw_stats = []
@@ -95,12 +95,12 @@ def main():
                 b_json["Beacon Indel Read Num"] = stats["indels"]
             else:
                 b_json["Beacon Indel Read Num"] = 0
-            b_json["Beacon Indel Percentage"] = b_json["Beacon Indel Read Num"] / b_json["Beacon Aligned Read Num"]
+            b_json["Beacon Indel Percentage"] = 100 * b_json["Beacon Indel Read Num"] / b_json["Beacon Aligned Read Num"]
             if "substitution" in stats:
                 b_json["Beacon Sub Read Num"] = stats["substitution"]
             else:
                 b_json["Beacon Sub Read Num"] = 0
-            b_json["Beacon Sub Percentage"] = b_json["Beacon Sub Read Num"] / b_json["Beacon Aligned Read Num"]
+            b_json["Beacon Sub Percentage"] = 100 * b_json["Beacon Sub Read Num"] / b_json["Beacon Aligned Read Num"]
             gg = df.groupby(["classification", "n_indel"]).sum()
             if "modified" in gg.index.get_level_values("classification"):
                 pd.DataFrame(gg.loc["modified", "#Reads"]).to_csv(

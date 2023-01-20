@@ -134,12 +134,12 @@ def window_quantification(cs2_folder, quantification_windows):
     else:
         b_json["beacon_aligned_read_num"] = 0
 
-    b_json["aligned_percentage"] = format((b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json[
-        "merged_r1r2_read_num"], ".2f")
-    b_json["wt_aligned_percentage"] = format(b_json["wt_aligned_read_num"] / (
-        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
-    b_json["beacon_placement_percentage"] = format(b_json["beacon_aligned_read_num"] / (
-        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
+    b_json["aligned_percentage"] = format(100 * (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json[
+        "merged_r1r2_read_num"], ".1f")
+    b_json["wt_aligned_percentage"] = format(100 * b_json["wt_aligned_read_num"] / (
+        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
+    b_json["beacon_placement_percentage"] = format(100 * b_json["beacon_aligned_read_num"] / (
+        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
 
     qw_stats = []
     for window in quantification_windows:
@@ -182,11 +182,11 @@ def window_quantification(cs2_folder, quantification_windows):
             else:
                 b_json["beacon_indel_read_num"] = 0
                 b_json["beacon_sub_read_num"] = 0
-            b_json["beacon_indel_percentage"] = format(b_json["beacon_indel_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
-            b_json["beacon_sub_percentage"] = format(b_json["beacon_sub_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
+            b_json["beacon_indel_percentage"] = format(100 * b_json["beacon_indel_read_num"] / b_json["beacon_aligned_read_num"], ".1f")
+            b_json["beacon_sub_percentage"] = format(100 * b_json["beacon_sub_read_num"] / b_json["beacon_aligned_read_num"], ".1f")
             b_json["perfect_beacon_percent"] = format(
-                (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / (
-                        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".2f")
+                100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / (
+                        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
 
     pd.DataFrame(qw_stats).to_csv(cs2_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
                                   sep="\t", header=True, index=False, na_rep=0)
