@@ -35,7 +35,7 @@ if __name__ == "__main__":
     data["x"] = data["well"].str.extract(r"(\d+)")
     data["x"] = data["x"].astype('int')
     data["y"] = data["well"].str.get(0)
-    data = data[["plate", "x", "y", "well", "sample_name", "miseq_sample_name", "aaan_id", "ppid", "total_read_num",
+    data = data[["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num",
                  "merged_r1r2_read_num", "aligned_percentage", "wt_aligned_read_num", "beacon_aligned_read_num",
                  "wt_aligned_percentage", "beacon_placement_percentage", "beacon_indel_read_num", "beacon_sub_read_num",
                  "beacon_indel_percentage", "beacon_sub_percentage", "perfect_beacon_percent"]]
