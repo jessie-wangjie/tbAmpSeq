@@ -5,6 +5,7 @@ from io import StringIO
 
 import altair as alt
 import pandas as pd
+import quilt3
 
 
 class Capturing(list):
