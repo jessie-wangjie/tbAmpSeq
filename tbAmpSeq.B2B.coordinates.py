@@ -40,11 +40,13 @@ def main():
 
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
     ngs_stats = {}
+    cur = conn.cursor()
     cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s", [ngs_id])
     ngs_stats["ampseq_project"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
     ngs_stats["project_name"] = ngs_id
 
     # Read in basespace project id
+    cur = conn.cursor()
     cur.execute(
         "select miseq_sample_name, re1.file_registry_id, aaan_id, re2.file_registry_id, pp_id, forward_primer_seq, "
         "reverse_primer_seq, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, "
@@ -79,6 +81,7 @@ def main():
                 "where primer_pair.file_registry_id$ = %s", [pp_id])
             target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
         else:
+            cur = conn.cursor()
             cur.execute(
                 "select target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from dna_oligo "
                 "join primer on primer.id=dna_oligo.id "
@@ -125,6 +128,7 @@ def main():
 
         elif aaan_id.startswith("AN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
+            cur = conn.cursor()
             cur.execute("select sp.bases, beacon.bases, ng.bases, atgrna.rt_coordinate, atg.bases from atg_ng "
                         "join modified_rna as m1 on m1.id=atg_ng.atgrna "
                         "join modified_rna as m2 on m2.id=atg_ng.ngrna "
@@ -187,6 +191,7 @@ def main():
         # atgRNA-atgRNA
         elif aaan_id.startswith("AA"):
             # Get spacers information
+            cur = conn.cursor()
             cur.execute("select sp1.bases, sp2.bases, beacon1.bases, beacon2.bases from atg_atg "
                         "join modified_rna as m1 on m1.id = atg_atg.atg1 "
                         "join modified_rna as m2 on m2.id = atg_atg.atg2 "
@@ -236,6 +241,7 @@ def main():
         # pegRNA-ngRNA
         elif aaan_id.startswith("PN"):
             # get spacer sequences, beacon sequences, ngRNA sequences
+            cur = conn.cursor()
             cur.execute(
                 "select sp.bases, ng.bases, pegrna.rt_coordinate, pegrna.pbs_coordinate, scaffold.bases, peg.bases from peg_ng "
                 "join modified_rna as m1 on m1.id=peg_ng.modified_pegrna "
@@ -298,6 +304,7 @@ def main():
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
 
         elif aaan_id.startswith("SG"):
+            cur = conn.cursor()
             cur.execute("select dna_oligo.bases from sgrna "
                         "join dna_oligo on dna_oligo.id=sgrna.spacer "
                         "where sgrna.file_registry_id$ = %s", [aaan_id])
