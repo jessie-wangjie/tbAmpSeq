@@ -34,7 +34,7 @@ def main():
     try:
         os.makedirs(output)
     except:
-        warn('Folder %s already exists.' % output)
+        warning('Folder %s already exists.' % output)
 
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
