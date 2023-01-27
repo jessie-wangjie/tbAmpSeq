@@ -8,7 +8,7 @@ username = os.getenv('WAREHOUSE_USERNAME')
 password = os.getenv('WAREHOUSE_PASSWORD')
 url = os.getenv('WAREHOUSE_URL')
 
-conn = psycopg2.connect(f"dbname=warehouse user={username} password={password} port=5432 sslmode='verify-ca' host={url} options='-c statement_timeout=5000'")
+conn = psycopg2.connect(f"dbname=warehouse user={username} password={password} port=5432 sslmode='verify-ca' host={url} keepalives_idle=6000")
 cur = conn.cursor()
 
 api_key = os.getenv('API_KEY')
