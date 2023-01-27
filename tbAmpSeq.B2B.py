@@ -77,7 +77,7 @@ def main():
             #    "join target_gene on target_gene.id = p1.gene_or_target_name "
             #    "where primer_pair.file_registry_id$ = %s", [pp_id])
             # target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
-
+            cur = conn.cursor()
             cur.execute(
                 "select p1.file_registry_id$, p2.file_registry_id$ from primer_pair "
                 "join primer as p1 on p1.id = primer_pair.forward_primer "
@@ -85,6 +85,7 @@ def main():
                 "where primer_pair.file_registry_id$ = %s", [pp_id])
             fp_id, rp_id = cur.fetchone()
 
+            cur = conn.cursor()
             cur.execute(
                 "select dna_oligo.bases, target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from primer "
                 "join target_gene on target_gene.id = primer.gene_or_target_name "
@@ -92,6 +93,7 @@ def main():
                 "where primer.file_registry_id$ = %s", [fp_id])
             fp_seq, target_chr, genome_build, target_strand = cur.fetchone()
 
+            cur = conn.cursor()
             cur.execute(
                 "select dna_oligo.bases from primer "
                 "join dna_oligo on dna_oligo.id = primer.id "
