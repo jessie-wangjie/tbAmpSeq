@@ -6,7 +6,7 @@ Information from Benchling
 
 import argparse
 import glob
-from logging import warn
+from logging import warning
 
 from utils.base import *
 from utils.common_functions import *
