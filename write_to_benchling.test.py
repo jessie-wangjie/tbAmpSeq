@@ -45,11 +45,7 @@ def main():
         del data["well"]
         del data["plate"]
         del data["email"]
-        data["aaanid"] = "bfi_g6uFKkXL"
-        data["ppid"] = "bfi_szYqmr3G"
-        data["ampseq_pipeline_run"] = "bfi_DAriR0ky"
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
-        print(row)
         benchling.assay_results.create([row])
 
 if __name__ == "__main__":
