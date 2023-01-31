@@ -50,7 +50,7 @@ if __name__ == '__main__':
                     project = item.get("Project").get("Name")
                     if project != "Unindexed Reads":
                         samples[project] = item.get("Project").get("Id")
-                        pd.Series(run_json).to_json(project + ".run.json")
+                        pd.Series(run_json).to_json(os.path.join(project + "_tbAmpSeq", project + ".run.json"))
 
                 send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
