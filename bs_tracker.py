@@ -52,7 +52,7 @@ if __name__ == '__main__':
                     if project != "Unindexed Reads":
                         samples[project] = item.get("Project").get("Id")
 
-                send_email(run["ExperimentName"], samples.keys()
+                send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
 
                 # download fastq files from basespace
