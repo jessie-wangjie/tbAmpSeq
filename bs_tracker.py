@@ -37,22 +37,22 @@ if __name__ == '__main__':
                 print(current_run)
             elif run["ExperimentName"] in current_run:
                 print(current_run[run["ExperimentName"]])
-                response = requests.get(
-                    f'{bs_api_server}/datasets?InputRuns={current_run[run["ExperimentName"]]}&access_token={bs_access_token}&limit=1000',
-                    stream=True)
-                for item in response.json().get("Items"):
-                    project = item.get("Project").get("Name")
-                    if project != "Unindexed Reads":
-                        samples[project] = item.get("Project").get("Id")
-                send_email(run["ExperimentName"], samples.keys())
-
                 # store the runinfo and stats
                 response = requests.get(
                     f'{bs_api_server}/runs/{current_run[run["ExperimentName"]]}/sequencingstats?access_token={bs_access_token}',
                     stream=True)
                 run_json = {"bsrunid": run["ExperimentName"], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
-                pd.Series(run_json).to_json(run["ExperimentName"] + ".json")
 
+                response = requests.get(
+                    f'{bs_api_server}/datasets?InputRuns={current_run[run["ExperimentName"]]}&access_token={bs_access_token}&limit=1000',
+                    stream=True)
+                for item in response.json().get("Items"):
+                    project = item.get("Project").get("Name")
+                    pd.Series(run_json).to_json(project + ".run.json")
+                    if project != "Unindexed Reads":
+                        samples[project] = item.get("Project").get("Id")
+
+                send_email(run["ExperimentName"], samples.keys()
                 del current_run[run["ExperimentName"]]
 
                 # download fastq files from basespace
