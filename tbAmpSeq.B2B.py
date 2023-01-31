@@ -38,8 +38,8 @@ def main():
 
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
+    ngs_stats = pd.read_json(tbid + ".run.json")
     ngs_id = re.sub(".*(BTB\d+).*","\\1",tbid)
-    ngs_stats = {}
     cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s", [ngs_id])
     ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
 
