@@ -48,9 +48,9 @@ if __name__ == '__main__':
                     stream=True)
                 for item in response.json().get("Items"):
                     project = item.get("Project").get("Name")
-                    pd.Series(run_json).to_json(project + ".run.json")
                     if project != "Unindexed Reads":
                         samples[project] = item.get("Project").get("Id")
+                        pd.Series(run_json).to_json(project + ".run.json")
 
                 send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
