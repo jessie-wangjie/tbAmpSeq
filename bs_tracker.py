@@ -3,6 +3,7 @@ import subprocess
 import requests
 import time
 import smtplib
+import pandas as pd
 from utils.base import *
 
 
@@ -25,7 +26,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {}
+    current_run = {"TB_MISEQ_000100": 251697463}
     while True:
         response = requests.get(
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=5', stream=True)
@@ -44,6 +45,14 @@ if __name__ == '__main__':
                     if project != "Unindexed Reads":
                         samples[project] = item.get("Project").get("Id")
                 send_email(run["ExperimentName"], samples.keys())
+
+                # store the runinfo and stats
+                response = requests.get(
+                    f'{bs_api_server}/runs/{current_run[run["ExperimentName"]]}/sequencingstats?access_token={bs_access_token}',
+                    stream=True)
+                run_json = {"bsrunid": current_run[run["ExperimentName"]], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
+                pd.Series().to_json(current_run[run["ExperimentName"]] + ".json")
+
                 del current_run[run["ExperimentName"]]
 
                 # download fastq files from basespace
