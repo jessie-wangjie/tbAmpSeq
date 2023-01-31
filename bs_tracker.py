@@ -50,8 +50,8 @@ if __name__ == '__main__':
                 response = requests.get(
                     f'{bs_api_server}/runs/{current_run[run["ExperimentName"]]}/sequencingstats?access_token={bs_access_token}',
                     stream=True)
-                run_json = {"bsrunid": current_run[run["ExperimentName"]], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
-                pd.Series().to_json(current_run[run["ExperimentName"]] + ".json")
+                run_json = {"bsrunid": run["ExperimentName"], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
+                pd.Series().to_json(run["ExperimentName"] + ".json")
 
                 del current_run[run["ExperimentName"]]
 
