@@ -58,7 +58,7 @@ if __name__ == '__main__':
                 print(samples.items())
                 for s, id in samples.items():
                     subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s), shell=True)
-                    os.mkdir(os.path.join(s + "_tbAmpSeq"))
+                    os.makedirs(os.path.join(s + "_tbAmpSeq"), exist_ok=True)
                     pd.Series(run_json).to_json(os.path.join(s + "_tbAmpSeq", s + ".run.json"))
                     subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.py -m %s -i %s -p 8 -o %s" % (s, s, s + "_tbAmpSeq"), shell=True)
 
