@@ -26,7 +26,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {}
+    current_run = {'TB_MISEQ_000102': '252171937'}
     while True:
         response = requests.get(
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=5', stream=True)
@@ -58,7 +58,8 @@ if __name__ == '__main__':
                 print(samples.items())
                 for s, id in samples.items():
                     subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s), shell=True)
-                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.py -m %s -i %s -p 8 -o %s" % (s, s, s + "_tbAmpSeq"), shell=True)
+                    os.mkdir(os.path.join(project + "_tbAmpSeq")
                     pd.Series(run_json).to_json(os.path.join(project + "_tbAmpSeq", project + ".run.json"))
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.py -m %s -i %s -p 8 -o %s" % (s, s, s + "_tbAmpSeq"), shell=True)
 
         time.sleep(7200)
