@@ -45,7 +45,7 @@ def main():
 
     # Read in basespace project id
     cur.execute(
-        "select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, forward_primer_seq, "
+        "select miseq_sample_name, re1.file_registry_id, aa_id, re2.file_registry_id, pp_id, forward_primer_seq, "
         "reverse_primer_seq, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, "
         "plate, well_position "
         "from ampseq_sample_metasheet_v2$raw "
@@ -55,7 +55,7 @@ def main():
 
     for record in cur.fetchall():
         cs2_stats = ngs_stats
-        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], fp_seq, rp_seq, cs2_stats["samplename"], \
+        name, aaan_id, cs2_stats["aaan_id"], pp_id, cs2_stats["ppid"], fp_seq, rp_seq, cs2_stats["samplename"], \
         cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], plate, well = record
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["genomics_ampseq_project_queue"] = tbid
