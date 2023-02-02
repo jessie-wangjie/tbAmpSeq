@@ -54,7 +54,7 @@ def main():
 
     for record in cur.fetchall():
         cs2_stats = ngs_stats
-        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], fp_seq, rp_seq, cs2_stats["samplename"], \
+        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], cs2_stats["samplename"], \
         cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], plate, well = record
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["genomics_ampseq_project_queue"] = tbid
@@ -68,13 +68,6 @@ def main():
 
         # Get primer information
         if pp_id:
-            # cur.execute(
-            #    "select p1.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
-            #   "join primer as p1 on p1.id = primer_pair.forward_primer "
-            #    "join primer as p2 on p2.id = primer_pair.reverse_primer "
-            #    "join target_gene on target_gene.id = p1.gene_or_target_name "
-            #    "where primer_pair.file_registry_id$ = %s", [pp_id])
-            # target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
             cur.execute(
                 "select p1.file_registry_id$, p2.file_registry_id$ from primer_pair "
                 "join primer as p1 on p1.id = primer_pair.forward_primer "
@@ -94,13 +87,6 @@ def main():
                 "join dna_oligo on dna_oligo.id = primer.id "
                 "where primer.file_registry_id$ = %s", [rp_id])
             rp_seq = cur.fetchone()[0]
-        elif fp_seq:
-            cur.execute(
-                "select target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from dna_oligo "
-                "join primer on primer.id=dna_oligo.id "
-                "join target_gene on target_gene.id = primer.gene_or_target_name "
-                "where dna_oligo.bases like %s", ["%"+fp_seq])
-            target_chr, genome_build, target_strand = cur.fetchone()
 
         # reference genome
         genome_build = re.sub(".*/", "", genome_build)
