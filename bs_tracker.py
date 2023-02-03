@@ -8,7 +8,7 @@ from utils.base import *
 
 
 def send_email(run_id, samples):
-    sender = 'bfx@tome.bio'
+    sender = 'jie.wang@me.com'
     receivers = ['jwang@tome.bio', 'wwang@tome.bio']
 
     subject = run_id + " is finished."
