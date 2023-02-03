@@ -51,7 +51,7 @@ def main():
         "reverse_primer_seq, sample_name, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, "
         "plate, well_position "
         "from ampseq_sample_metasheet$raw "
-        "left join registry_entity as re1 on re1.id = aaan_id "
+        "left join registry_entity as re1 on re1.id = aaanpnsg_id "
         "left join registry_entity as re2 on re2.id = pp_id "
         "where genomics_ampseq_project_queue = %s", [tbid])
 
