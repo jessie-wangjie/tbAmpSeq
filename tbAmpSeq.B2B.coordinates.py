@@ -47,8 +47,8 @@ def main():
 
     # Read in basespace project id
     cur.execute(
-        "select miseq_sample_name, re1.file_registry_id, aaan_id, re2.file_registry_id, pp_id, forward_primer_seq, "
-        "reverse_primer_seq, sample_name, modatg_batch_id, primary_cell_lot_id, lnp_prep_id, "
+        "select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, forward_primer_seq, "
+        "reverse_primer_seq, sample_name, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, "
         "plate, well_position "
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaan_id "
