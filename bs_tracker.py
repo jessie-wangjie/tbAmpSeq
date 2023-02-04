@@ -10,8 +10,8 @@ from utils.base import *
 
 def send_email(run_id, samples):
     msg = EmailMessage()
-    msg["From"] = 'jie.wang@me.com'
-    msg["To"] = ['jwang@tome.bio', 'wwang@tome.bio', 'jie.wang@me.com']
+    msg["From"] = 'matthew.minton@baystateit.com'
+    msg["To"] = ['jwang@tome.bio', 'wwang@tome.bio']
     msg["Subject"] = f'{run_id} is finished.'
     msg.set_content("Projects in " + run_id + ":\n\n" + "\n".join(samples))
 
