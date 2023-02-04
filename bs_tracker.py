@@ -8,11 +8,12 @@ from utils.base import *
 
 
 def send_email(run_id, samples):
-    sender = 'matthew.minton@baystateit.com'
+    sender = 'jie.wang@me.com'
     receivers = ['jwang@tome.bio', 'wwang@tome.bio', 'jie.wang@me.com']
 
-    subject = run_id + " is finished."
-    message = """Subject:" + subject + "\n" + "\n".join(samples)"""
+
+    message= """ Subject: {run_id} + " is finished.
+                {"\n".join({samples})}"""
 
     try:
         server = smtplib.SMTP('email-smtp.us-east-1.amazonaws.com', 587)
