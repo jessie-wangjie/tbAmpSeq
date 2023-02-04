@@ -3,20 +3,17 @@ import subprocess
 import requests
 import time
 import smtplib
+from email.message import EmailMessage
 import pandas as pd
 from utils.base import *
 
 
 def send_email(run_id, samples):
-    sender = 'jie.wang@me.com'
-    receivers = ['jwang@tome.bio', 'wwang@tome.bio', 'jie.wang@me.com']
-
-    message = """\
-    From: %s
-    To: %s
-    Subject: %s is finished.
-    %s
-    """ % (sender, receivers, run_id, "\n".join(samples))
+    msg = EmailMessage()
+    msg["From"] = 'jie.wang@me.com'
+    msg["To"] = ['jwang@tome.bio', 'wwang@tome.bio', 'jie.wang@me.com']
+    msg["Subject"] = run_id + "is finished."
+    msg.set_content("\n".join(samples))
 
     try:
         server = smtplib.SMTP('email-smtp.us-east-1.amazonaws.com', 587)
@@ -24,7 +21,7 @@ def send_email(run_id, samples):
         server.starttls()
         server.login(aws_ses_id, aws_ses_password)
         print(message)
-        server.sendmail(sender, receivers, message)
+        server.send_message(msg)
         print("Successfully sent email")
     except Exception as exception:
         print("Error: %s!\n\n" % exception)
