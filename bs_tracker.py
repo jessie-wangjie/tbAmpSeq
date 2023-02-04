@@ -20,7 +20,6 @@ def send_email(run_id, samples):
         server.ehlo()
         server.starttls()
         server.login(aws_ses_id, aws_ses_password)
-        print(message)
         server.send_message(msg)
         print("Successfully sent email")
     except Exception as exception:
