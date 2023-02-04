@@ -12,8 +12,8 @@ def send_email(run_id, samples):
     msg = EmailMessage()
     msg["From"] = 'jie.wang@me.com'
     msg["To"] = ['jwang@tome.bio', 'wwang@tome.bio', 'jie.wang@me.com']
-    msg["Subject"] = run_id + "is finished."
-    msg.set_content("\n".join(samples))
+    msg["Subject"] = f'{run_id} + "is finished.'
+    msg.set_content("Projects in " + run_id + "\n" +"\n".join(samples))
 
     try:
         server = smtplib.SMTP('email-smtp.us-east-1.amazonaws.com', 587)
