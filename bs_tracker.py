@@ -11,10 +11,13 @@ def send_email(run_id, samples):
     sender = 'jie.wang@me.com'
     receivers = ['jwang@tome.bio', 'wwang@tome.bio', 'jie.wang@me.com']
 
+    message = """\
+    From: %s
+    To: %s
+    Subject: %s is finished.
 
-    message= "testing mail"
-         #   Subject: {run_id} + " is finished."""
-           #     {"\n".join({samples})}"""
+    %s
+    """ % (sender, receivers, run_id, "\n".join(samples))
 
     try:
         server = smtplib.SMTP('email-smtp.us-east-1.amazonaws.com', 587)
