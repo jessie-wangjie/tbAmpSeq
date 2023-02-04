@@ -16,7 +16,7 @@ def send_email(run_id, samples):
     To: %s
     Subject: %s is finished.
     %s
-    """ % (sender, receivers, run_id, join(samples)."\n")
+    """ % (sender, receivers, run_id, "\n".join(samples))
 
     try:
         server = smtplib.SMTP('email-smtp.us-east-1.amazonaws.com', 587)
