@@ -7,7 +7,7 @@ Information from Benchling
 import argparse
 import glob
 import json
-
+import os
 from benchling_api_client.models.naming_strategy import NamingStrategy
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
