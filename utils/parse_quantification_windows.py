@@ -73,7 +73,7 @@ def main():
         for i in g.index:
             stats[i] = g.loc[i]["#Reads"]
             if i == "modified":
-                stats.append(g.loc[i][["indels", "insertion", "deletion", "substitution", "whole_window_deletion"]])
+                stats.update(g.loc[i][["indels", "insertion", "deletion", "substitution", "whole_window_deletion"]])
 
         if int(flank_bp):
             include_idx = []
@@ -86,9 +86,9 @@ def main():
             for i, j in g.index:
                 stats[i + "_" + j + "_flank"] = g.loc[i, j]["#Reads"]
                 if j == "modified":
-                    stats.append(g.loc[i, j][g.columns.str.endswith("_flank")].add_prefix(i + "_"))
+                    stats.update(g.loc[i, j][g.columns.str.endswith("_flank")].add_prefix(i + "_"))
 
-        qw_stats.append(stats)
+        qw_stats.update(stats)
 
         if (ref_name == "Beacon" and qw_name == "beacon_whole") or (ref_name == "PE" and qw_name == "RT_whole"):
             if "indels" in stats:
