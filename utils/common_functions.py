@@ -172,7 +172,7 @@ def window_quantification(cs2_folder, quantification_windows):
                 if j == "modified":
                     stats.update(g.loc[i, j][g.columns.str.endswith("_flank")].add_prefix(i + "_"))
 
-        qw_stats.update(stats)
+        qw_stats.append(stats)
 
         if ref_name == "Beacon" and qw_name == "beacon_whole":
             if "indels" in stats:
