@@ -41,8 +41,8 @@ def main():
                                      "github address": {"value": "https://github.com/tomebio/tbOnT"},
                                      "ELN entry": {"value": "etr_D1dGWLNY"},
                                      "AmpSeq Project Name": {"value": "bfi_YfJSzglk"},
-                                     "run start": {"value": ""},
-                                     "run end": {"value": ""},
+                                     "run start": {"value": ngs_stats["run start"]},
+                                     "run end": {"value": ngs_stats["run end"]},
                                      "run status": {"value": "Complete"}}))
 
     pipeline_run_entity = benchling.custom_entities.create(entity)
