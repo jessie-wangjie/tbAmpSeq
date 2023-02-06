@@ -372,6 +372,8 @@ def main():
 
         error_fh.close()
     amplicon_fh.close()
+    print(ngs_stats)
+    print(cs2_stats)
     ngs_stats["run end"] = str(datetime.datetime.now())
     pd.Series(ngs_stats).to_json(os.path.join(output, tbid + ".run.json"))
 
