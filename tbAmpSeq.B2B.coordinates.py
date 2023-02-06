@@ -6,8 +6,8 @@ Information from Benchling
 
 import argparse
 import glob
+import datetime
 from logging import warning
-
 from utils.base import *
 from utils.common_functions import *
 
@@ -38,7 +38,7 @@ def main():
 
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
-    ngs_stats = {}
+    ngs_stats = {"run start": str(datetime.datetime.now())}
     if os.path.exists(os.path.join(output, tbid + ".run.json")):
         ngs_stats = pd.read_json(os.path.join(output, tbid + ".run.json"), typ="series")
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
@@ -372,7 +372,8 @@ def main():
 
         error_fh.close()
     amplicon_fh.close()
-
+    ngs_stats["run end"] = str(datetime.datetime.now())
+    pd.Series(ngs_stats).to_json(os.path.join(output, tbid + ".run.json"))
 
 if __name__ == "__main__":
     main()
