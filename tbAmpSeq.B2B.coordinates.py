@@ -41,7 +41,7 @@ def main():
     run_start = str(datetime.datetime.now())
     ngs_stats = {}
     if os.path.exists(os.path.join(output, tbid + ".run.json")):
-        ngs_stats.update(pd.read_json(os.path.join(output, tbid + ".run.json"), typ="series"))
+        ngs_stats = pd.read_json(os.path.join(output, tbid + ".run.json"), typ="series")
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
     cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s", [ngs_id])
     ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
@@ -175,7 +175,7 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
+            cs2_stats.append(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
 
         # atgRNA-atgRNA
@@ -225,7 +225,7 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats.update(
+            cs2_stats.append(
                 window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1]))
 
         # pegRNA-ngRNA
@@ -290,7 +290,7 @@ def main():
                     wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4), stderr=error_fh, stdout=error_fh,
                 shell=True)
 
-            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
+            cs2_stats.append(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
 
         elif aaan_id.startswith("SG"):
@@ -314,11 +314,11 @@ def main():
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
+            cs2_stats.append(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
         print(cs2_stats)
         print(ngs_stats)
-        pd.Series(cs2_stats.update(ngs_stats)).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
+        pd.Series(cs2_stats.append(ngs_stats)).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
         # plot
         if sp1_info:
