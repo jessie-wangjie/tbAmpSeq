@@ -316,8 +316,7 @@ def main():
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
-        print(cs2_stats)
-        print(ngs_stats)
+        print(pd.Series(cs2_stats).append(ngs_stats))
         pd.Series(cs2_stats).append(ngs_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
         # plot
