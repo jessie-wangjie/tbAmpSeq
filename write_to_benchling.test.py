@@ -52,7 +52,7 @@ def main():
                                          "run start": {"value": ngs_stats["run start"]},
                                          "run end": {"value": ngs_stats["run end"]},
                                          "run status": {"value": "Complete"}}))
-        pipeline_run_entity = benchling.custom_entities.create(entity)
+        pipeline_run_entity = benchling.custom_entities.create(entity).id
 
     # insert the cs2 stats to benchling
     files = glob.glob(tbid + "/*/CRISPResso_stats.json")
@@ -61,7 +61,7 @@ def main():
         del data["well"]
         del data["plate"]
         del data["email"]
-        data["ampseq_pipeline_run"] = pipeline_run_entity.id
+        data["ampseq_pipeline_run"] = pipeline_run_entity
         data["aaan_id"] = "bfi_bBH1gNMA"
         data["ngs_tracking"] = "bfi_YfJSzglk"
         data["ppid"] = "bfi_hoqIh4uj"
