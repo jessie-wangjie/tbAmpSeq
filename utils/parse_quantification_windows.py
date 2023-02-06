@@ -88,7 +88,7 @@ def main():
                 if j == "modified":
                     stats.update(g.loc[i, j][g.columns.str.endswith("_flank")].add_prefix(i + "_"))
 
-        qw_stats.update(stats)
+        qw_stats.append(stats)
 
         if (ref_name == "Beacon" and qw_name == "beacon_whole") or (ref_name == "PE" and qw_name == "RT_whole"):
             if "indels" in stats:
