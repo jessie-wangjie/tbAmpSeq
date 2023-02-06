@@ -53,7 +53,14 @@ def main():
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaanpnsg_id "
         "left join registry_entity as re2 on re2.id = pp_id "
-        "where genomics_ampseq_project_queue = %s", [tbid])
+        "where genomics_ampseq_project_queue = %s "
+        "union "
+        "select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, "
+        "sample_name, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
+        "from ampseq_sample_metasheet_v2$raw "
+        "left join registry_entity as re1 on re1.id = aaanpnsg_id "
+        "left join registry_entity as re2 on re2.id = pp_id "
+        "where genomics_ampseq_project_queue = %s", [tbid, tbid])
 
     for record in cur.fetchall():
         cs2_stats = ngs_stats
