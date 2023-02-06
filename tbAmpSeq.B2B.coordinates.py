@@ -316,7 +316,7 @@ def main():
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
-        pd.Series(cs2_stats).add(ngs_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
+        pd.concat(pd.Series(cs2_stats),ngs_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
         # plot
         if sp1_info:
