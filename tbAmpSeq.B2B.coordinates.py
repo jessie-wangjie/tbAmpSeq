@@ -38,7 +38,8 @@ def main():
 
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
-    ngs_stats = {"run start": str(datetime.datetime.now())}
+    run_start = str(datetime.datetime.now())
+    ngs_stats = {}
     if os.path.exists(os.path.join(output, tbid + ".run.json")):
         ngs_stats.update(pd.read_json(os.path.join(output, tbid + ".run.json"), typ="series"))
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
@@ -62,9 +63,9 @@ def main():
         "where genomics_ampseq_project_queue = %s", [tbid, tbid])
 
     for record in cur.fetchall():
-        cs2_stats = ngs_stats.copy()
+        cs2_stats = {}
         name, aaan_id, cs2_stats["aaan_id"], pp_id, cs2_stats["ppid"], cs2_stats["samplename"], cs2_stats["mrna_batch_id"], \
-        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], plate, well = record
+        cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], cs2_stats["plate"], cs2_stats["well"] = record
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["genomics_ampseq_project_queue"] = tbid
         print([name, aaan_id, pp_id])
@@ -315,9 +316,7 @@ def main():
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
-        cs2_stats["plate"] = plate
-        cs2_stats["well"] = well
-        pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
+        pd.Series(cs2_stats.update(ngs_stats)).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
         # plot
         if sp1_info:
@@ -372,6 +371,7 @@ def main():
 
         error_fh.close()
     amplicon_fh.close()
+    ngs_stats["run start"] = run_start
     ngs_stats["run end"] = str(datetime.datetime.now())
     pd.Series(ngs_stats).to_json(os.path.join(output, tbid + ".run.json"))
 
