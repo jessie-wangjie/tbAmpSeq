@@ -35,8 +35,8 @@ def main():
                                 fields=fields(
                                     {"Genomics AmpSeq Project Queue": {"value": tbid},
                                      "pipeline Name": {"value": "tbAmpseq"}}))
-#    pipeline_run_entity = benchling.custom_entities.create(entity)
-#    print(pipeline_run_entity)
+    pipeline_run_entity = benchling.custom_entities.create(entity)
+    print(pipeline_run_entity)
 
     # insert the cs2 stats to benchling
     files = glob.glob(tbid + "/*/CRISPResso_stats.json")
