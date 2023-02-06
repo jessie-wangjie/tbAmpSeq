@@ -26,25 +26,42 @@ def main():
     args = parser.parse_args()
     tbid = args.m
 
+    # read NGS information
+    if os.path.exists(os.path.join(tbid, tbid + ".run.json")):
+        ngs_stats = pd.read_json(os.path.join(tbid, tbid + ".run.json"), typ="series")
+
     # create pipeline run entity
     # TODO: to check run suffix
     benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
-    entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
-                                naming_strategy=NamingStrategy.NEW_IDS,
-                                name=tbid + "a",
-                                fields=fields(
-                                    {"Genomics AmpSeq Project Queue": {"value": tbid},
-                                     "pipeline Name": {"value": "tbAmpseq"}}))
-#    pipeline_run_entity = benchling.custom_entities.create(entity)
+
+    # check if the entity exists
+    entity = benchling.custom_entities.list(name=tbid + "a")
+    if entity.estimated_count > 0:
+        pipeline_run_entity = entity.first().id
+    else:
+        entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
+                                    naming_strategy=NamingStrategy.NEW_IDS, name=tbid + "a",
+                                    fields=fields(
+                                        {"Genomics AmpSeq Project Queue": {"value": tbid},
+                                         "pipeline Name": {"value": "tbAmpseq"},
+                                         "github address": {"value": "https://github.com/tomebio/tbOnT"},
+                                         "ELN entry": {"value": "etr_D1dGWLNY"},
+                                         "AmpSeq Project Name": {"value": "bfi_YfJSzglk"},
+                                         "run start": {"value": ngs_stats["run start"]},
+                                         "run end": {"value": ngs_stats["run end"]},
+                                         "run status": {"value": "Complete"}}))
+        pipeline_run_entity = benchling.custom_entities.create(entity).id
 
     # insert the cs2 stats to benchling
     files = glob.glob(tbid + "/*/CRISPResso_stats.json")
-    data = pd.DataFrame()
     for s in files:
-        data = pd.concat([data, pd.read_json(s, orient="index").T])
-
-    row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data.to_json()), project_id=result_project_id)
-    benchling.assay_results.create([row])
+        data = json.load(open(s))
+        del data["well"]
+        del data["plate"]
+        del data["email"]
+        data["ampseq_pipeline_run"] = pipeline_run_entity
+        row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
+        benchling.assay_results.create([row])
 
 if __name__ == "__main__":
     main()
