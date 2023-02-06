@@ -8,12 +8,14 @@ import argparse
 import glob
 import json
 import os
+
 import pandas as pd
 from benchling_api_client.models.naming_strategy import NamingStrategy
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
 from benchling_sdk.helpers.serialization_helpers import fields
 from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate
+
 from utils.base_test import *
 
 
@@ -33,19 +35,24 @@ def main():
     # create pipeline run entity
     # TODO: to check run suffix
     benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
-    entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
-                                naming_strategy=NamingStrategy.NEW_IDS, name=tbid + "a",
-                                fields=fields(
-                                    {"Genomics AmpSeq Project Queue": {"value": tbid},
-                                     "pipeline Name": {"value": "tbAmpseq"},
-                                     "github address": {"value": "https://github.com/tomebio/tbOnT"},
-                                     "ELN entry": {"value": "etr_D1dGWLNY"},
-                                     "AmpSeq Project Name": {"value": "bfi_YfJSzglk"},
-                                     "run start": {"value": ngs_stats["run start"]},
-                                     "run end": {"value": ngs_stats["run end"]},
-                                     "run status": {"value": "Complete"}}))
 
-    pipeline_run_entity = benchling.custom_entities.create(entity)
+    # check if the entity exists
+    entity = benchling.custom_entities.list(name=tbid + "a")
+    if entity.estimated_count > 0:
+        pipeline_run_entity = entity.first().id
+    else:
+        entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
+                                    naming_strategy=NamingStrategy.NEW_IDS, name=tbid + "a",
+                                    fields=fields(
+                                        {"Genomics AmpSeq Project Queue": {"value": tbid},
+                                         "pipeline Name": {"value": "tbAmpseq"},
+                                         "github address": {"value": "https://github.com/tomebio/tbOnT"},
+                                         "ELN entry": {"value": "etr_D1dGWLNY"},
+                                         "AmpSeq Project Name": {"value": "bfi_YfJSzglk"},
+                                         "run start": {"value": ngs_stats["run start"]},
+                                         "run end": {"value": ngs_stats["run end"]},
+                                         "run status": {"value": "Complete"}}))
+        pipeline_run_entity = benchling.custom_entities.create(entity)
 
     # insert the cs2 stats to benchling
     files = glob.glob(tbid + "/*/CRISPResso_stats.json")
