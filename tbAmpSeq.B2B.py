@@ -187,7 +187,7 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
+            cs2_stats.append(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
                                               [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
 
         # atgRNA-atgRNA
@@ -237,7 +237,7 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1]))
+            cs2_stats.append(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1]))
 
         # pegRNA-ngRNA
         elif aaan_id.startswith("PN"):
@@ -298,7 +298,7 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                     wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
+            cs2_stats.append(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
 
         # sgRNA
@@ -323,7 +323,7 @@ def main():
                 os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
                 wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
 
-            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
+            cs2_stats.append(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
         cs2_stats["plate"] = plate
         cs2_stats["well"] = well
