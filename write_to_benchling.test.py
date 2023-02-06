@@ -41,7 +41,7 @@ def main():
                                      "pipeline Name": {"value": "tbAmpseq"},
                                      "github address": {"value": "https://github.com/tomebio/tbOnT"},
                                      "ELN entry": {"value": "etr_D1dGWLNY"},
-                                     "AmpSeq Project Name": {"value": ngs_stats["ngs_tracking"]},
+                                     "AmpSeq Project Name": {"value": "bfi_YfJSzglk"},
                                      "run start": {"value": ""},
                                      "run end": {"value": ""},
                                      "run status": {"value": "Complete"}}))
