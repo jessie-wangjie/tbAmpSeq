@@ -40,7 +40,7 @@ def main():
                                     {"Genomics AmpSeq Project Queue": {"value": tbid},
                                      "pipeline Name": {"value": "tbAmpseq"},
                                      "github address": {"value": "https://github.com/tomebio/tbOnT"},
-                                     "ELN entry": {"value": ngs_stats["project_name"]},
+                                     "ELN entry": {"value": "etr_D1dGWLNY"},
                                      "AmpSeq Project Name": {"value": ngs_stats["ngs_tracking"]},
                                      "run start": {"value": ""},
                                      "run end": {"value": ""},
