@@ -45,6 +45,7 @@ def main():
         del data["well"]
         del data["plate"]
         del data["email"]
+        data["aaan_id"] = "bfi_bBH1gNMA"
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
         benchling.assay_results.create([row])
 
