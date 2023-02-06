@@ -64,7 +64,7 @@ def main():
 
     for record in cur.fetchall():
         cs2_stats = {}
-        name, aaan_id, cs2_stats["aaan_id"], pp_id, cs2_stats["ppid"], cs2_stats["samplename"], cs2_stats["mrna_batch_id"], \
+        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], cs2_stats["samplename"], cs2_stats["mrna_batch_id"], \
         cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], cs2_stats["plate"], cs2_stats["well"] = record
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["genomics_ampseq_project_queue"] = tbid
