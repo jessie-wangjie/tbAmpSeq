@@ -48,22 +48,15 @@ def main():
     # Read in basespace project id
     cur.execute(
         "select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, "
-        "sample_name, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
+        "sample_name, mrna_batch_id, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
         "from ampseq_sample_metasheet$raw "
         "left join registry_entity as re1 on re1.id = aaanpnsg_id "
         "left join registry_entity as re2 on re2.id = pp_id "
-        "where genomics_ampseq_project_queue = %s "
-        "union "
-        "select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, "
-        "sample_name, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
-        "from ampseq_sample_metasheet_v2$raw "
-        "left join registry_entity as re1 on re1.id = aaanpnsg_id "
-        "left join registry_entity as re2 on re2.id = pp_id "
-        "where genomics_ampseq_project_queue = %s", [tbid, tbid])
+        "where genomics_ampseq_project_queue = %s ", [tbid])
 
     for record in cur.fetchall():
         cs2_stats = ngs_stats
-        name, aaan_id, cs2_stats["aaan_id"], pp_id, cs2_stats["ppid"], fp_seq, rp_seq, cs2_stats["samplename"], \
+        name, aaan_id, cs2_stats["aaan_id"], pp_id, cs2_stats["ppid"], cs2_stats["samplename"], cs2_stats["mrna_batch_id"], \
         cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], plate, well = record
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["genomics_ampseq_project_queue"] = tbid
@@ -76,32 +69,17 @@ def main():
             continue
 
         # Get primer information
-        if pp_id:
-            cur.execute(
-                "select p1.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
-                "join primer as p1 on p1.id = primer_pair.forward_primer "
-                "join primer as p2 on p2.id = primer_pair.reverse_primer "
-                "join target_gene on target_gene.id = p1.gene_or_target_name "
-                "where primer_pair.file_registry_id$ = %s", [pp_id])
-            target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
-        else:
-            cur.execute(
-                "select target_gene.chromosome, target_gene.genome_build, target_gene.direction_of_transcription from dna_oligo "
-                "join primer on primer.id=dna_oligo.id "
-                "join target_gene on target_gene.id = primer.gene_or_target_name "
-                "where dna_oligo.bases = %s", [fp_seq])
-            target_chr, genome_build, target_strand = cur.fetchone()
+        cur.execute(
+            "select p1.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
+            "join primer as p1 on p1.id = primer_pair.forward_primer "
+            "join primer as p2 on p2.id = primer_pair.reverse_primer "
+            "join target_gene on target_gene.id = p1.gene_or_target_name "
+            "where primer_pair.file_registry_id$ = %s", [pp_id])
+        target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
 
         # reference genome
         genome_build = re.sub(".*/", "", genome_build)
-        reference_index = "/home/ubuntu/annotation/bwa_index/" + genome_build
         genome_fa = "/home/ubuntu/annotation/2bit/" + genome_build + ".2bit"
-
-        if fp_seq:
-            fp_info = align_primer(fp_seq, reference_index, target_chr, "CACTCTTTCCCTACACGACGCTCTTCCGATCT")
-            rp_info = align_primer(rp_seq, reference_index, target_chr, "GGAGTTCAGACGTGTGCTCTTCCGATCT")
-            wt_start = fp_info["start"]
-            wt_end = rp_info["end"]
 
         # get r1 and r2 fastq
         if target_strand == "antisense":
