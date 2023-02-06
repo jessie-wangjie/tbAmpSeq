@@ -318,7 +318,7 @@ def main():
 
         print(cs2_stats)
         print(ngs_stats)
-        pd.Series(cs2_stats.update(ngs_stats)).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
+        pd.Series(cs2_stats).append(ngs_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
         # plot
         if sp1_info:
