@@ -68,8 +68,7 @@ def main():
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["genomics_ampseq_project_queue"] = tbid
         print([name, aaan_id, pp_id])
-        print(ngs_stats)
-        print(cs2_stats)
+
         if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
             continue
 
