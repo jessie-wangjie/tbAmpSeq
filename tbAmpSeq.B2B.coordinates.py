@@ -40,7 +40,7 @@ def main():
 
     ngs_stats = {"run start": str(datetime.datetime.now())}
     if os.path.exists(os.path.join(output, tbid + ".run.json")):
-        ngs_stats = pd.read_json(os.path.join(output, tbid + ".run.json"), typ="series")
+        ngs_stats.update(pd.read_json(os.path.join(output, tbid + ".run.json"), typ="series"))
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
     cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s", [ngs_id])
     ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
