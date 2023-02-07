@@ -7,14 +7,13 @@ Information from Benchling
 import argparse
 import glob
 import pandas as pd
+import json
 from benchling_api_client.models.naming_strategy import NamingStrategy
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
 from benchling_sdk.helpers.serialization_helpers import fields
 from benchling_sdk.models import CustomEntityCreate, AssayResultCreate, AssayFieldsCreate
-
 from utils.base import *
-from utils.common_functions import *
 
 
 def main():
@@ -59,6 +58,7 @@ def main():
         del data["well"]
         del data["plate"]
         del data["email"]
+        data["project_eln_id"] = data.pop("project_name")
         data["ampseq_pipeline_run"] = pipeline_run_entity
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
         benchling.assay_results.create([row])
