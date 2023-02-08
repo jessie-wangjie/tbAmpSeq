@@ -58,6 +58,8 @@ def main():
         del data["well"]
         del data["plate"]
         del data["email"]
+        del data["run start"]
+        del data["run end"]
         data["project_eln_id"] = data.pop("project_name")
         data["ampseq_pipeline_run"] = pipeline_run_entity
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)
