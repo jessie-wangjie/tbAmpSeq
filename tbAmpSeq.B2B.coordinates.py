@@ -8,6 +8,9 @@ import argparse
 import glob
 import datetime
 from logging import warning
+
+import pandas as pd
+
 from utils.base import *
 from utils.common_functions import *
 
@@ -39,7 +42,7 @@ def main():
     amplicon_fh = open(os.path.join(output, os.path.basename(fastq) + ".amplicon.txt"), 'w')
 
     run_start = str(datetime.datetime.now())
-    ngs_stats = {}
+    ngs_stats = pd.Series()
     if os.path.exists(os.path.join(output, tbid + ".run.json")):
         ngs_stats = pd.read_json(os.path.join(output, tbid + ".run.json"), typ="series")
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
@@ -316,7 +319,7 @@ def main():
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
-        pd.concat([pd.Series(cs2_stats),ngs_stats]).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
+        pd.concat([pd.Series(cs2_stats), ngs_stats]).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_stats.json"))
 
         # plot
         if sp1_info:
