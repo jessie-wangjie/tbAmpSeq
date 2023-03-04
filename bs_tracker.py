@@ -3,10 +3,14 @@ import subprocess
 import requests
 import time
 import smtplib
+import re
 from email.message import EmailMessage
 import pandas as pd
 from utils.base import *
-
+from benchling_sdk.auth.api_key_auth import ApiKeyAuth
+from benchling_sdk.benchling import Benchling
+from benchling_sdk.models import CustomEntityUpdate
+from benchling_sdk.helpers.serialization_helpers import fields
 
 def send_email(run_id, samples):
     msg = EmailMessage()
@@ -55,12 +59,22 @@ if __name__ == '__main__':
                 send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
 
-                # download fastq files from basespace
                 print(samples.items())
+                benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():
+
+                    # change status of NGS tracking entity to sequencing complete
+                    ngs_id = re.sub(".*(BTB\d+).*", "\\1", s)
+                    entity = benchling.custom_entities.list(name=ngs_id)
+                    name = entity.first()
+                    update = CustomEntityUpdate(fields=fields({"job status": {"value": "sfso_6aKzgWvN"}}))
+                    updated_entity = benchling.custom_entities.update(entity_id=name.id, entity=update)
+
+                    # download fastq files from basespace
                     subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s), shell=True)
+                    # run CRISPresso2
                     os.makedirs(os.path.join(s + "_tbAmpSeq"), exist_ok=True)
                     pd.Series(run_json).to_json(os.path.join(s + "_tbAmpSeq", s + ".run.json"))
-                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s" % (s, s, s + "_tbAmpSeq"), shell=True)
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s" %(s, s, s + "_tbAmpSeq"), shell=True)
 
         time.sleep(7200)
