@@ -32,7 +32,7 @@ def main():
     output = args.o
 
     try:
-        os.makedirs(output)
+        os.makedirs(os.path.join(output, "cs2_alignment_html"))
     except:
         warning('Folder %s already exists.' % output)
 
@@ -279,7 +279,7 @@ def main():
                 "--prime_editing_pegRNA_extension_seq %s --prime_editing_pegRNA_scaffold_seq %s --prime_editing_nicking_guide_seq %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s "
                 "--write_detailed_allele_table --place_report_in_output_folder --n_processes %s "
-                "--needleman_wunsch_gap_extend 0 %s --bam_output --suppress_report --trim_sequences "
+                "--needleman_wunsch_gap_extend 0 %s --suppress_report --trim_sequences "
                 "--trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true" % (
                     r1, r2, wt_amplicon, sp1_info["seq"], rt_seq + pbs_seq, scaffold_seq, ng_info["seq"], name, output,
                     ncpu, cs2), stderr=job_fh, stdout=job_fh, shell=True)
@@ -332,6 +332,10 @@ def main():
             for line in f:
                 if "ERROR" in line:
                     status = line
+                    p = subprocess.Popen(
+                        "samtools view %s | cut -f10 | sort | uniq -c | sort -n | tail -1" % (
+                            os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.bam")), stdout=subprocess.PIPE, shell=True)
+                    status = status.rstrip() + "\t" + p.communicate()[0].decode('utf-8').lstrip()
             project_fh.write(name + "\t" + status)
 
         # plot

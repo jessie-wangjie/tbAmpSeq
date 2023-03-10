@@ -12,6 +12,7 @@ from benchling_sdk.benchling import Benchling
 from benchling_sdk.models import CustomEntityUpdate
 from benchling_sdk.helpers.serialization_helpers import fields
 
+
 def send_email(run_id, samples):
     msg = EmailMessage()
     msg["From"] = 'bfx@tome.bio'
@@ -34,7 +35,7 @@ if __name__ == '__main__':
     current_run = {}
     while True:
         response = requests.get(
-            f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=5', stream=True)
+            f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=20', stream=True)
         for run in response.json().get("Items"):
             samples = {}
             if run["Status"] != "Complete":
@@ -46,7 +47,8 @@ if __name__ == '__main__':
                 response = requests.get(
                     f'{bs_api_server}/runs/{current_run[run["ExperimentName"]]}/sequencingstats?access_token={bs_access_token}',
                     stream=True)
-                run_json = {"bsrunid": run["ExperimentName"], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
+                run_json = {"bsrunid": run["ExperimentName"],
+                            "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
 
                 response = requests.get(
                     f'{bs_api_server}/datasets?InputRuns={current_run[run["ExperimentName"]]}&access_token={bs_access_token}&limit=1000',
@@ -62,7 +64,6 @@ if __name__ == '__main__':
                 print(samples.items())
                 benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():
-
                     # change status of NGS tracking entity to sequencing complete
                     ngs_id = re.sub(".*(BTB\d+).*", "\\1", s)
                     entity = benchling.custom_entities.list(name=ngs_id)
@@ -75,6 +76,19 @@ if __name__ == '__main__':
                     # run CRISPresso2
                     os.makedirs(os.path.join(s + "_tbAmpSeq"), exist_ok=True)
                     pd.Series(run_json).to_json(os.path.join(s + "_tbAmpSeq", s + ".run.json"))
-                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s" %(s, s, s + "_tbAmpSeq"), shell=True)
+                    subprocess.call(
+                        "python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s" % (
+                        s, s, s + "_tbAmpSeq"), shell=True)
+
+                    # push the data to quilt
+                    p = subprocess.Popen("python /home/ubuntu/bin/tbOnT/quilt.py -m %s -i %s" % (s, s + "_tbAmpSeq"),
+                                         stdout=subprocess.PIPE, shell=True)
+                    quilt_link = p.communicate()[0].decode('utf-8').rstrip()
+                    print(quilt_link)
+
+                    # backup the data to S3
+                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-raw/MiSeq/%s" % (s, s), shell=True)
+                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s" % (s + "_tbAmpSeq", s),
+                                    shell=True)
 
         time.sleep(7200)
