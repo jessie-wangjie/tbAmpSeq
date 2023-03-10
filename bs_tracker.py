@@ -84,7 +84,8 @@ if __name__ == '__main__':
                     p = subprocess.Popen("python /home/ubuntu/bin/tbOnT/quilt.py -m %s -i %s" % (s, s + "_tbAmpSeq"),
                                          stdout=subprocess.PIPE, shell=True)
                     quilt_link = p.communicate()[0].decode('utf-8').rstrip()
-                    print(quilt_link)
+                    update = CustomEntityUpdate(fields=fields({"analysis result URL link": {"value": quilt_link}}))
+                    updated_entity = benchling.custom_entities.update(entity_id=name.id, entity=update)
 
                     # backup the data to S3
                     subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-raw/MiSeq/%s" % (s, s), shell=True)
