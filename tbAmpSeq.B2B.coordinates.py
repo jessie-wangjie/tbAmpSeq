@@ -85,7 +85,7 @@ def main():
 
         # Get primer information
         cur.execute(
-            "select p1.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
+            "select target_gene.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
             "join primer as p1 on p1.id = primer_pair.forward_primer "
             "join primer as p2 on p2.id = primer_pair.reverse_primer "
             "join target_gene on target_gene.id = p1.gene_or_target_name "

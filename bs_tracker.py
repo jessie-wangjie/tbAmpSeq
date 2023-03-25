@@ -16,7 +16,7 @@ from benchling_sdk.helpers.serialization_helpers import fields
 def send_email(run_id, samples):
     msg = EmailMessage()
     msg["From"] = 'bfx@tome.bio'
-    msg["To"] = ['jwang@tome.bio', 'wwang@tome.bio']
+    msg["To"] = ['jwang@tome.bio']
     msg["Subject"] = f'{run_id} is finished.'
     msg.set_content("Projects in " + run_id + ":\n\n" + "\n".join(samples))
 
