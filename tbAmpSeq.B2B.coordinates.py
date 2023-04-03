@@ -176,13 +176,13 @@ def main():
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 "
                 "--trim_sequences --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
                 "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
-                r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + ng_info["seq"], name, output, ncpu, cs2),
+                    r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + ng_info["seq"], name, output, ncpu, cs2),
                 stderr=job_fh, stdout=job_fh, shell=True)
 
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1, wt_qw2, beacon_qw1,
-                beacon_qw2, beacon_qw3), stderr=job_fh, stdout=job_fh, shell=True)
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1, wt_qw2, beacon_qw1,
+                    beacon_qw2, beacon_qw3), stderr=job_fh, stdout=job_fh, shell=True)
 
             cs2_stats.update(
                 window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
@@ -228,12 +228,12 @@ def main():
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 "
                 "--trim_sequences  --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
                 "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
-                r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output, ncpu, cs2),
+                    r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output, ncpu, cs2),
                 stderr=job_fh, stdout=job_fh, shell=True)
 
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1, wt_qw2, beacon_qw1),
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1, wt_qw2, beacon_qw1),
                 stderr=job_fh, stdout=job_fh, shell=True)
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1]))
@@ -282,7 +282,7 @@ def main():
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 "
                 "--trim_sequences --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
                 "--name %s --output_folder %s  --place_report_in_output_folder --n_processes %s --suppress_report %s " % (
-                r1, r2, wt_amplicon, sp1_info["seq"], rt_seq + pbs_seq, scaffold_seq, ng_info["seq"], name, output, ncpu, cs2), stderr=job_fh,
+                    r1, r2, wt_amplicon, sp1_info["seq"], rt_seq + pbs_seq, scaffold_seq, ng_info["seq"], name, output, ncpu, cs2), stderr=job_fh,
                 stdout=job_fh, shell=True)
 
             # Beacon amplicon, ngRNA cutting 2bp
@@ -294,8 +294,9 @@ def main():
 
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1, wt_qw2, beacon_qw1, beacon_qw2,
-                beacon_qw3, beacon_qw4), stderr=job_fh, stdout=job_fh, shell=True)
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1, wt_qw2, beacon_qw1,
+                    beacon_qw2,
+                    beacon_qw3, beacon_qw4), stderr=job_fh, stdout=job_fh, shell=True)
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
@@ -314,17 +315,16 @@ def main():
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 "
                 "--trim_sequences --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
                 "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
-                r1, r2, wt_amplicon, sp1_info["seq"], name, output, ncpu, cs2), stderr=job_fh, stdout=job_fh, shell=True)
+                    r1, r2, wt_amplicon, sp1_info["seq"], name, output, ncpu, cs2), stderr=job_fh, stdout=job_fh, shell=True)
 
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s" % (
-            os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1), stderr=job_fh, stdout=job_fh,
+                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1), stderr=job_fh, stdout=job_fh,
                             shell=True)
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
         pd.concat([pd.Series(cs2_stats), ngs_stats]).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_benchling_stats.json"))
-        pd.concat(pd.Series(cs2_stats.update(aaanid=aaan_id, ppid=pp_id))).to_json(
-            os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
+        pd.Series(cs2_stats.update(aaanid=aaan_id, ppid=pp_id)).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
 
         # write sample status
         with open(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_status.txt"), 'r') as f:
@@ -342,16 +342,17 @@ def main():
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --min_freq 0.01 "
                 "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1, sp1_info["cut"],
-                len(wt_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1,
+                    sp1_info["cut"],
+                    len(wt_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-            os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+                os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
         else:
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --min_freq 0.01 "
                 "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), 0, 1, len(wt_amplicon) - 1),
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), 0, 1, len(wt_amplicon) - 1),
                 stderr=job_fh, stdout=job_fh, shell=True)
 
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (os.path.join(output, "CRISPResso_on_" + name), "WT"),
@@ -361,28 +362,31 @@ def main():
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Prime-edited --min_freq 0.01 "
                 "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1, sp1_info["cut"],
-                len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1,
+                    sp1_info["cut"],
+                    len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Scaffold-incorporated --min_freq 0.01 "
                 "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1, sp1_info["cut"],
-                len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1,
+                    sp1_info["cut"],
+                    len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-            os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+                os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-            os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+                os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
 
         elif aaan_id and (not aaan_id.startswith("SG")):
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --min_freq 0.01 "
                 "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1, sp1_info["cut"],
-                len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1,
+                    sp1_info["cut"],
+                    len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-            os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+                os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
 
         job_fh.close()
 
