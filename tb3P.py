@@ -52,7 +52,7 @@ def get_cut_site(seq, guide):
 def get_seq(twobit_file, chromosome, start, end, strand):
     seq = subprocess.check_output(
         "twoBitToFa -seq=%s -start=%s -end=%s %s stdout | grep -v \> | xargs | sed 's/ //g'" % (
-        chromosome, start - 1, end, twobit_file), shell=True).decode().rstrip()
+            chromosome, start - 1, end, twobit_file), shell=True).decode().rstrip()
     if strand == "-":
         seq = reverse_complement(seq)
     return seq.upper()
@@ -113,7 +113,6 @@ def main():
 
         if pd.isna(sample["Sample name"]):
             continue
-
 
         wt_amplicon = ""
         beacon_amplicon = ""
@@ -223,7 +222,7 @@ def main():
             spacer_info = get_cut_site(wt_amplicon, sample["atgRNA1 spacer sequence"])
             spacer2_info = get_cut_site(wt_amplicon, sample["atgRNA2 spacer sequence"])
             beacon = get_beacon_seq(sample["atgRNA1 beacon seq"], spacer_info["strand"], sample["atgRNA2 beacon seq"],
-                                    spacer2_info["strand"],attR2=attR2)
+                                    spacer2_info["strand"], attR2=attR2)
             print(beacon)
             # beacon seq
             beacon_amplicon = wt_amplicon[0:spacer_info["cut"]] + beacon["seq"] + wt_amplicon[spacer2_info["cut"]:]
@@ -280,9 +279,9 @@ def main():
             subprocess.call(
                 "flash %s %s --min-overlap 10 --max-overlap 100 --allow-outies -z -d %s" % (R2, R1, preprocess_output),
                 shell=True, stderr=error_fh, stdout=error_fh)
-#            CRISPRessoShared.force_merge_pairs(os.path.join(preprocess_output, "out.notCombined_1.fastq.gz"),os.path.join(preprocess_output, "out.notCombined_2.fastq.gz"),os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"))
-#            subprocess.call("zcat %s %s | gzip -c > %s" %(os.path.join(preprocess_output, "out.extendedFrags.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged.fastq.gz")), shell=True)
-#            subprocess.call("cp %s %s" %(os.path.join(preprocess_output, "out.forcemerged.fastq.gz"), os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")), shell=True)
+        #            CRISPRessoShared.force_merge_pairs(os.path.join(preprocess_output, "out.notCombined_1.fastq.gz"),os.path.join(preprocess_output, "out.notCombined_2.fastq.gz"),os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"))
+        #            subprocess.call("zcat %s %s | gzip -c > %s" %(os.path.join(preprocess_output, "out.extendedFrags.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged_uncombined.fastq.gz"), os.path.join(preprocess_output, "out.forcemerged.fastq.gz")), shell=True)
+        #            subprocess.call("cp %s %s" %(os.path.join(preprocess_output, "out.forcemerged.fastq.gz"), os.path.join(preprocess_output, "out.extendedFrags.fastq.gz")), shell=True)
         else:
             subprocess.call(
                 "flash %s %s --min-overlap 10 --max-overlap 100 --allow-outies -z -d %s" % (R1, R2, preprocess_output),
@@ -300,15 +299,15 @@ def main():
             unmapped_id = os.path.join(preprocess_output, "out.extendedFrags.unmapped_plasmid.id")
             unmapped_fastq = os.path.join(preprocess_output, "out.extendedFrags.unmapped_plasmid.fastq")
             subprocess.call("bowtie2 --local -p 8 -x %s -U %s -S %s" % (
-            "/home/ubuntu/annotation/bowtie2_index/" + sample["Payload ID"], input_file, plasmid_sam), shell=True,
+                "/home/ubuntu/annotation/bowtie2_index/" + sample["Payload ID"], input_file, plasmid_sam), shell=True,
                             stderr=error_fh, stdout=error_fh)
             if sample["Reverse Primer 2 link to Illumina Adapater"] == "P7":
                 subprocess.call("samtools view -F4 %s | awk '{ if($4>=%s) print $1}' > %s" % (
-                plasmid_sam, plasmid_left[sample["Payload ID"]], unmapped_id), shell=True, stderr=error_fh,
+                    plasmid_sam, plasmid_left[sample["Payload ID"]], unmapped_id), shell=True, stderr=error_fh,
                                 stdout=error_fh)
             else:
                 subprocess.call("bedtools bamtobed -i %s | awk '{ if($3<=%s) print $4}' > %s" % (
-                plasmid_sam, plasmid_right[sample["Payload ID"]], unmapped_id), shell=True, stderr=error_fh,
+                    plasmid_sam, plasmid_right[sample["Payload ID"]], unmapped_id), shell=True, stderr=error_fh,
                                 stdout=error_fh)
             subprocess.call("samtools view -f4 %s | cut -f1 >> %s" % (plasmid_sam, unmapped_id), shell=True,
                             stderr=error_fh, stdout=error_fh)
@@ -322,53 +321,53 @@ def main():
         if assay == "Control":
             if wt_qw1:
                 subprocess.call(
-                    "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT --guide_seq %s --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s" % (
-                    unmapped_fastq, wt_amplicon, ng_info["seq"], name, output, ncpu), stderr=error_fh, stdout=error_fh,
+                    "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT --guide_seq %s --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10 --bam_output --trim_sequences " % (
+                        unmapped_fastq, wt_amplicon, ng_info["seq"], name, output, ncpu), stderr=error_fh, stdout=error_fh,
                     shell=True)
                 subprocess.call("python /home/ubuntu/bin/parse_quantification_windows.py -f %s -o %s -qw %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1),
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1),
                                 stderr=error_fh, stdout=error_fh, shell=True)
             else:
                 subprocess.call(
-                    "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s" % (
-                    unmapped_fastq, wt_amplicon, name, output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
+                    "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10 --bam_output --trim_sequences " % (
+                        unmapped_fastq, wt_amplicon, name, output, ncpu), stderr=error_fh, stdout=error_fh, shell=True)
 
             subprocess.call(
                 "python /home/ubuntu/bin/plotCustomAllelePlot.py -f %s -o %s --plot_center %s --plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), 0, 1,
-                len(wt_amplicon) - 1), stderr=error_fh, stdout=error_fh, shell=True)
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), 0, 1,
+                    len(wt_amplicon) - 1), stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/allele2html.py -f %s -r %s" % (
-            os.path.join(output, "CRISPResso_on_" + name), "WT"), stderr=error_fh, stdout=error_fh, shell=True)
+                os.path.join(output, "CRISPResso_on_" + name), "WT"), stderr=error_fh, stdout=error_fh, shell=True)
 
         elif assay == "AmpSeq":
             subprocess.call(
-                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s --needleman_wunsch_gap_extend 0" % (
-                unmapped_fastq, wt_amplicon + "," + beacon_amplicon, spacer_info["seq"], name, output, ncpu),
+                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s --needleman_wunsch_gap_extend 0 --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10 --bam_output --trim_sequences " % (
+                    unmapped_fastq, wt_amplicon + "," + beacon_amplicon, spacer_info["seq"], name, output, ncpu),
                 stderr=error_fh, stdout=error_fh, shell=True)
             if type == "single_atg":
                 subprocess.call(
                     "python /home/ubuntu/bin/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
-                    wt_qw1, wt_qw2, beacon_qw1, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
+                        os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
+                        wt_qw1, wt_qw2, beacon_qw1, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
             elif type == "dual_atg":
                 subprocess.call(
                     "python /home/ubuntu/bin/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
-                    wt_qw1, wt_qw2, beacon_qw1), stderr=error_fh, stdout=error_fh, shell=True)
+                        os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
+                        wt_qw1, wt_qw2, beacon_qw1), stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call(
                 "python /home/ubuntu/bin/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s --plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
-                spacer_info["cut"] - 1, spacer_info["cut"], len(wt_amplicon) - spacer_info["cut"]), stderr=error_fh,
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
+                    spacer_info["cut"] - 1, spacer_info["cut"], len(wt_amplicon) - spacer_info["cut"]), stderr=error_fh,
                 stdout=error_fh, shell=True)
             subprocess.call(
                 "python /home/ubuntu/bin/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s --plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
-                spacer_info["cut"] - 1, spacer_info["cut"], len(beacon_amplicon) - spacer_info["cut"]), stderr=error_fh,
+                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name),
+                    spacer_info["cut"] - 1, spacer_info["cut"], len(beacon_amplicon) - spacer_info["cut"]), stderr=error_fh,
                 stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/allele2html.py -f %s -r %s -b %s" % (
-            os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
+                os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/allele2html.py -f %s -r %s -b %s" % (
-            os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=error_fh, stdout=error_fh,
+                os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=error_fh, stdout=error_fh,
                             shell=True)
 
         elif assay == "3P":
@@ -380,79 +379,88 @@ def main():
                 if sample["Reverse Primer 2 link to Illumina Adapater"] == "P5":
                     subprocess.call(
                         "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
-                        reverse_complement(FP_info["seq"]), RP1_fastq, unmapped_fastq,
-                        reverse_complement(RP2_info["seq"]),
-                        noRP_fastq, RP2_fastq), shell=True, stdout=error_fh, stderr=error_fh)
+                            reverse_complement(FP_info["seq"]), RP1_fastq, unmapped_fastq,
+                            reverse_complement(RP2_info["seq"]),
+                            noRP_fastq, RP2_fastq), shell=True, stdout=error_fh, stderr=error_fh)
                 else:
                     subprocess.call(
                         "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
-                        reverse_complement(FP_info["seq"]), RP1_fastq, unmapped_fastq,
-                        reverse_complement(RP2_info["seq"]), noRP_fastq, RP2_fastq), shell=True, stdout=error_fh,
+                            reverse_complement(FP_info["seq"]), RP1_fastq, unmapped_fastq,
+                            reverse_complement(RP2_info["seq"]), noRP_fastq, RP2_fastq), shell=True, stdout=error_fh,
                         stderr=error_fh)
             else:
                 if sample["Reverse Primer 2 link to Illumina Adapater"] == "P7":
                     subprocess.call(
                         "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -a %s --action=none --untrimmed-output %s -o %s -" % (
-                        reverse_complement(RP1_info["seq"]), RP1_fastq, unmapped_fastq,
-                        reverse_complement(RP2_info["seq"]), noRP_fastq, RP2_fastq), shell=True, stdout=error_fh,
+                            reverse_complement(RP1_info["seq"]), RP1_fastq, unmapped_fastq,
+                            reverse_complement(RP2_info["seq"]), noRP_fastq, RP2_fastq), shell=True, stdout=error_fh,
                         stderr=error_fh)
                 else:
                     subprocess.call(
                         "/home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -g %s --action=none -o %s --untrimmed-output - %s | /home/ubuntu/software/miniconda3/bin/cutadapt -m 10 -O 10 -e 2.5 -g %s --action=none --untrimmed-output %s -o %s -" % (
-                        FP_info["seq"], RP1_fastq, unmapped_fastq, RP2_info["seq"], noRP_fastq, RP2_fastq), shell=True,
+                            FP_info["seq"], RP1_fastq, unmapped_fastq, RP2_info["seq"], noRP_fastq, RP2_fastq), shell=True,
                         stdout=error_fh, stderr=error_fh)
             #            subprocess.call("ls %s" %(RP1_fastq))
             subprocess.call(
-                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s" % (
-                RP1_fastq, wt_amplicon + "," + beacon_amplicon, spacer_info["seq"], name + "_WT_Beacon", output, ncpu, cs2),
+                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --min_frequency_alleles_around_cut_to_plot "
+                "0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s "
+                "--trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10 --bam_output --trim_sequences " % (
+                    RP1_fastq, wt_amplicon + "," + beacon_amplicon, spacer_info["seq"], name + "_WT_Beacon", output, ncpu, cs2),
                 stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call(
-                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name Cargo --min_frequency_alleles_around_cut_to_plot 0.05 --name %s --output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s" % (
-                unmapped_fastq, cargo_amplicon, name + "_Cargo", output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
+                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name Cargo --min_frequency_alleles_around_cut_to_plot 0.05 --name %s "
+                "--output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s --trimmomatic_options_string "
+                "ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10 --bam_output --trim_sequences " % (
+                    unmapped_fastq, cargo_amplicon, name + "_Cargo", output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
+            subprocess.call(
+                "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name Cargo --min_frequency_alleles_around_cut_to_plot 0.05 --name %s "
+                "--output_folder %s --write_detailed_allele_table --place_report_in_output_folder --n_processes %s %s --trimmomatic_options_string "
+                "ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true --bam_output --trim_sequences " % (
+                    R1, R2, cargo_amplicon, name, output, ncpu, cs2), stderr=error_fh, stdout=error_fh, shell=True)
 
             if type == "single_atg":
                 subprocess.call(
                     "python /home/ubuntu/bin/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
-                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), wt_qw1, wt_qw2, beacon_qw1,
-                    beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
+                        os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
+                        os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), wt_qw1, wt_qw2, beacon_qw1,
+                        beacon_qw2, beacon_qw3), stderr=error_fh, stdout=error_fh, shell=True)
             elif type == "dual_atg":
                 subprocess.call(
                     "python /home/ubuntu/bin/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
-                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), wt_qw1, wt_qw2, beacon_qw1),
+                        os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
+                        os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), wt_qw1, wt_qw2, beacon_qw1),
                     stderr=error_fh, stdout=error_fh, shell=True)
 
             subprocess.call("python /home/ubuntu/bin/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s" % (
-            os.path.join(output, "CRISPResso_on_" + name + "_Cargo"),
-            os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), cargo_qw1, cargo_qw2), stderr=error_fh,
+                os.path.join(output, "CRISPResso_on_" + name + "_Cargo"),
+                os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), cargo_qw1, cargo_qw2), stderr=error_fh,
                             stdout=error_fh, shell=True)
 
             subprocess.call(
                 "python /home/ubuntu/bin/plotCustomAllelePlot.py -f %s -o %s -a WT --plot_center %s --plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
-                os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), spacer_info["cut"] - 1,
-                spacer_info["cut"], len(wt_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh,
+                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
+                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), spacer_info["cut"] - 1,
+                    spacer_info["cut"], len(wt_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh,
                 shell=True)
             subprocess.call(
                 "python /home/ubuntu/bin/plotCustomAllelePlot.py -f %s -o %s -a Beacon --plot_center %s --plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
-                os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), spacer_info["cut"] - 1,
-                spacer_info["cut"], len(beacon_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh,
+                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
+                    os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), spacer_info["cut"] - 1,
+                    spacer_info["cut"], len(beacon_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh,
                 shell=True)
             subprocess.call(
                 "python /home/ubuntu/bin/plotCustomAllelePlot.py -f %s -o %s -a Cargo --plot_center %s --plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
-                os.path.join(output, "CRISPResso_on_" + name + "_Cargo"),
-                os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), spacer_info["cut"] - 1, spacer_info["cut"],
-                len(cargo_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh, shell=True)
+                    os.path.join(output, "CRISPResso_on_" + name + "_Cargo"),
+                    os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), spacer_info["cut"] - 1, spacer_info["cut"],
+                    len(cargo_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/allele2html.py -f %s -r %s -b %s" % (
-            os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), "WT", wt_qw1), stderr=error_fh,
+                os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), "WT", wt_qw1), stderr=error_fh,
                             stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/allele2html.py -f %s -r %s -b %s" % (
-            os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), "Beacon", beacon_qw1), stderr=error_fh,
+                os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), "Beacon", beacon_qw1), stderr=error_fh,
                             stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/allele2html.py -f %s -r %s -b %s" % (
-            os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), "Cargo", cargo_qw2), stderr=error_fh,
+                os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), "Cargo", cargo_qw2), stderr=error_fh,
                             stdout=error_fh, shell=True)
         error_fh.close()
     amplicon_fh.close()

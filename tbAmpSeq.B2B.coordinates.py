@@ -203,9 +203,13 @@ def main():
             sp1_info = get_cut_site(wt_amplicon, sp1_seq)
             sp2_info = get_cut_site(wt_amplicon, sp2_seq)
             beacon = get_beacon_seq(beacon1_seq, sp1_info["strand"], beacon2_seq, sp2_info["strand"])
+            if sp1_info["cut"] > sp2_info["cut"]:
+                sp1_info = get_cut_site(wt_amplicon, sp2_seq)
+                sp2_info = get_cut_site(wt_amplicon, sp1_seq)
+                beacon = get_beacon_seq(beacon2_seq, sp1_info["strand"], beacon1_seq, sp2_info["strand"])
 
             # beacon seq
-            beacon_amplicon = wt_amplicon[0:min(sp1_info["cut"], sp2_info["cut"])] + beacon + wt_amplicon[max(sp1_info["cut"], sp2_info["cut"]):]
+            beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[sp2_info["cut"]:]
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
 
             # define quantification window
