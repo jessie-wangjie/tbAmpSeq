@@ -1,16 +1,16 @@
 # basespace tracking
-import subprocess
-import requests
-import time
-import smtplib
 import re
+import smtplib
+import subprocess
+import time
 from email.message import EmailMessage
 import pandas as pd
-from utils.base import *
+import requests
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
-from benchling_sdk.models import CustomEntityUpdate
 from benchling_sdk.helpers.serialization_helpers import fields
+from benchling_sdk.models import CustomEntityUpdate
+from utils.base import *
 
 
 def send_email(run_id, samples):
@@ -45,14 +45,11 @@ if __name__ == '__main__':
                 print(current_run[run["ExperimentName"]])
                 # store the runinfo and stats
                 response = requests.get(
-                    f'{bs_api_server}/runs/{current_run[run["ExperimentName"]]}/sequencingstats?access_token={bs_access_token}',
-                    stream=True)
-                run_json = {"bsrunid": run["ExperimentName"],
-                            "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
+                    f'{bs_api_server}/runs/{current_run[run["ExperimentName"]]}/sequencingstats?access_token={bs_access_token}', stream=True)
+                run_json = {"bsrunid": run["ExperimentName"], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
 
                 response = requests.get(
-                    f'{bs_api_server}/datasets?InputRuns={current_run[run["ExperimentName"]]}&access_token={bs_access_token}&limit=1000',
-                    stream=True)
+                    f'{bs_api_server}/datasets?InputRuns={current_run[run["ExperimentName"]]}&access_token={bs_access_token}&limit=1000', stream=True)
                 for item in response.json().get("Items"):
                     project = item.get("Project").get("Name")
                     if project != "Unindexed Reads":
@@ -64,6 +61,10 @@ if __name__ == '__main__':
                 print(samples.items())
                 benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():
+                    # check if it's Ampseq data
+                    if "BTB" not in s:
+                        continue
+
                     # change status of NGS tracking entity to sequencing complete
                     ngs_id = re.sub(".*(BTB\d+).*", "\\1", s)
                     entity = benchling.custom_entities.list(name=ngs_id)
@@ -76,20 +77,18 @@ if __name__ == '__main__':
                     # run CRISPresso2
                     os.makedirs(os.path.join(s + "_tbAmpSeq"), exist_ok=True)
                     pd.Series(run_json).to_json(os.path.join(s + "_tbAmpSeq", s + ".run.json"))
-                    subprocess.call(
-                        "python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s" % (
-                        s, s, s + "_tbAmpSeq"), shell=True)
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s" % (s, s, s + "_tbAmpSeq"),
+                                    shell=True)
 
                     # push the data to quilt
-                    p = subprocess.Popen("python /home/ubuntu/bin/tbOnT/quilt.py -m %s -i %s" % (s, s + "_tbAmpSeq"),
-                                         stdout=subprocess.PIPE, shell=True)
+                    p = subprocess.Popen("python /home/ubuntu/bin/tbOnT/quilt.py -m %s -i %s" % (s, s + "_tbAmpSeq"), stdout=subprocess.PIPE,
+                                         shell=True)
                     quilt_link = p.communicate()[0].decode('utf-8').rstrip()
                     update = CustomEntityUpdate(fields=fields({"analysis result URL link": {"value": quilt_link}}))
                     updated_entity = benchling.custom_entities.update(entity_id=name.id, entity=update)
 
                     # backup the data to S3
                     subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-raw/MiSeq/%s" % (s, s), shell=True)
-                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s" % (s + "_tbAmpSeq", s),
-                                    shell=True)
+                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s" % (s + "_tbAmpSeq", s), shell=True)
 
         time.sleep(7200)

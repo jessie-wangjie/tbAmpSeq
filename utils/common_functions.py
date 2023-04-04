@@ -191,6 +191,6 @@ def window_quantification(cs2_folder, quantification_windows):
             b_json["beacon_fidelity"] = format(
                 100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["beacon_aligned_read_num"], ".1f")
 
-    # pd.DataFrame(qw_stats).to_csv(cs2_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt", sep="\t", header=True, index=False, na_rep=0)
-    pd.Series(qw_stats).to_json(cs2_folder + "/CRISPResso_qw_stats.json")
+    pd.DataFrame(qw_stats).insert(0, "samplename", cs2_info["running_info"]["args"]["name"]).to_csv(cs2_folder + "/CRISPResso_qw_stats.txt", sep="\t",
+                                                                                                    header=True, index=False, na_rep=0)
     return b_json
