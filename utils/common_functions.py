@@ -191,7 +191,7 @@ def window_quantification(cs2_folder, quantification_windows):
             b_json["beacon_fidelity"] = format(
                 100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["beacon_aligned_read_num"], ".1f")
 
-    df = pd.DataFrame(qw_stats).\
+    df = pd.DataFrame(qw_stats)
     df.insert(0, "samplename", cs2_info["running_info"]["args"].name)
     df.to_csv(cs2_folder + "/CRISPResso_qw_stats.txt", sep="\t", header=True, index=False, na_rep=0)
     return b_json
