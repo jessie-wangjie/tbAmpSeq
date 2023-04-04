@@ -30,8 +30,7 @@ def align_primer(seq, index, chromosome, adapter=""):
     for p in pos:
         m = re.match(r"(.*):([+|-])(\d+)", p.decode())
         if chromosome == m.group(1):
-            return {"chr": m.group(1), "start": int(m.group(3)), "end": int(m.group(3)) + len(seq) - 1,
-                    "strand": m.group(2), "seq": seq}
+            return {"chr": m.group(1), "start": int(m.group(3)), "end": int(m.group(3)) + len(seq) - 1, "strand": m.group(2), "seq": seq}
 
 
 def get_cut_site(seq, guide):
@@ -53,8 +52,8 @@ def get_cut_site(seq, guide):
 
 def get_seq(twobit_file, chromosome, start, end, strand):
     seq = subprocess.check_output(
-        "twoBitToFa -seq=%s -start=%s -end=%s %s stdout | grep -v \> | xargs | sed 's/ //g'" % (
-            chromosome, start - 1, end, twobit_file), shell=True).decode().rstrip()
+        "twoBitToFa -seq=%s -start=%s -end=%s %s stdout | grep -v \> | xargs | sed 's/ //g'" % (chromosome, start - 1, end, twobit_file),
+        shell=True).decode().rstrip()
     if strand == "-" or strand == "antisense":
         seq = reverse_complement(seq)
     return seq.upper()
@@ -84,13 +83,20 @@ def arrstr_to_arr(val):
 
 
 def get_row_around_cut_assymetrical(row, start, end):
-    return row['Aligned_Sequence'][start:end], row['Reference_Sequence'][start:end], row['Read_Status'] == 'UNMODIFIED', \
-           row['n_deleted'], row['n_inserted'], row['n_mutated'], row['#Reads'], row['%Reads']
+    return row['Aligned_Sequence'][start:end], row['Reference_Sequence'][start:end], row['Read_Status'] == 'UNMODIFIED', row['n_deleted'], row[
+        'n_inserted'], row['n_mutated'], row['#Reads'], row['%Reads']
+
+
+def read_ref_cs2(cs2_folder, ref_name):
+    try:
+        cs2_info = CRISPRessoShared.load_crispresso_info(cs2_folder)
+        return cs2_info["results"]["refs"][ref_name]["sequence"]
+    except:
+        return
 
 
 def get_modified_in_quantification_window(row, include_idx):
-    payload = CRISPRessoCOREResources.find_indels_substitutions(row["Aligned_Sequence"], row["Reference_Sequence"],
-                                                                include_idx)
+    payload = CRISPRessoCOREResources.find_indels_substitutions(row["Aligned_Sequence"], row["Reference_Sequence"], include_idx)
     classification = "unmodified"
     if payload["insertion_n"] + payload["deletion_n"] + payload["substitution_n"] > 0:
         classification = "modified"
@@ -102,14 +108,13 @@ def get_modified_in_quantification_window(row, include_idx):
         whole_window_deletion = row["#Reads"]
     else:
         whole_window_deletion = 0
-    return {"#Reads": row["#Reads"], "classification": classification, "indels": indels, "insertion": insertion,
-            "deletion": deletion, "substitution": substitution, "whole_window_deletion": whole_window_deletion}
+    return {"#Reads": row["#Reads"], "classification": classification, "indels": indels, "insertion": insertion, "deletion": deletion,
+            "substitution": substitution, "whole_window_deletion": whole_window_deletion}
 
 
 def window_quantification(cs2_folder, quantification_windows):
     # Amplicon:Window_name:Window_region:flanking_bp. 
     # Bp positions in the amplicon sequence specifying the quantification window, 1-index
-
     try:
         cs2_info = CRISPRessoShared.load_crispresso_info(cs2_folder)
     except Exception:
@@ -134,12 +139,12 @@ def window_quantification(cs2_folder, quantification_windows):
     else:
         b_json["beacon_aligned_read_num"] = 0
 
-    b_json["aligned_percentage"] = format(100 * (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json[
-        "merged_r1r2_read_num"], ".1f")
-    b_json["wt_aligned_percentage"] = format(100 * b_json["wt_aligned_read_num"] / (
-        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
-    b_json["beacon_placement_percentage"] = format(100 * b_json["beacon_aligned_read_num"] / (
-        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
+    b_json["aligned_percentage"] = format(100 * (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json["merged_r1r2_read_num"],
+                                          ".1f")
+    b_json["wt_aligned_percentage"] = format(
+        100 * b_json["wt_aligned_read_num"] / (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
+    b_json["beacon_placement_percentage"] = format(
+        100 * b_json["beacon_aligned_read_num"] / (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
 
     qw_stats = []
     for window in quantification_windows:
@@ -151,8 +156,7 @@ def window_quantification(cs2_folder, quantification_windows):
         if df_ref.empty:
             continue
 
-        df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))),
-                          axis=1, result_type='expand')
+        df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))), axis=1, result_type='expand')
         g = df.groupby("classification").sum()
         for i in g.index:
             stats[i] = g.loc[i]["#Reads"]
@@ -163,9 +167,8 @@ def window_quantification(cs2_folder, quantification_windows):
             include_idx = []
             include_idx.extend(range(int(start) - int(flank_bp) - 1, int(start) - 1))
             include_idx.extend(range(int(end), int(end) + int(flank_bp)))
-            df_flank = pd.concat([df, df_ref.apply(
-                lambda row: get_modified_in_quantification_window(row, sorted(include_idx)), axis=1,
-                result_type='expand').add_suffix("_flank").drop("#Reads_flank", axis=1)], axis=1)
+            df_flank = pd.concat([df, df_ref.apply(lambda row: get_modified_in_quantification_window(row, sorted(include_idx)), axis=1,
+                                                   result_type='expand').add_suffix("_flank").drop("#Reads_flank", axis=1)], axis=1)
             g = df_flank.groupby(["classification", "classification_flank"]).sum()
             for i, j in g.index:
                 stats[i + "_" + j + "_flank"] = g.loc[i, j]["#Reads"]
@@ -183,21 +186,11 @@ def window_quantification(cs2_folder, quantification_windows):
                 b_json["beacon_sub_read_num"] = 0
             b_json["beacon_indel_percentage"] = format(100 * b_json["beacon_indel_read_num"] / b_json["beacon_aligned_read_num"], ".1f")
             b_json["beacon_sub_percentage"] = format(100 * b_json["beacon_sub_read_num"] / b_json["beacon_aligned_read_num"], ".1f")
-            b_json["perfect_beacon_percent"] = format(
-                100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / (
-                        b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
+            b_json["perfect_beacon_percent"] = format(100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / (
+                    b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
+            b_json["beacon_fidelity"] = format(
+                100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["beacon_aligned_read_num"], ".1f")
 
-    pd.DataFrame(qw_stats).to_csv(cs2_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt",
-                                  sep="\t", header=True, index=False, na_rep=0)
-    pd.Series(b_json).to_json(cs2_folder + "/CRISPResso_stats.json")
-
+    # pd.DataFrame(qw_stats).to_csv(cs2_folder + "/CRISPResso_quantification_of_editing_frequency.detailed.txt", sep="\t", header=True, index=False, na_rep=0)
+    pd.Series(qw_stats).to_json(cs2_folder + "/CRISPResso_qw_stats.json")
     return b_json
-
-
-def read_ref_cs2(cs2_folder, ref_name):
-    try:
-        cs2_info = CRISPRessoShared.load_crispresso_info(cs2_folder)
-        return cs2_info["results"]["refs"][ref_name]["sequence"]
-    except Exception:
-        return
-

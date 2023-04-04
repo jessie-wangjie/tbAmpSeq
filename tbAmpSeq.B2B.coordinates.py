@@ -14,8 +14,7 @@ from utils.common_functions import *
 
 def main():
     # Parse command line options
-    parser = argparse.ArgumentParser(description='Process meta data',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description='Process meta data', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-m", help='TB id')
     parser.add_argument("-i", help='Path to fastq')
     parser.add_argument("-s", help='Path to fastq', default=None)
@@ -179,11 +178,6 @@ def main():
                     r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + ng_info["seq"], name, output, ncpu, cs2),
                 stderr=job_fh, stdout=job_fh, shell=True)
 
-            subprocess.call(
-                "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1, wt_qw2, beacon_qw1,
-                    beacon_qw2, beacon_qw3), stderr=job_fh, stdout=job_fh, shell=True)
-
             cs2_stats.update(
                 window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
 
@@ -229,11 +223,6 @@ def main():
                 "--trim_sequences  --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
                 "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
                     r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output, ncpu, cs2),
-                stderr=job_fh, stdout=job_fh, shell=True)
-
-            subprocess.call(
-                "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1, wt_qw2, beacon_qw1),
                 stderr=job_fh, stdout=job_fh, shell=True)
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1]))
@@ -292,12 +281,6 @@ def main():
             ng_info = get_cut_site(beacon_amplicon, ng_seq)
             beacon_qw4 = "Prime-edited:ng_cut:" + str(ng_info["cut"]) + "-" + str(ng_info["cut"] + 1) + ":0"
 
-            subprocess.call(
-                "python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s -qw %s -qw %s -qw %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1, wt_qw2, beacon_qw1,
-                    beacon_qw2,
-                    beacon_qw3, beacon_qw4), stderr=job_fh, stdout=job_fh, shell=True)
-
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name),
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
 
@@ -316,10 +299,6 @@ def main():
                 "--trim_sequences --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
                 "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
                     r1, r2, wt_amplicon, sp1_info["seq"], name, output, ncpu, cs2), stderr=job_fh, stdout=job_fh, shell=True)
-
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/parse_quantification_windows.py -f %s -o %s -qw %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), wt_qw1), stderr=job_fh, stdout=job_fh,
-                            shell=True)
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
