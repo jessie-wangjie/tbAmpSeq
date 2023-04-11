@@ -431,9 +431,20 @@ def main():
                         os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), wt_qw1, wt_qw2, beacon_qw1),
                     stderr=error_fh, stdout=error_fh, shell=True)
 
+                subprocess.call(
+                    "python /home/ubuntu/bin/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s -qw %s" % (
+                        os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"),
+                        os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), wt_qw1, wt_qw2, beacon_qw1),
+                    stderr=error_fh, stdout=error_fh, shell=True)
+
             subprocess.call("python /home/ubuntu/bin/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s" % (
                 os.path.join(output, "CRISPResso_on_" + name + "_Cargo"),
                 os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), cargo_qw1, cargo_qw2), stderr=error_fh,
+                            stdout=error_fh, shell=True)
+
+            subprocess.call("python /home/ubuntu/bin/parse_quantification_windows.py -f %s -o %s -qw %s -qw %s" % (
+                os.path.join(output, "CRISPResso_on_" + name),
+                os.path.join(output, "CRISPResso_on_" + name), cargo_qw1, cargo_qw2), stderr=error_fh,
                             stdout=error_fh, shell=True)
 
             subprocess.call(
@@ -453,6 +464,11 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name + "_Cargo"),
                     os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), spacer_info["cut"] - 1, spacer_info["cut"],
                     len(cargo_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh, shell=True)
+            subprocess.call(
+                "python /home/ubuntu/bin/plotCustomAllelePlot.py -f %s -o %s -a Cargo --plot_center %s --plot_left %s --plot_right %s --min_freq 0.01 --plot_cut_point" % (
+                    os.path.join(output, "CRISPResso_on_" + name),
+                    os.path.join(output, "CRISPResso_on_" + name), spacer_info["cut"] - 1, spacer_info["cut"],
+                    len(cargo_amplicon) - spacer_info["cut"]), stderr=error_fh, stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name + "_WT_Beacon"), "WT", wt_qw1), stderr=error_fh,
                             stdout=error_fh, shell=True)
@@ -461,6 +477,9 @@ def main():
                             stdout=error_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name + "_Cargo"), "Cargo", cargo_qw2), stderr=error_fh,
+                            stdout=error_fh, shell=True)
+            subprocess.call("python /home/ubuntu/bin/allele2html.py -f %s -r %s -b %s" % (
+                os.path.join(output, "CRISPResso_on_" + name), "Cargo", cargo_qw2), stderr=error_fh,
                             stdout=error_fh, shell=True)
         error_fh.close()
     amplicon_fh.close()
