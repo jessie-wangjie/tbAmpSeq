@@ -21,7 +21,7 @@ def send_email(run_id, samples):
     msg.set_content("Projects in " + run_id + ":\n\n" + "\n".join(samples))
 
     try:
-        server = smtplib.SMTP('email-smtp.us-east-1.amazonaws.com', 587)
+        server = smtplib.SMTP('feedback-smtp.us-east-1.amazonses.com', 587)
         server.ehlo()
         server.starttls()
         server.login(aws_ses_id, aws_ses_password)
