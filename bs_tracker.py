@@ -15,8 +15,8 @@ from utils.base import *
 
 def send_email(run_id, samples):
     msg = EmailMessage()
-    msg["From"] = 'bfx@tome.bio'
-    msg["To"] = ['jwang@tome.bio', 'wwang@tome.bio']
+    msg["From"] = 'notifications@portalmail.tome.bio'
+    msg["To"] = ['jwang@tome.bio']
     msg["Subject"] = f'{run_id} is finished.'
     msg.set_content("Projects in " + run_id + ":\n\n" + "\n".join(samples))
 
@@ -32,7 +32,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {}
+    current_run = {"TB_MISEQ_000130":256546329}
     while True:
         response = requests.get(
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=20', stream=True)
@@ -65,6 +65,9 @@ if __name__ == '__main__':
                 for s, id in samples.items():
                     # check if it's Ampseq data
                     if "BTB" not in s:
+                        continue
+
+                    if "BTB141" in s:
                         continue
 
                     # change status of NGS tracking entity to sequencing complete
