@@ -5,7 +5,7 @@ from io import StringIO
 import altair as alt
 import pandas as pd
 import quilt3
-
+import re
 
 class Capturing(list):
     def __enter__(self):
@@ -77,8 +77,9 @@ if __name__ == "__main__":
     parser.add_argument("-i", help='Ampseq result folder', default="./")
 
     args = parser.parse_args()
-    tbid = args.m
+    pipeline_run_id = args.m
     input = args.i
+    ngs_id = re.sub(".*(BTB\d+).*", "\\1", pipeline_run_id)
 
     # plate plot
     files = glob.glob(input + "/*/CRISPResso_stats.json")
@@ -117,21 +118,22 @@ if __name__ == "__main__":
     #    p = quilt3.Package.browse("jwang/" + tbid)
 
     # adding data
-    p.set("stats.csv", input + "/stats.csv")
-    p.set("platemap.json", input + "/platemap.json")
-    p.set("alignment_stats.json", input + "/alignment_stats.json")
-    p.set("status.txt", input + "/" + tbid + ".status.txt")
-    p.set_dir("cs2_alignment_html", input + "/cs2_alignment_html/")
+    # input package
+    p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
+
+    # output package
+    p.set("pipeline_run_id/" + "stats.csv", input + "/stats.csv")
+    p.set("pipeline_run_id/" + "platemap.json", input + "/platemap.json")
+    p.set("pipeline_run_id/" + "alignment_stats.json", input + "/alignment_stats.json")
+    p.set("pipeline_run_id/" + "status.txt", input + "/" + tbid + ".status.txt")
+    p.set_dir("pipeline_run_id/" + "cs2_alignment_html", input + "/cs2_alignment_html/")
     preview = pd.Series(["platemap.json", "alignment_stats.json", "status.txt", "stats.csv"])
     preview.to_json(input + "/quilt_summarize.json", orient="records")
-    p.set("quilt_summarize.json", input + "/quilt_summarize.json")
+    p.set("pipeline_run_id/" + "quilt_summarize.json", input + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
     with Capturing() as output:
-        p.push(
-            "jwang/" + tbid,
-            "s3://tb-quilt-test",
-        )
+        p.push(ngs_id, "s3://tb-quilt-test/")
     base_url = output[1].split()[-1]
     full_url = f"{base_url}/tree/{p.top_hash}"
     print(full_url)
