@@ -7,7 +7,6 @@ Information from Benchling
 import argparse
 import glob
 import datetime
-from logging import warning
 from utils.base import *
 from utils.common_functions import *
 
@@ -30,20 +29,18 @@ def main():
     cs2 = args.cs2
     output = args.o
 
-    try:
-        os.makedirs(os.path.join(output, "cs2_alignment_html"))
-    except:
-        warning('Folder %s already exists.' % output)
+    # create output folder
+    os.makedirs(os.path.join(output, "cs2_alignment_html"), exist_ok=True)
 
     # amplicon information file
-    amplicon_fh = open(os.path.join(output, tbid + ".amplicon.txt"), 'w')
+    amplicon_fh = open(os.path.join(output, "amplicon.txt"), 'w')
     # project status file
-    project_fh = open(os.path.join(output, tbid + ".status.txt"), 'w')
+    project_fh = open(os.path.join(output, "status.txt"), 'w')
 
     # Get information for benchling NGS tracking entity
     run_start = str(datetime.datetime.now())
-    if os.path.exists(os.path.join(output, tbid + ".run.json")):
-        ngs_stats = pd.read_json(os.path.join(output, tbid + ".run.json"), typ="series")
+    if os.path.exists(os.path.join(output, "run.json")):
+        ngs_stats = pd.read_json(os.path.join(output, "run.json"), typ="series")
     else:
         ngs_stats = pd.Series(dtype="object")
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
@@ -374,7 +371,7 @@ def main():
     project_fh.close()
     ngs_stats["run start"] = run_start
     ngs_stats["run end"] = str(datetime.datetime.now())
-    pd.Series(ngs_stats).to_json(os.path.join(output, tbid + ".run.json"))
+    pd.Series(ngs_stats).to_json(os.path.join(output, "run.json"))
 
 
 if __name__ == "__main__":

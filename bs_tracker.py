@@ -10,6 +10,7 @@ from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 from benchling_sdk.benchling import Benchling
 from benchling_sdk.helpers.serialization_helpers import fields
 from benchling_sdk.models import CustomEntityUpdate, CustomEntityCreate
+from benchling_api_client.models.naming_strategy import NamingStrategy
 from utils.base import *
 
 
@@ -77,15 +78,6 @@ if __name__ == '__main__':
                     update = CustomEntityUpdate(fields=fields({"job status": {"value": "sfso_6aKzgWvN"}}))
                     updated_entity = benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
 
-                    # download fastq files from basespace
-                    subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s), shell=True)
-                    # run CRISPresso2
-                    os.makedirs(os.path.join(s + "_tbAmpSeq"), exist_ok=True)
-                    pd.Series(run_json).to_json(os.path.join(s + "_tbAmpSeq", s + ".run.json"))
-                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s" % (
-                    s, s, s + "_tbAmpSeq"), shell=True)
-                    run_json = pd.read_json(os.path.join(s + "_tbAmpSeq", s + ".run.json"), typ="series")
-
                     # check if the pipeline result entity exists
                     entity = benchling.custom_entities.list(name_includes=s, sort="name:desc")
                     if entity.estimated_count > 0:
@@ -94,11 +86,26 @@ if __name__ == '__main__':
                     else:
                         pipeline_run_name = s + "a"
 
+                    # download fastq files from basespace
+                    subprocess.call("bs download project -i %s -o %s --extension=fastq.gz" % (id, s), shell=True)
+
+                    # run CRISPresso2
+                    os.makedirs(pipeline_run_name, exist_ok=True)
+                    pd.Series(run_json).to_json(os.path.join(pipeline_run_name, "run.json"))
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s -s RTX0215-Split-1 " % (
+                    s, s, pipeline_run_name), shell=True)
+                    run_json = pd.read_json(os.path.join(pipeline_run_name, "run.json"), typ="series")
+
+                    # get tbAmpseq commit id
+                    p = subprocess.Popen("git -C /data/bin/tbOnT/ rev-parse HEAD", stdout=subprocess.PIPE, shell=True)
+                    commit = p.communicate()[0].decode('utf-8').rstrip()
+
                     entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
                                                 naming_strategy=NamingStrategy.NEW_IDS, name=pipeline_run_name,
                                                 fields=fields({"Genomics AmpSeq Project Queue": {"value": s},
                                                                "pipeline Name": {"value": "tbAmpseq"},
                                                                "github address": {"value": "https://github.com/tomebio/tbOnT"},
+                                                               "git commit": {"value": commit},
                                                                "ELN entry": {"value": run_json["project_name"]},
                                                                "AmpSeq Project Name": {"value": ngs_name.id},
                                                                "run start": {"value": run_json["run start"]},
@@ -108,15 +115,15 @@ if __name__ == '__main__':
 
                     # push the data to quilt
                     p = subprocess.Popen(
-                        "python /home/ubuntu/bin/tbOnT/quilt.py -m %s -i %s" % (pipeline_run_name, s + "_tbAmpSeq"),
+                        "python /home/ubuntu/bin/tbOnT/quilt.py -m %s -i %s" % (pipeline_run_name, pipeline_run_name),
                         stdout=subprocess.PIPE, shell=True)
                     quilt_link = p.communicate()[0].decode('utf-8').rstrip()
                     update = CustomEntityUpdate(fields=fields({"analysis result URL link": {"value": quilt_link}}))
                     updated_entity = benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
 
                     # backup the data to S3
-                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-raw/MiSeq/%s" % (s, s), shell=True)
-                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-quilt-test/%s" % (s, ngs_id), shell=True)
-                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s" % (s + "_tbAmpSeq", s), shell=True)
+                    # subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-raw/MiSeq/%s" % (s, s), shell=True)
+                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-quilt-test/%s/fastq/" % (s, ngs_id), shell=True)
+                    # subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s" % (pipeline_run_name, s), shell=True)
 
-        time.sleep(7200)
+        time.sleep(3600)

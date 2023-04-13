@@ -82,20 +82,20 @@ if __name__ == "__main__":
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", pipeline_run_id)
 
     # plate plot
-    files = glob.glob(input + "/*/CRISPResso_stats.json")
+    files = glob.glob(input + "/*/CRISPResso_quilt_stats.json")
 
     data = pd.DataFrame()
     for s in files:
         data = pd.concat([data, pd.read_json(s, orient="index").T])
+    print(data)
     data["x"] = data["well"].str.extract(r"(\d+)")
     data["x"] = data["x"].astype('int')
     data["y"] = data["well"].str.get(0)
     data["plate"] = data["plate"].fillna("Plate 1")
-    data = data[
-        ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num", "merged_r1r2_read_num",
-         "aligned_percentage", "wt_aligned_read_num", "beacon_aligned_read_num", "wt_aligned_percentage",
-         "beacon_placement_percentage", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
-         "beacon_sub_percentage", "perfect_beacon_percent"]]
+    data = data[["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
+                 "aligned_percentage", "wt_aligned_read_num", "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num",
+                 "beacon_indel_percentage", "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage",
+                 "perfect_beacon_percent", "beacon_fidelity"]]
     data.to_csv(input + "/stats.csv", index=False)
 
     # plots
@@ -107,33 +107,30 @@ if __name__ == "__main__":
     chart = barstats(data)
     chart.save(input + "/alignment_stats.json")
 
-    # push data to quilt
-    p = quilt3.Package()
-
-    # edit a preexisting package
-    #    quilt3.Package.install(
-    #        "jwang/" + tbid,
-    #        "s3://tb-ngs-quilt",
-    #    )
-    #    p = quilt3.Package.browse("jwang/" + tbid)
+    # check if the package existed
+    if "jwang/" + ngs_id in list(quilt3.list_packages("s3://tb-quilt-test/")):
+        quilt3.Package.install("jwang/" + ngs_id, "s3://tb-quilt-test/")
+        p = quilt3.Package.browse("jwang/" + ngs_id)
+    else:
+        p = quilt3.Package()
 
     # adding data
     # input package
     p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
 
     # output package
-    p.set("pipeline_run_id/" + "stats.csv", input + "/stats.csv")
-    p.set("pipeline_run_id/" + "platemap.json", input + "/platemap.json")
-    p.set("pipeline_run_id/" + "alignment_stats.json", input + "/alignment_stats.json")
-    p.set("pipeline_run_id/" + "status.txt", input + "/" + tbid + ".status.txt")
-    p.set_dir("pipeline_run_id/" + "cs2_alignment_html", input + "/cs2_alignment_html/")
-    preview = pd.Series(["platemap.json", "alignment_stats.json", "status.txt", "stats.csv"])
+    p.set(pipeline_run_id + "/stats.csv", input + "/stats.csv")
+    p.set(pipeline_run_id + "/platemap.json", input + "/platemap.json")
+    p.set(pipeline_run_id + "/alignment_stats.json", input + "/alignment_stats.json")
+    p.set(pipeline_run_id + "/status.txt", input + "/" + "status.txt")
+    p.set_dir(pipeline_run_id + "/cs2_alignment_html", input + "/cs2_alignment_html/")
+    preview = pd.Series(["status.txt", "platemap.json", "alignment_stats.json", "stats.csv"])
     preview.to_json(input + "/quilt_summarize.json", orient="records")
-    p.set("pipeline_run_id/" + "quilt_summarize.json", input + "/quilt_summarize.json")
+    p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
     with Capturing() as output:
-        p.push(ngs_id, "s3://tb-quilt-test/")
+        p.push("jwang/" + ngs_id, "s3://tb-quilt-test/", force=True)
     base_url = output[1].split()[-1]
     full_url = f"{base_url}/tree/{p.top_hash}"
     print(full_url)
