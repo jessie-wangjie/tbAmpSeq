@@ -33,7 +33,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {"TB_MISEQ_000130":256546329}
+    current_run = {}
     while True:
         response = requests.get(
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=20', stream=True)
@@ -68,9 +68,6 @@ if __name__ == '__main__':
                     if "BTB" not in s:
                         continue
 
-                    if "BTB141" in s:
-                        continue
-
                     # change status of NGS tracking entity to sequencing complete
                     ngs_id = re.sub(".*(BTB\d+).*", "\\1", s)
                     entity = benchling.custom_entities.list(name=ngs_id)
@@ -92,7 +89,7 @@ if __name__ == '__main__':
                     # run CRISPresso2
                     os.makedirs(pipeline_run_name, exist_ok=True)
                     pd.Series(run_json).to_json(os.path.join(pipeline_run_name, "run.json"))
-                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s -s RTX0215-Split-1 " % (
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s" % (
                     s, s, pipeline_run_name), shell=True)
                     run_json = pd.read_json(os.path.join(pipeline_run_name, "run.json"), typ="series")
 
@@ -122,8 +119,8 @@ if __name__ == '__main__':
                     updated_entity = benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
 
                     # backup the data to S3
-                    # subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-raw/MiSeq/%s" % (s, s), shell=True)
-                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-quilt-test/%s/fastq/" % (s, ngs_id), shell=True)
-                    # subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s" % (pipeline_run_name, s), shell=True)
+                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-raw/MiSeq/%s --quiet " % (s, s), shell=True)
+                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-quilt-test/%s/fastq/ --quiet" % (s, ngs_id), shell=True)
+                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s --quiet" % (pipeline_run_name, s), shell=True)
 
         time.sleep(3600)
