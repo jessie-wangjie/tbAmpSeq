@@ -87,7 +87,6 @@ if __name__ == "__main__":
     data = pd.DataFrame()
     for s in files:
         data = pd.concat([data, pd.read_json(s, orient="index").T])
-    print(data)
     data["x"] = data["well"].str.extract(r"(\d+)")
     data["x"] = data["x"].astype('int')
     data["y"] = data["well"].str.get(0)
@@ -108,9 +107,9 @@ if __name__ == "__main__":
     chart.save(input + "/alignment_stats.json")
 
     # check if the package existed
-    if "jwang/" + ngs_id in list(quilt3.list_packages("s3://tb-quilt-test/")):
-        quilt3.Package.install("jwang/" + ngs_id, "s3://tb-quilt-test/")
-        p = quilt3.Package.browse("jwang/" + ngs_id)
+    if "AmpSeq/" + ngs_id in list(quilt3.list_packages("s3://tb-ngs-quilt/")):
+        quilt3.Package.install("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/")
+        p = quilt3.Package.browse("AmpSeq/" + ngs_id)
     else:
         p = quilt3.Package()
 
@@ -124,13 +123,13 @@ if __name__ == "__main__":
     p.set(pipeline_run_id + "/alignment_stats.json", input + "/alignment_stats.json")
     p.set(pipeline_run_id + "/status.txt", input + "/" + "status.txt")
     p.set_dir(pipeline_run_id + "/cs2_alignment_html", input + "/cs2_alignment_html/")
-    preview = pd.Series(["status.txt", "platemap.json", "alignment_stats.json", "stats.csv"])
+    preview = pd.Series(["status.txt", "platemap.json", "stats.csv"])
     preview.to_json(input + "/quilt_summarize.json", orient="records")
     p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
     with Capturing() as output:
-        p.push("jwang/" + ngs_id, "s3://tb-quilt-test/", force=True)
+        p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
     base_url = output[1].split()[-1]
     full_url = f"{base_url}/tree/{p.top_hash}"
     print(full_url)
