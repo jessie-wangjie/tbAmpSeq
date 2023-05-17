@@ -29,6 +29,7 @@ def platemap(data):
 
     bp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(x=alt.X('x:Q'),
                                                                                                      y=alt.Y('y:O'),
+                                                                                                     tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='No beacon %'),alt.Tooltip('total_read_num',title='Total reads')],
                                                                                                      text=alt.Text(
                                                                                                          'beacon_placement_percentage:Q',
                                                                                                          format='.0f'))
@@ -40,34 +41,57 @@ def platemap(data):
 
     pbp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(x=alt.X('x:Q'),
                                                                                                       y=alt.Y('y:O'),
+                                                                                                      tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='No beacon %'),alt.Tooltip('total_read_num',title='Total reads')],
                                                                                                       text=alt.Text(
                                                                                                           'perfect_beacon_percent:Q',
                                                                                                           format='.0f'))
-
     chart = alt.hconcat(alt.layer(bp, bp_text).facet(row='plate:O'), alt.layer(pbp, pbp_text).facet(row='plate:O')).resolve_scale(
         color='independent')
     return chart
 
 
 def barstats(data):
-    # draw alignment stats
-    bar = alt.Chart(data, width=60, height=alt.Step(8)).transform_fold(["total_read_num", "merged_r1r2_read_num"],
-                                                                       as_=["key", "num"]).mark_bar().encode(
-        x=alt.X('num:Q', axis=alt.Axis(title='')),
-        y=alt.Y('key:N', axis=None, scale=alt.Scale(domain=["total_read_num", "merged_r1r2_read_num"])),
-        color=alt.Color('key:N', sort=["total_read_num", "merged_r1r2_read_num"], legend=alt.Legend(title="")))
+    # Convert the data from wide to long format
+    data_melted = pd.melt(data, id_vars=['x', 'y'], 
+                      value_vars=['total_read_num','merged_r1r2_read_num','wt_aligned_read_num', 'beacon_aligned_read_num'], 
+                      var_name='Variable', value_name='Value')
+    
+    # Add a new column 'Stacked_Variable' for stacking 'wt_aligned_read_num' and 'beacon_aligned_read_num' together
+    data_melted['Stacked_Variable'] = data_melted['Variable'].replace({'wt_aligned_read_num': 'aligned_read_num', 'beacon_aligned_read_num': 'aligned_read_num'})
 
-    bar2 = alt.Chart(data).transform_fold(["wt_aligned_read_num", "beacon_aligned_read_num"], as_=["key", "num"]).transform_stack(
-        stack="num", as_=["x1", "x2"], groupby=["x", "y"]).mark_bar().encode(x=alt.X('x1:Q'), x2="x2:Q", y=alt.Y("plate:O",
-                                                                                                                 scale=alt.Scale(
-                                                                                                                     domain=[
-                                                                                                                         "Plate 1"])),
-                                                                             color=alt.Color('key:N', sort=["total_read_num",
-                                                                                                            "merged_r1r2_read_num",
-                                                                                                            "beacon_aligned_read_num",
-                                                                                                            "wt_aligned_read_num"]))
-    chart = alt.layer(bar + bar2).facet(row=alt.Row('y:O', title=""), column=alt.Column('x:O', title=""))
-    return chart
+    # Define mapping from 'Variable' to legend labels
+    legend_labels = {
+        "beacon_aligned_read_num": "# of Beacon reads",
+        "wt_aligned_read_num": "# of WT reads",
+        "total_read_num": "Total reads",
+        "merged_r1r2_read_num": "Total merged R1/R2 reads"
+    }
+    data_melted['Legend'] = data_melted['Variable'].map(legend_labels)
+
+
+    # Define the base chart with common elements
+    base = alt.Chart(data_melted).encode(
+        alt.X('Stacked_Variable:O', title='', axis=None, 
+              sort=['total_read_num', 'merged_r1r2_read_num', 'aligned_read_num']),  # Remove x-axis and sort bars
+        alt.Y('Value:Q', title=''),
+        alt.Color('Legend:N', legend=alt.Legend(title="Variable"))  # Add color legend
+    ).properties(
+        width=100,
+        height=100
+    )
+
+    # Define the bar chart
+    bar_chart = base.mark_bar().encode(
+        color='Legend:N'
+    )
+
+    # Arrange the charts in a grid based on 'x' and 'y'
+    final_chart = bar_chart.facet(
+        column='x:N',
+        row='y:N'
+    )
+
+    return final_chart
 
 
 if __name__ == "__main__":
