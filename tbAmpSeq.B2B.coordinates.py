@@ -20,6 +20,7 @@ def main():
     parser.add_argument("-p", help='Number of CPUs to use', default=4)
     parser.add_argument("-o", help='Output folder', default="./")
     parser.add_argument("-cs2", help='CRISPRESSO2 parameters', default="")
+    parser.add_argument("-beacon", help='overwrite the beacon sequences', default="")
 
     args = parser.parse_args()
     fastq = args.i
@@ -28,6 +29,7 @@ def main():
     ncpu = int(args.p)
     cs2 = args.cs2
     output = args.o
+    new_beacon = args.beacon
 
     # create output folder
     os.makedirs(os.path.join(output, "cs2_alignment_html"), exist_ok=True)
@@ -106,6 +108,10 @@ def main():
 
         # WT amplicon
         wt_amplicon = get_seq(genome_fa, target_chr, wt_start, wt_end, target_strand)
+        if len(wt_amplicon) > 298:
+            cs2 = "--force_merge_pairs "
+        elif len(wt_amplicon) >= 293 and len(wt_amplicon) <= 298:
+            cs2 = "--stringent_flash_merging "
         amplicon_fh.write(name + "\tWT\t" + wt_amplicon + "\n")
 
         sp1_info = {}
@@ -141,9 +147,16 @@ def main():
             coord = re.match(r"\[(.*), (.*)\]", rt_coord)
             rt_info = get_cut_site(wt_amplicon, atg_seq[int(coord.group(1)) - 1:int(coord.group(2))])
             beacon = get_beacon_seq(beacon_seq, sp1_info["strand"])
+            if new_beacon:
+                beacon = new_beacon
 
             # beacon seq
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[rt_info["3P"] - 1:]
+            if len(beacon_amplicon) > 298:
+                cs2 = "--force_merge_pairs "
+            elif len(beacon_amplicon) >= 293 and len(beacon_amplicon) <= 298:
+                cs2 = "--stringent_flash_merging "
+
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
 
             # define quantification window
@@ -204,6 +217,11 @@ def main():
 
             # beacon seq
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[sp2_info["cut"]:]
+            if len(beacon_amplicon) > 298:
+                cs2 = "--force_merge_pairs "
+            elif len(beacon_amplicon) >= 293 and len(beacon_amplicon) <= 298:
+                cs2 = "--stringent_flash_merging "
+
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
 
             # define quantification window

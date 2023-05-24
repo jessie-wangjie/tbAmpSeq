@@ -116,12 +116,12 @@ if __name__ == '__main__':
                         stdout=subprocess.PIPE, shell=True)
                     quilt_link = p.communicate()[0].decode('utf-8').rstrip()
                     update = CustomEntityUpdate(fields=fields({"analysis result URL link": {"value": quilt_link},
-                                                               "job status": {"value": "sfso_OTBOxF7l"}}))
+                                                               "job status": {"value": "sfso_NSDzT3ki"}}))
                     updated_entity = benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
 
                     # backup the data to S3
                     subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-raw/MiSeq/%s --quiet " % (s, s), shell=True)
-                    # subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-quilt/%s/fastq/ --quiet" % (s, ngs_id), shell=True)
+                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-quilt/%s/fastq/ --quiet" % (s, ngs_id), shell=True)
                     subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s --quiet" % (pipeline_run_name, s), shell=True)
 
         time.sleep(3600)

@@ -6,6 +6,7 @@ import altair as alt
 import pandas as pd
 import quilt3
 import re
+import os
 
 class Capturing(list):
     def __enter__(self):
@@ -105,9 +106,10 @@ if __name__ == "__main__":
     input = args.i
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", pipeline_run_id)
 
-    # plate plot
-    files = glob.glob(input + "/*/CRISPResso_quilt_stats.json")
+    # stats table
+    writer = pd.ExcelWriter(input + "/stats.xlsx", engine="xlsxwriter", engine_kwargs={'options': {'strings_to_numbers': True}})
 
+    files = glob.glob(input + "/*/CRISPResso_quilt_stats.json")
     data = pd.DataFrame()
     for s in files:
         data = pd.concat([data, pd.read_json(s, orient="index").T])
@@ -115,11 +117,28 @@ if __name__ == "__main__":
     data["x"] = data["x"].astype('int')
     data["y"] = data["well"].str.get(0)
     data["plate"] = data["plate"].fillna("Plate 1")
-    data = data[["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
-                 "aligned_percentage", "wt_aligned_read_num", "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num",
-                 "beacon_indel_percentage", "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage",
-                 "perfect_beacon_percent", "beacon_fidelity"]]
-    data.to_csv(input + "/stats.csv", index=False)
+    if "beacon_placement_percentage" in data:
+        data = data[
+            ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
+             "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num", "beacon_aligned_read_num", "beacon_indel_read_num",
+             "beacon_sub_read_num", "beacon_indel_percentage", "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage",
+             "perfect_beacon_percent", "beacon_fidelity"]]
+        data.to_csv(input + "/stats.csv", index=False)
+        data.to_excel(writer, sheet_name="AA_AN", index=False, float_format="%.2f")
+    elif "indel_percentage" in data:
+        data = data[
+            ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num", "merged_r1r2_read_num",
+             "aligned_percentage", "wt_aligned_read_num", "indel_read_num", "sub_read_num", "indel_percentage"]]
+        data.to_csv(input + "/stats.sg.csv", index=False)
+        data.to_excel(writer, sheet_name="SG", index=False, float_format="%.2f")
+    elif "PE_percentage" in data:
+        data = data[
+            ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
+             "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num", "PE_aligned_read_num", "Scaffold_aligned_read_num",
+             "PE_indel_read_num", "PE_sub_read_num", "PE_indel_percentage", "PE_sub_percentage", "wt_aligned_percentage", "PE_percentage"]]
+        data.to_csv(input + "/stats.pe.csv", index=False)
+        data.to_excel(writer, sheet_name="PE", index=False, float_format="%.2f")
+
 
     # plots
     # draw plate plots
@@ -129,6 +148,18 @@ if __name__ == "__main__":
     # draw alignment plots
     chart = barstats(data)
     chart.save(input + "/alignment_stats.json")
+
+    # qw table
+    files = glob.glob(input + "/*/CRISPResso_qw_stats.txt")
+    qw_data = pd.DataFrame()
+    for s in files:
+        qw_data = pd.concat([qw_data, pd.read_csv(s, sep="\t")])
+    qw_data = qw_data[
+        ["samplename", "amplicon", "window_name", "window_region", "unmodified", "modified", "indels", "insertion", "deletion", "substitution",
+         "whole_window_deletion"]]
+    qw_data.to_csv(input + "/qw_stats.csv", index=False)
+    qw_data.to_excel(writer, sheet_name="qw_stats", index=False, float_format="%.2f")
+    writer.close()
 
     # check if the package existed
     if "AmpSeq/" + ngs_id in list(quilt3.list_packages("s3://tb-ngs-quilt/")):
@@ -142,7 +173,14 @@ if __name__ == "__main__":
     p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
 
     # output package
-    p.set(pipeline_run_id + "/stats.csv", input + "/stats.csv")
+    if os.path.exists(os.path.join(pipeline_run_id,"stats.csv")):
+        p.set(pipeline_run_id + "/stats.csv", input + "/stats.csv")
+    if os.path.exists(os.path.join(pipeline_run_id,"stats.sg.csv")):
+        p.set(pipeline_run_id + "/stats.sg.csv", input + "/stats.sg.csv")
+    if os.path.exists(os.path.join(pipeline_run_id,"stats.pe.csv")):
+        p.set(pipeline_run_id + "/stats.pe.csv", input + "/stats.pe.csv")
+    p.set(pipeline_run_id + "/qw_stats.csv", input + "/" + "qw_stats.csv")
+    p.set(pipeline_run_id + "/stats.xlsx", input + "/" + "stats.xlsx")
     p.set(pipeline_run_id + "/platemap.json", input + "/platemap.json")
     p.set(pipeline_run_id + "/alignment_stats.json", input + "/alignment_stats.json")
     p.set(pipeline_run_id + "/status.txt", input + "/" + "status.txt")
