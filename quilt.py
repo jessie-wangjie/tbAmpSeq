@@ -30,7 +30,7 @@ def platemap(data):
 
     bp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(x=alt.X('x:Q'),
                                                                                                      y=alt.Y('y:O'),
-                                                                                                     tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='No beacon %'),alt.Tooltip('total_read_num',title='Total reads')],
+                                                                                                     tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='No beacon %'),alt.Tooltip('total_read_num',title='Total reads'),alt.Tooltip('samplename',title='Sample name')],
                                                                                                      text=alt.Text(
                                                                                                          'beacon_placement_percentage:Q',
                                                                                                          format='.0f'))
@@ -42,7 +42,7 @@ def platemap(data):
 
     pbp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(x=alt.X('x:Q'),
                                                                                                       y=alt.Y('y:O'),
-                                                                                                      tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='No beacon %'),alt.Tooltip('total_read_num',title='Total reads')],
+                                                                                                      tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='No beacon %'),alt.Tooltip('total_read_num',title='Total reads'),alt.Tooltip('samplename',title='Sample name')],
                                                                                                       text=alt.Text(
                                                                                                           'perfect_beacon_percent:Q',
                                                                                                           format='.0f'))
@@ -52,24 +52,34 @@ def platemap(data):
 
 
 def barstats(data):
+    # Add new calculated columns to the data
+    data['complete_beacon_num'] = data['beacon_aligned_read_num'] * data['perfect_beacon_percent'] / 100
+    data['imperfect_beacon_num'] = data['beacon_aligned_read_num'] - data['perfect_beacon_num']
+    data['no_beacon_num'] = data['merged_r1r2_read_num'] - data['complete_beacon_num'] - data['imperfect_beacon_num']
+
     # Convert the data from wide to long format
     data_melted = pd.melt(data, id_vars=['x', 'y'], 
-                      value_vars=['total_read_num','merged_r1r2_read_num','wt_aligned_read_num', 'beacon_aligned_read_num'], 
+                      value_vars=['total_read_num','merged_r1r2_read_num','complete_beacon_num', 'imperfect_beacon_num', 'no_beacon_num'], 
                       var_name='Variable', value_name='Value')
     
-    # Add a new column 'Stacked_Variable' for stacking 'wt_aligned_read_num' and 'beacon_aligned_read_num' together
-    data_melted['Stacked_Variable'] = data_melted['Variable'].replace({'wt_aligned_read_num': 'aligned_read_num', 'beacon_aligned_read_num': 'aligned_read_num'})
+    # Add a new column 'Stacked_Variable' for stacking 'complete_beacon_num', 'imperfect_beacon_num' and 'perfect_beacon_num' together
+    data_melted['Stacked_Variable'] = data_melted['Variable'].replace({
+        'no_beacon_num': 'aligned_read_num', 
+        'imperfect_beacon_num': 'aligned_read_num',
+        'complete_beacon_num': 'aligned_read_num'
+    })
 
     # Define mapping from 'Variable' to legend labels
     legend_labels = {
-        "beacon_aligned_read_num": "# of Beacon reads",
-        "wt_aligned_read_num": "# of WT reads",
         "total_read_num": "Total reads",
-        "merged_r1r2_read_num": "Total merged R1/R2 reads"
+        "merged_r1r2_read_num": "Total merged R1/R2 reads",
+        "complete_beacon_num": "Complete beacon insertion",
+        "imperfect_beacon_num": "Imperfect beacon insertion",
+        "no_beacon_num": "No beacon insertion"
     }
     data_melted['Legend'] = data_melted['Variable'].map(legend_labels)
 
-
+    print(data_melted.iloc[20:40])
     # Define the base chart with common elements
     base = alt.Chart(data_melted).encode(
         alt.X('Stacked_Variable:O', title='', axis=None, 
