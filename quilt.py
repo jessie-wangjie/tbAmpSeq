@@ -30,7 +30,7 @@ def platemap(data):
 
     bp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(x=alt.X('x:Q'),
                                                                                                      y=alt.Y('y:O'),
-                                                                                                     tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='No beacon %'),alt.Tooltip('total_read_num',title='Total reads'),alt.Tooltip('samplename',title='Sample name')],
+                                                                                                     tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='WT %'),alt.Tooltip('total_read_num',title='Total reads'),alt.Tooltip('samplename',title='Sample name')],
                                                                                                      text=alt.Text(
                                                                                                          'beacon_placement_percentage:Q',
                                                                                                          format='.0f'))
@@ -42,7 +42,7 @@ def platemap(data):
 
     pbp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(x=alt.X('x:Q'),
                                                                                                       y=alt.Y('y:O'),
-                                                                                                      tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='No beacon %'),alt.Tooltip('total_read_num',title='Total reads'),alt.Tooltip('samplename',title='Sample name')],
+                                                                                                      tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='WT %'),alt.Tooltip('total_read_num',title='Total reads'),alt.Tooltip('samplename',title='Sample name')],
                                                                                                       text=alt.Text(
                                                                                                           'perfect_beacon_percent:Q',
                                                                                                           format='.0f'))
