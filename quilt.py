@@ -79,7 +79,6 @@ def barstats(data):
     }
     data_melted['Legend'] = data_melted['Variable'].map(legend_labels)
 
-    print(data_melted.iloc[20:40])
     # Define the base chart with common elements
     base = alt.Chart(data_melted).encode(
         alt.X('Stacked_Variable:O', title='', axis=None, 
