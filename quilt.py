@@ -54,7 +54,7 @@ def platemap(data):
 def barstats(data):
     # Add new calculated columns to the data
     data['complete_beacon_num'] = data['beacon_aligned_read_num'] * data['perfect_beacon_percent'] / 100
-    data['imperfect_beacon_num'] = data['beacon_aligned_read_num'] - data['perfect_beacon_num']
+    data['imperfect_beacon_num'] = data['beacon_aligned_read_num'] - data['complete_beacon_num']
     data['no_beacon_num'] = data['merged_r1r2_read_num'] - data['complete_beacon_num'] - data['imperfect_beacon_num']
 
     # Convert the data from wide to long format
