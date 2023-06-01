@@ -22,85 +22,115 @@ class Capturing(list):
 
 def platemap(data):
     # draw plate plots
-    bp = alt.Chart(data).mark_circle(size=300).properties(width=300, height=200).encode(
-        x=alt.X('x:Q', axis=alt.Axis(title=''), scale=alt.Scale(domain=[1, 12])),
-        y=alt.Y('y:O', axis=alt.Axis(title='')),
-        color=alt.Color('beacon_placement_percentage:Q', scale=alt.Scale(scheme="blues", domain=[0, 100]),
-                        legend=alt.Legend(title="BP %")))
+    if "beacon_placement_percentage" in data:
+        bp = alt.Chart(data).mark_circle(size=300).properties(width=300, height=200).encode(
+            x=alt.X('x:Q', axis=alt.Axis(title=''), scale=alt.Scale(domain=[1, 12])), y=alt.Y('y:O', axis=alt.Axis(title='')),
+            color=alt.Color('beacon_placement_percentage:Q', scale=alt.Scale(scheme="blues", domain=[0, 100]), legend=alt.Legend(title="BP %")))
 
-    bp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(x=alt.X('x:Q'),
-                                                                                                     y=alt.Y('y:O'),
-                                                                                                     tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='WT %'),alt.Tooltip('total_read_num',title='Total reads'),alt.Tooltip('samplename',title='Sample name')],
-                                                                                                     text=alt.Text(
-                                                                                                         'beacon_placement_percentage:Q',
-                                                                                                         format='.0f'))
+        bp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(
+            x=alt.X('x:Q'), y=alt.Y('y:O'), text=alt.Text('beacon_placement_percentage:Q', format='.0f'),
+            tooltip=[alt.Tooltip('samplename', title='Sample name'), alt.Tooltip('aaanid', title='AA/AN id'), 'spp_id', 'ppid',
+                     alt.Tooltip('total_aligned_read_num', title='Total aligned reads'), alt.Tooltip('aligned_percentage', title='Aligned %')])
 
-    pbp = alt.Chart(data).mark_circle(size=300).properties(width=300, height=200).encode(
-        x=alt.X('x:Q', axis=alt.Axis(title=''), scale=alt.Scale(domain=[1, 12])), y=alt.Y('y:O', axis=alt.Axis(title='')),
-        color=alt.Color('perfect_beacon_percent:Q', scale=alt.Scale(scheme="oranges", domain=[0, 100]),
-                        legend=alt.Legend(title="Perfect BP %")))
+        pbp = alt.Chart(data).mark_circle(size=300).properties(width=300, height=200).encode(
+            x=alt.X('x:Q', axis=alt.Axis(title=''), scale=alt.Scale(domain=[1, 12])), y=alt.Y('y:O', axis=alt.Axis(title='')),
+            color=alt.Color('beacon_fidelity:Q', scale=alt.Scale(scheme="oranges", domain=[0, 100]), legend=alt.Legend(title="Beacon fidelity %")))
 
-    pbp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(x=alt.X('x:Q'),
-                                                                                                      y=alt.Y('y:O'),
-                                                                                                      tooltip=['aaanid','ppid','spp_id',alt.Tooltip('wt_aligned_percentage',title='WT %'),alt.Tooltip('total_read_num',title='Total reads'),alt.Tooltip('samplename',title='Sample name')],
-                                                                                                      text=alt.Text(
-                                                                                                          'perfect_beacon_percent:Q',
-                                                                                                          format='.0f'))
-    chart = alt.hconcat(alt.layer(bp, bp_text).facet(row='plate:O'), alt.layer(pbp, pbp_text).facet(row='plate:O')).resolve_scale(
-        color='independent')
+        pbp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(
+            x=alt.X('x:Q'), y=alt.Y('y:O'), text=alt.Text('beacon_fidelity:Q', format='.0f'),
+            tooltip=[alt.Tooltip('samplename', title='Sample name'), 'aaanid', 'spp_id', 'ppid',
+                     alt.Tooltip('perfect_beacon_percent', title='Perfect BP %')])
+
+        chart = alt.hconcat(alt.layer(bp, bp_text).facet(row='plate:O'), alt.layer(pbp, pbp_text).facet(row='plate:O')).resolve_scale(
+            color='independent')
+
+    elif "indel_percentage" in data:
+        bp = alt.Chart(data).mark_circle(size=300).properties(width=300, height=200).encode(
+            x=alt.X('x:Q', axis=alt.Axis(title=''), scale=alt.Scale(domain=[1, 12])), y=alt.Y('y:O', axis=alt.Axis(title='')),
+            color=alt.Color('indel_percentage:Q', scale=alt.Scale(scheme="blues", domain=[0, 100]), legend=alt.Legend(title="Indels %")))
+
+        bp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(
+            x=alt.X('x:Q'), y=alt.Y('y:O'), text=alt.Text('indel_percentage:Q', format='.0f'),
+            tooltip=[alt.Tooltip('samplename', title='Sample name'), alt.Tooltip('aaanid', title='SG id'), 'ppid',
+                     alt.Tooltip('wt_aligned_read_num', title='Total aligned reads'), alt.Tooltip('aligned_percentage', title='Aligned %')])
+
+        chart = alt.layer(bp, bp_text).facet(row='plate:O')
+
     return chart
 
 
 def barstats(data):
-    # Add new calculated columns to the data
-    data['complete_beacon_num'] = data['beacon_aligned_read_num'] - data['beacon_indel_read_num']
-    data['imperfect_beacon_num'] = data['beacon_indel_read_num']
-    data['no_beacon_num'] = data['wt_aligned_read_num']
+    if "beacon_placement_percentage" in data:
+        # Add new calculated columns to the data
+        data['complete_beacon_num'] = data['beacon_aligned_read_num'] - data['beacon_indel_read_num']
+        data['imperfect_beacon_num'] = data['beacon_indel_read_num']
+        data['no_beacon_num'] = data['wt_aligned_read_num']
 
-    # Convert the data from wide to long format
-    data_melted = pd.melt(data, id_vars=['x', 'y'], 
-                      value_vars=['total_read_num','merged_r1r2_read_num','complete_beacon_num', 'imperfect_beacon_num', 'no_beacon_num'], 
-                      var_name='Variable', value_name='Value')
-    
-    # Add a new column 'Stacked_Variable' for stacking 'complete_beacon_num', 'imperfect_beacon_num' and 'perfect_beacon_num' together
-    data_melted['Stacked_Variable'] = data_melted['Variable'].replace({
-        'no_beacon_num': 'aligned_read_num', 
-        'imperfect_beacon_num': 'aligned_read_num',
-        'complete_beacon_num': 'aligned_read_num'
-    })
+        # Convert the data from wide to long format
+        data_melted = pd.melt(data, id_vars=['x', 'y'],
+                              value_vars=['total_read_num', 'merged_r1r2_read_num', 'complete_beacon_num', 'imperfect_beacon_num', 'no_beacon_num'],
+                              var_name='Variable', value_name='Value')
 
-    # Define mapping from 'Variable' to legend labels
-    legend_labels = {
-        "total_read_num": "Total reads",
-        "merged_r1r2_read_num": "Total merged R1/R2 reads",
-        "complete_beacon_num": "Complete beacon insertion",
-        "imperfect_beacon_num": "Imperfect beacon insertion",
-        "no_beacon_num": "No beacon insertion"
-    }
-    data_melted['Legend'] = data_melted['Variable'].map(legend_labels)
+        # Add a new column 'Stacked_Variable' for stacking 'complete_beacon_num', 'imperfect_beacon_num' and 'perfect_beacon_num' together
+        data_melted['Stacked_Variable'] = data_melted['Variable'].replace({
+            'no_beacon_num': 'aligned_read_num',
+            'imperfect_beacon_num': 'aligned_read_num',
+            'complete_beacon_num': 'aligned_read_num'
+        })
+
+        # Define mapping from 'Variable' to legend labels
+        legend_labels = {
+            "total_read_num": "Total reads",
+            "merged_r1r2_read_num": "Total merged R1/R2 reads",
+            "complete_beacon_num": "Complete beacon insertion",
+            "imperfect_beacon_num": "Imperfect beacon insertion",
+            "no_beacon_num": "No beacon insertion"
+        }
+        data_melted['Legend'] = data_melted['Variable'].map(legend_labels)
+
+    elif "indel_percentage" in data:
+        # Add new calculated columns to the data
+        data['perfect_wt_num'] = data['wt_aligned_read_num'] - data['indel_read_num']
+        data['indel_wt_num'] = data['indel_read_num']
+
+        # Convert the data from wide to long format
+        data_melted = pd.melt(data, id_vars=['x', 'y'],
+                              value_vars=['total_read_num', 'merged_r1r2_read_num', 'perfect_wt_num', 'indel_wt_num'],
+                              var_name='Variable', value_name='Value')
+
+        # Add a new column 'Stacked_Variable' for stacking 'complete_beacon_num', 'imperfect_beacon_num' and 'perfect_beacon_num' together
+        data_melted['Stacked_Variable'] = data_melted['Variable'].replace({
+            'perfect_wt_num': 'aligned_read_num',
+            'indel_wt_num': 'aligned_read_num'
+        })
+
+        # Define mapping from 'Variable' to legend labels
+        legend_labels = {
+            "total_read_num": "Total reads",
+            "merged_r1r2_read_num": "Total merged R1/R2 reads",
+            "perfect_wt_num": "Perfect WT reads",
+            "indel_wt_num": "Indel WT reads"
+        }
+        data_melted['Legend'] = data_melted['Variable'].map(legend_labels)
 
     # Define the base chart with common elements
     base = alt.Chart(data_melted).encode(
-        alt.X('Stacked_Variable:O', title='', axis=None, 
+        alt.X('Stacked_Variable:O', title='', axis=None,
               sort=['total_read_num', 'merged_r1r2_read_num', 'aligned_read_num']),  # Remove x-axis and sort bars
-        alt.Y('Value:Q', title=''),
-        alt.Color('Legend:N', legend=alt.Legend(title="Variable"))  # Add color legend
-    ).properties(
-        width=100,
-        height=100
-    )
+        alt.Y('Value:Q', title='')
+        # alt.Color('Legend:O', legend=alt.Legend(title="Variable"))  # Add color legend
+    ).properties(width=30, height=30)
 
     # Define the bar chart
-    bar_chart = base.mark_bar().encode(
-        color='Legend:N'
-    )
+    if "beacon_placement_percentage" in data:
+        bar_chart = base.mark_bar().encode(color=alt.Color('Legend:N', scale=alt.Scale(
+            domain=["Total reads", "Total merged R1/R2 reads", "No beacon insertion", "Imperfect beacon insertion", "Complete beacon insertion"])))
+    elif "indel_percentage" in data:
+        bar_chart = base.mark_bar().encode(color=alt.Color('Legend:N', scale=alt.Scale(
+            domain=["Total reads", "Total merged R1/R2 reads", "Perfect WT reads", "Indel WT reads"])))
 
     # Arrange the charts in a grid based on 'x' and 'y'
-    final_chart = bar_chart.facet(
-        column='x:N',
-        row='y:N'
-    )
-
+    final_chart = bar_chart.facet(column='x:Q', row='y:O')
     return final_chart
 
 
@@ -148,7 +178,6 @@ if __name__ == "__main__":
         data.to_csv(input + "/stats.pe.csv", index=False)
         data.to_excel(writer, sheet_name="PE", index=False, float_format="%.2f")
 
-
     # plots
     # draw plate plots
     chart = platemap(data)
@@ -179,23 +208,27 @@ if __name__ == "__main__":
 
     # adding data
     # input package
-    p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
+#    p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
 
     # output package
-    if os.path.exists(os.path.join(pipeline_run_id,"stats.csv")):
+    preview = ["platemap.json", "alignment_stats.json"]
+    if os.path.exists(os.path.join(pipeline_run_id, "stats.csv")):
         p.set(pipeline_run_id + "/stats.csv", input + "/stats.csv")
-    if os.path.exists(os.path.join(pipeline_run_id,"stats.sg.csv")):
+        preview.append("stats.csv")
+    if os.path.exists(os.path.join(pipeline_run_id, "stats.sg.csv")):
         p.set(pipeline_run_id + "/stats.sg.csv", input + "/stats.sg.csv")
+        preview.append("stats.sg.csv")
     if os.path.exists(os.path.join(pipeline_run_id,"stats.pe.csv")):
         p.set(pipeline_run_id + "/stats.pe.csv", input + "/stats.pe.csv")
+        preview.append("stats.pe.csv")
+
     p.set(pipeline_run_id + "/qw_stats.csv", input + "/" + "qw_stats.csv")
     p.set(pipeline_run_id + "/stats.xlsx", input + "/" + "stats.xlsx")
     p.set(pipeline_run_id + "/platemap.json", input + "/platemap.json")
     p.set(pipeline_run_id + "/alignment_stats.json", input + "/alignment_stats.json")
     p.set(pipeline_run_id + "/status.txt", input + "/" + "status.txt")
     p.set_dir(pipeline_run_id + "/cs2_alignment_html", input + "/cs2_alignment_html/")
-    preview = pd.Series(["status.txt", "platemap.json", "stats.csv"])
-    preview.to_json(input + "/quilt_summarize.json", orient="records")
+    pd.Series(preview).to_json(input + "/quilt_summarize.json", orient="records")
     p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry

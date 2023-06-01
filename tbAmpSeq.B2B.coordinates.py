@@ -300,10 +300,16 @@ def main():
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
 
         # sgRNA
-        elif aaan_id.startswith("SG"):
-            cur.execute("select dna_oligo.bases from sgrna "
-                        "join dna_oligo on dna_oligo.id=sgrna.spacer "
-                        "where sgrna.file_registry_id$ = %s", [aaan_id])
+        elif aaan_id.startswith("SG") or aaan_id.startswith("OT"):
+            if aaan_id.startswith("SG"):
+                cur.execute("select dna_oligo.bases from sgrna "
+                            "join dna_oligo on dna_oligo.id=sgrna.spacer "
+                            "where sgrna.file_registry_id$ = %s", [aaan_id])
+            if aaan_id.startswith("OT"):
+                cur.execute("select dna_sequence.bases from spacer_off_target "
+                            "join dna_sequence on dna_sequence.id=spacer_off_target.id "
+                            "where spacer_off_target.file_registry_id$ = %s", [aaan_id])
+
             sg_seq = cur.fetchone()[0]
             sp1_info = get_cut_site(wt_amplicon, sg_seq)
             wt_qw1 = "WT:sg_cut:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
@@ -341,8 +347,12 @@ def main():
                     sp1_info["cut"],
                     len(wt_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+            if wt_qw2:
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s" % (
+                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
+            else:
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
         else:
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --min_freq 0.01 "
