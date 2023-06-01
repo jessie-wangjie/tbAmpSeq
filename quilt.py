@@ -208,7 +208,7 @@ if __name__ == "__main__":
 
     # adding data
     # input package
-#    p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
+    p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
 
     # output package
     preview = ["platemap.json", "alignment_stats.json"]
