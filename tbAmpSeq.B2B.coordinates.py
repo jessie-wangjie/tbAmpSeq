@@ -84,12 +84,12 @@ def main():
             continue
 
         # Get primer information
-        cur.execute("select target_gene.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
+        cur.execute("select p1.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
                     "join primer as p1 on p1.id = primer_pair.forward_primer "
                     "join primer as p2 on p2.id = primer_pair.reverse_primer "
                     "join target_gene on target_gene.id = p1.gene_or_target_name "
                     "where primer_pair.file_registry_id$ = %s", [pp_id])
-        target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
+        chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
 
         # reference genome
         genome_build = re.sub(".*/", "", genome_build)
@@ -107,7 +107,7 @@ def main():
         job_fh = open(os.path.join(output, name + ".job.log"), 'wb')
 
         # WT amplicon
-        wt_amplicon = get_seq(genome_fa, target_chr, wt_start, wt_end, target_strand)
+        wt_amplicon = get_seq(genome_fa, chr, wt_start, wt_end, target_strand)
         if len(wt_amplicon) > 298:
             cs2 = "--force_merge_pairs "
         elif len(wt_amplicon) >= 293 and len(wt_amplicon) <= 298:
@@ -347,12 +347,13 @@ def main():
                     sp1_info["cut"],
                     len(wt_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
-            if wt_qw2:
-                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
-            else:
+            if aaan_id.startswith("SG") or aaan_id.startswith("OT"):
                 subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                     os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+            else:
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s" % (
+                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
+
         else:
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --min_freq 0.01 "
@@ -382,7 +383,7 @@ def main():
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
 
-        elif aaan_id and (not aaan_id.startswith("SG")):
+        elif aaan_id and (not aaan_id.startswith("SG")) and (not aaan_id.startswith("OT")):
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --min_freq 0.01 "
                 "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (

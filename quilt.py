@@ -149,43 +149,56 @@ if __name__ == "__main__":
     writer = pd.ExcelWriter(input + "/stats.xlsx", engine="xlsxwriter", engine_kwargs={'options': {'strings_to_numbers': True}})
 
     files = glob.glob(input + "/*/CRISPResso_quilt_stats.json")
-    data = pd.DataFrame()
-    for s in files:
-        data = pd.concat([data, pd.read_json(s, orient="index").T])
-    data["x"] = data["well"].str.extract(r"(\d+)")
-    data["x"] = data["x"].astype('int')
-    data["y"] = data["well"].str.get(0)
-    data["plate"] = data["plate"].fillna("Plate 1")
-    if "beacon_placement_percentage" in data:
-        data = data[
-            ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
-             "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num", "beacon_aligned_read_num", "beacon_indel_read_num",
-             "beacon_sub_read_num", "beacon_indel_percentage", "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage",
-             "perfect_beacon_percent", "beacon_fidelity"]]
-        data.to_csv(input + "/stats.csv", index=False)
-        data.to_excel(writer, sheet_name="AA_AN", index=False, float_format="%.2f")
-    elif "indel_percentage" in data:
-        data = data[
-            ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num", "merged_r1r2_read_num",
-             "aligned_percentage", "wt_aligned_read_num", "indel_read_num", "sub_read_num", "indel_percentage"]]
-        data.to_csv(input + "/stats.sg.csv", index=False)
-        data.to_excel(writer, sheet_name="SG", index=False, float_format="%.2f")
-    elif "PE_percentage" in data:
-        data = data[
-            ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
-             "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num", "PE_aligned_read_num", "Scaffold_aligned_read_num",
-             "PE_indel_read_num", "PE_sub_read_num", "PE_indel_percentage", "PE_sub_percentage", "wt_aligned_percentage", "PE_percentage"]]
-        data.to_csv(input + "/stats.pe.csv", index=False)
-        data.to_excel(writer, sheet_name="PE", index=False, float_format="%.2f")
+    data_AA = pd.DataFrame()
+    data_SG = pd.DataFrame()
+    data_PN = pd.DataFrame()
+    for f in files:
+        d = pd.read_json(f, orient="index").T
+        d["x"] = d["well"].str.extract(r"(\d+)")
+        d["x"] = d["x"].astype('int')
+        d["y"] = d["well"].str.get(0)
+        d["plate"] = d["plate"].fillna("Plate 1")
+
+        if "beacon_placement_percentage" in d:
+            d = d[
+                ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
+                 "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num", "beacon_aligned_read_num", "beacon_indel_read_num",
+                 "beacon_sub_read_num", "beacon_indel_percentage", "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage",
+                 "perfect_beacon_percent", "beacon_fidelity"]]
+            data_AA = pd.concat([data_AA, d])
+        elif "indel_percentage" in d:
+            d = d[
+                ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num", "merged_r1r2_read_num",
+                 "aligned_percentage", "wt_aligned_read_num", "indel_read_num", "sub_read_num", "indel_percentage"]]
+            data_SG = pd.concat([data_SG, d])
+        elif "PE_percentage" in d:
+            d = d[
+                ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
+                 "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num", "PE_aligned_read_num", "Scaffold_aligned_read_num",
+                 "PE_indel_read_num", "PE_sub_read_num", "PE_indel_percentage", "PE_sub_percentage", "wt_aligned_percentage", "PE_percentage"]]
+            data_PN = pd.concat([data_PN, d])
+
+        if not data_AA.empty:
+            data_AA.to_csv(input + "/stats.csv", index=False)
+            data_AA.to_excel(writer, sheet_name="AA_AN", index=False, float_format="%.2f")
+            chart_AA = platemap(data_AA)
+        if not data_SG.empty:
+            data_SG.to_csv(input + "/stats.sg.csv", index=False)
+            data_SG.to_excel(writer, sheet_name="SG", index=False, float_format="%.2f")
+            chart_SG = platemap(data_SG)
+        if not data_PN.empty:
+            data_PN.to_csv(input + "/stats.pe.csv", index=False)
+            data_PN.to_excel(writer, sheet_name="PE", index=False, float_format="%.2f")
+            chart_PN = platemap(data_PN)
 
     # plots
     # draw plate plots
-    chart = platemap(data)
+    chart = chart_AA & chart_SG
     chart.save(input + "/platemap.json")
 
     # draw alignment plots
-    chart = barstats(data)
-    chart.save(input + "/alignment_stats.json")
+ #   chart = barstats(data)
+  #  chart.save(input + "/alignment_stats.json")
 
     # qw table
     files = glob.glob(input + "/*/CRISPResso_qw_stats.txt")

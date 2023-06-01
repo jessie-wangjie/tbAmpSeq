@@ -204,8 +204,12 @@ def window_quantification(cs2_folder, quantification_windows):
             b_json["PE_sub_percentage"] = format(100 * b_json["PE_sub_read_num"] / b_json["PE_aligned_read_num"], ".2f")
 
         if ref_name == "WT" and qw_name == "sg_cut":
-            b_json["indel_read_num"] = int(stats["indels"])
-            b_json["sub_read_num"] = int(stats["substitution"])
+            if "indels" in stats:
+                b_json["indel_read_num"] = int(stats["indels"])
+                b_json["sub_read_num"] = int(stats["substitution"])
+            else:
+                b_json["indel_read_num"] = 0
+                b_json["sub_read_num"] = 0
             b_json["indel_percentage"] = format(100 * b_json["indel_read_num"] / b_json["wt_aligned_read_num"], ".2f")
 
     df = pd.DataFrame(qw_stats)
