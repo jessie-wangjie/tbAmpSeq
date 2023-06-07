@@ -7,6 +7,8 @@ import pandas as pd
 import quilt3
 import re
 import os
+import json
+
 
 class Capturing(list):
     def __enter__(self):
@@ -21,124 +23,109 @@ class Capturing(list):
 
 
 def platemap(data):
+    # prepare the data for plotting
+    cols = {
+        "AA": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "beacon_placement_percentage"],
+        "SG": ["plate", "x", "y", "samplename", "aaanid", "ppid", "wt_aligned_read_num", "aligned_percentage", "indel_percentage"],
+        "PN": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "PE_percentage"]}
+
+    d = pd.DataFrame(
+        columns=["type", "plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "edit_percentage"])
+
+    for k, v in data.items():
+        v = pd.DataFrame(v)[cols[k]]
+        v.insert(0, "type", k)
+        v.columns = d.columns
+        d = pd.concat([d, v], axis=0, ignore_index=True)
+
     # draw plate plots
-    if "beacon_placement_percentage" in data:
-        bp = alt.Chart(data).mark_circle(size=300).properties(width=300, height=200).encode(
-            x=alt.X('x:Q', axis=alt.Axis(title=''), scale=alt.Scale(domain=[1, 12])), y=alt.Y('y:O', axis=alt.Axis(title='')),
-            color=alt.Color('beacon_placement_percentage:Q', scale=alt.Scale(scheme="blues", domain=[0, 100]), legend=alt.Legend(title="BP %")))
+    bp = alt.Chart(d).mark_point(size=300, filled=True).properties(width=300, height=200).encode(
+        x=alt.X("x:Q").axis(title="").scale(domain=[1, 12]),
+        y=alt.Y("y:O").axis(title="").scale(domain=["A", "B", "C", "D", "E", "F", "G", "H"]),
+        shape=alt.Shape("type:N").title("Type").legend(symbolFillColor="steelblue", symbolStrokeWidth=0),
+        color=alt.Color("edit_percentage:Q").scale(scheme="blues", domain=[0, 100]).title("Editing %").legend(gradientLength=95))
 
-        bp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(
-            x=alt.X('x:Q'), y=alt.Y('y:O'), text=alt.Text('beacon_placement_percentage:Q', format='.0f'),
-            tooltip=[alt.Tooltip('samplename', title='Sample name'), alt.Tooltip('aaanid', title='AA/AN id'), 'spp_id', 'ppid',
-                     alt.Tooltip('total_aligned_read_num', title='Total aligned reads'), alt.Tooltip('aligned_percentage', title='Aligned %')])
+    text = alt.Chart(d).mark_text(size=8, dx=0, dy=0, color="black", fontWeight="bold").encode(
+        x=alt.X("x:Q"),
+        y=alt.Y("y:O"),
+        text=alt.Text("edit_percentage:Q", format=".0f"),
+        tooltip=[alt.Tooltip("samplename", title="Sample name"),
+                 alt.Tooltip("aaanid", title="AA/AN/SG/PN id"),
+                 alt.Tooltip("ppid", title="PP id"),
+                 alt.Tooltip("total_aligned_read_num", title="Total aligned reads"),
+                 alt.Tooltip("aligned_percentage", title="Aligned %")])
 
-        pbp = alt.Chart(data).mark_circle(size=300).properties(width=300, height=200).encode(
-            x=alt.X('x:Q', axis=alt.Axis(title=''), scale=alt.Scale(domain=[1, 12])), y=alt.Y('y:O', axis=alt.Axis(title='')),
-            color=alt.Color('beacon_fidelity:Q', scale=alt.Scale(scheme="oranges", domain=[0, 100]), legend=alt.Legend(title="Beacon fidelity %")))
+    chart = alt.layer(bp, text).facet(row=alt.Row("plate:O").title(""))
+    return chart
 
-        pbp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(
-            x=alt.X('x:Q'), y=alt.Y('y:O'), text=alt.Text('beacon_fidelity:Q', format='.0f'),
-            tooltip=[alt.Tooltip('samplename', title='Sample name'), 'aaanid', 'spp_id', 'ppid',
-                     alt.Tooltip('perfect_beacon_percent', title='Perfect BP %')])
 
-        chart = alt.hconcat(alt.layer(bp, bp_text).facet(row='plate:O'), alt.layer(pbp, pbp_text).facet(row='plate:O')).resolve_scale(
-            color='independent')
+def fidelitymap(data):
+    # prepare the data for plotting
+    d = pd.DataFrame(data)
 
-    elif "indel_percentage" in data:
-        bp = alt.Chart(data).mark_circle(size=300).properties(width=300, height=200).encode(
-            x=alt.X('x:Q', axis=alt.Axis(title=''), scale=alt.Scale(domain=[1, 12])), y=alt.Y('y:O', axis=alt.Axis(title='')),
-            color=alt.Color('indel_percentage:Q', scale=alt.Scale(scheme="blues", domain=[0, 100]), legend=alt.Legend(title="Indels %")))
+    # draw plate plots
+    bp = alt.Chart(d).mark_circle(size=300, filled=True).properties(width=300, height=200).encode(
+        x=alt.X("x:Q").axis(title="").scale(domain=[1, 12]),
+        y=alt.Y("y:O").axis(title="").scale(domain=["A", "B", "C", "D", "E", "F", "G", "H"]),
+        color=alt.Color("beacon_fidelity:Q").scale(scheme="oranges", domain=[0, 100]).title("Beacon fidelity %").legend(gradientLength=95))
 
-        bp_text = alt.Chart(data).mark_text(size=8, dx=0, dy=0, color='black', fontWeight="bold").encode(
-            x=alt.X('x:Q'), y=alt.Y('y:O'), text=alt.Text('indel_percentage:Q', format='.0f'),
-            tooltip=[alt.Tooltip('samplename', title='Sample name'), alt.Tooltip('aaanid', title='SG id'), 'ppid',
-                     alt.Tooltip('wt_aligned_read_num', title='Total aligned reads'), alt.Tooltip('aligned_percentage', title='Aligned %')])
+    text = alt.Chart(d).mark_text(size=8, dx=0, dy=0, color="black", fontWeight="bold").encode(
+        x=alt.X("x:Q"),
+        y=alt.Y("y:O"),
+        text=alt.Text("beacon_fidelity:Q", format=".0f"),
+        tooltip=[alt.Tooltip("samplename", title="Sample name"),
+                 alt.Tooltip("aaanid", title="AA/AN/SG/PN id"),
+                 alt.Tooltip("perfect_beacon_percent", title="Perfect BP %")])
 
-        chart = alt.layer(bp, bp_text).facet(row='plate:O')
-
+    chart = alt.layer(bp, text).facet(row=alt.Row("plate:O").title(""))
     return chart
 
 
 def barstats(data):
-    if "beacon_placement_percentage" in data:
-        # Add new calculated columns to the data
-        data['complete_beacon_num'] = data['beacon_aligned_read_num'] - data['beacon_indel_read_num']
-        data['imperfect_beacon_num'] = data['beacon_indel_read_num']
-        data['no_beacon_num'] = data['wt_aligned_read_num']
+    cols = {"AA": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "beacon_aligned_read_num",
+                   "beacon_indel_read_num"],
+            "SG": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "indel_read_num"],
+            "PN": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "PE_aligned_read_num", "PE_indel_read_num"]}
 
-        # Convert the data from wide to long format
-        data_melted = pd.melt(data, id_vars=['x', 'y'],
-                              value_vars=['total_read_num', 'merged_r1r2_read_num', 'complete_beacon_num', 'imperfect_beacon_num', 'no_beacon_num'],
-                              var_name='Variable', value_name='Value')
+    d = pd.DataFrame(columns=["x", "y", "Variable", "Value"])
+    for k, v in data.items():
+        v = pd.DataFrame(v)[cols[k]]
+        if k == "AA":
+            v["perfect_beacon_read_num"] = v["beacon_aligned_read_num"] - v["beacon_indel_read_num"]
+            v = pd.melt(v, id_vars=["plate", "x", "y"],
+                        value_vars=["total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "perfect_beacon_read_num",
+                                    "beacon_indel_read_num"], var_name="Variable", value_name="Value")
+        elif k == "SG":
+            v["perfect_wt_read_num"] = v["wt_aligned_read_num"] - v["indel_read_num"]
+            v = pd.melt(v, id_vars=["plate", "x", "y"],
+                        value_vars=["total_read_num", "merged_r1r2_read_num", "perfect_wt_read_num", "indel_read_num"], var_name="Variable",
+                        value_name="Value")
+        d = pd.concat([d, v], axis=0, ignore_index=True)
 
-        # Add a new column 'Stacked_Variable' for stacking 'complete_beacon_num', 'imperfect_beacon_num' and 'perfect_beacon_num' together
-        data_melted['Stacked_Variable'] = data_melted['Variable'].replace({
-            'no_beacon_num': 'aligned_read_num',
-            'imperfect_beacon_num': 'aligned_read_num',
-            'complete_beacon_num': 'aligned_read_num'
-        })
+    d["Stacked_Variable"] = d["Variable"].replace({
+        "wt_aligned_read_num": "aligned_read_num", "perfect_beacon_read_num": "aligned_read_num", "beacon_indel_read_num": "aligned_read_num",
+        "perfect_wt_read_num": "aligned_read_num", "indel_read_num": "aligned_read_num"})
 
-        # Define mapping from 'Variable' to legend labels
-        legend_labels = {
-            "total_read_num": "Total reads",
-            "merged_r1r2_read_num": "Total merged R1/R2 reads",
-            "complete_beacon_num": "Complete beacon insertion",
-            "imperfect_beacon_num": "Imperfect beacon insertion",
-            "no_beacon_num": "No beacon insertion"
-        }
-        data_melted['Legend'] = data_melted['Variable'].map(legend_labels)
-
-    elif "indel_percentage" in data:
-        # Add new calculated columns to the data
-        data['perfect_wt_num'] = data['wt_aligned_read_num'] - data['indel_read_num']
-        data['indel_wt_num'] = data['indel_read_num']
-
-        # Convert the data from wide to long format
-        data_melted = pd.melt(data, id_vars=['x', 'y'],
-                              value_vars=['total_read_num', 'merged_r1r2_read_num', 'perfect_wt_num', 'indel_wt_num'],
-                              var_name='Variable', value_name='Value')
-
-        # Add a new column 'Stacked_Variable' for stacking 'complete_beacon_num', 'imperfect_beacon_num' and 'perfect_beacon_num' together
-        data_melted['Stacked_Variable'] = data_melted['Variable'].replace({
-            'perfect_wt_num': 'aligned_read_num',
-            'indel_wt_num': 'aligned_read_num'
-        })
-
-        # Define mapping from 'Variable' to legend labels
-        legend_labels = {
-            "total_read_num": "Total reads",
-            "merged_r1r2_read_num": "Total merged R1/R2 reads",
-            "perfect_wt_num": "Perfect WT reads",
-            "indel_wt_num": "Indel WT reads"
-        }
-        data_melted['Legend'] = data_melted['Variable'].map(legend_labels)
+    legend_labels = {"total_read_num": "Total reads", "merged_r1r2_read_num": "Total merged reads",
+                     "wt_aligned_read_num": "AA/AN: WT", "perfect_beacon_read_num": "AA/AN: Perfect Beacon", "beacon_indel_read_num": "AA/AN: Imperfect Beacon",
+                     "perfect_wt_read_num": "SG: Perfect WT", "indel_read_num": "SG: Indels"}
+    d["Legend"] = d["Variable"].map(legend_labels)
 
     # Define the base chart with common elements
-    base = alt.Chart(data_melted).encode(
-        alt.X('Stacked_Variable:O', title='', axis=None,
-              sort=['total_read_num', 'merged_r1r2_read_num', 'aligned_read_num']),  # Remove x-axis and sort bars
-        alt.Y('Value:Q', title='')
-        # alt.Color('Legend:O', legend=alt.Legend(title="Variable"))  # Add color legend
-    ).properties(width=30, height=30)
-
-    # Define the bar chart
-    if "beacon_placement_percentage" in data:
-        bar_chart = base.mark_bar().encode(color=alt.Color('Legend:N', scale=alt.Scale(
-            domain=["Total reads", "Total merged R1/R2 reads", "No beacon insertion", "Imperfect beacon insertion", "Complete beacon insertion"])))
-    elif "indel_percentage" in data:
-        bar_chart = base.mark_bar().encode(color=alt.Color('Legend:N', scale=alt.Scale(
-            domain=["Total reads", "Total merged R1/R2 reads", "Perfect WT reads", "Indel WT reads"])))
-
-    # Arrange the charts in a grid based on 'x' and 'y'
-    final_chart = bar_chart.facet(column='x:Q', row='y:O')
-    return final_chart
+    bar = alt.Chart(d).mark_bar().properties(width=400, height=45).encode(
+        alt.X("x:O").title("").scale(domain=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+        alt.Y("Value:Q").title(""),
+        alt.XOffset("Stacked_Variable:O").sort(["total_read_num", "merged_r1r2_read_num", "aligned_read_num"]),
+        alt.Color("Legend:N").scale(domain=["Total reads", "Total merged reads", "SG: Perfect WT", "SG: Indels", "AA/AN: WT", "AA/AN: Imperfect Beacon", "AA/AN: Perfect Beacon"]))
+    chart = bar.facet(row=alt.Row("y:O").title(""), column=alt.Column("plate:O").title(""), spacing=10)
+    return chart
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Generate quilt package', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-m", help='TB id')
-    parser.add_argument("-i", help='Ampseq result folder', default="./")
+    parser = argparse.ArgumentParser(description="Generate quilt package", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-m", help="TB id")
+    parser.add_argument("-i", help="Ampseq result folder", default="./")
 
     args = parser.parse_args()
     pipeline_run_id = args.m
@@ -146,59 +133,46 @@ if __name__ == "__main__":
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", pipeline_run_id)
 
     # stats table
-    writer = pd.ExcelWriter(input + "/stats.xlsx", engine="xlsxwriter", engine_kwargs={'options': {'strings_to_numbers': True}})
+    data = {}
+    writer = pd.ExcelWriter(os.path.join(input, input + ".stats.xlsx"), engine="xlsxwriter", engine_kwargs={"options": {"strings_to_numbers": True}})
+
+    cols = {"AA": ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num",
+                   "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
+                   "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
+                   "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
+                   "beacon_fidelity"],
+            "SG": ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num",
+                   "merged_r1r2_read_num", "aligned_percentage", "wt_aligned_read_num", "indel_read_num", "sub_read_num",
+                   "indel_percentage"],
+            "PN": ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num",
+                   "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
+                   "PE_aligned_read_num", "Scaffold_aligned_read_num", "PE_indel_read_num", "PE_sub_read_num",
+                   "PE_indel_percentage", "PE_sub_percentage", "wt_aligned_percentage", "PE_percentage"]}
 
     files = glob.glob(input + "/*/CRISPResso_quilt_stats.json")
-    data_AA = pd.DataFrame()
-    data_SG = pd.DataFrame()
-    data_PN = pd.DataFrame()
     for f in files:
-        d = pd.read_json(f, orient="index").T
-        d["x"] = d["well"].str.extract(r"(\d+)")
-        d["x"] = d["x"].astype('int')
-        d["y"] = d["well"].str.get(0)
-        d["plate"] = d["plate"].fillna("Plate 1")
+        d = json.load(open(f))
+        d["x"] = int(d["well"][1:])
+        d["y"] = d["well"][0]
+        type = d["aaanid"][0:2] if d["aaanid"][0:2] != "OT" else "SG"
+        data.setdefault(type, []).append(d)
 
-        if "beacon_placement_percentage" in d:
-            d = d[
-                ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
-                 "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num", "beacon_aligned_read_num", "beacon_indel_read_num",
-                 "beacon_sub_read_num", "beacon_indel_percentage", "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage",
-                 "perfect_beacon_percent", "beacon_fidelity"]]
-            data_AA = pd.concat([data_AA, d])
-        elif "indel_percentage" in d:
-            d = d[
-                ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num", "merged_r1r2_read_num",
-                 "aligned_percentage", "wt_aligned_read_num", "indel_read_num", "sub_read_num", "indel_percentage"]]
-            data_SG = pd.concat([data_SG, d])
-        elif "PE_percentage" in d:
-            d = d[
-                ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num", "merged_r1r2_read_num",
-                 "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num", "PE_aligned_read_num", "Scaffold_aligned_read_num",
-                 "PE_indel_read_num", "PE_sub_read_num", "PE_indel_percentage", "PE_sub_percentage", "wt_aligned_percentage", "PE_percentage"]]
-            data_PN = pd.concat([data_PN, d])
+    for k, v in data.items():
+        v = pd.DataFrame(v)[cols[k]]
+        v.to_csv(os.path.join(input, "stats." + k + ".csv"), index=False)
+        v.to_excel(writer, sheet_name=k, index=False, float_format="%.2f")
 
-        if not data_AA.empty:
-            data_AA.to_csv(input + "/stats.csv", index=False)
-            data_AA.to_excel(writer, sheet_name="AA_AN", index=False, float_format="%.2f")
-            chart_AA = platemap(data_AA)
-        if not data_SG.empty:
-            data_SG.to_csv(input + "/stats.sg.csv", index=False)
-            data_SG.to_excel(writer, sheet_name="SG", index=False, float_format="%.2f")
-            chart_SG = platemap(data_SG)
-        if not data_PN.empty:
-            data_PN.to_csv(input + "/stats.pe.csv", index=False)
-            data_PN.to_excel(writer, sheet_name="PE", index=False, float_format="%.2f")
-            chart_PN = platemap(data_PN)
+    # draw plate plot
+    chart = platemap(data)
 
-    # plots
-    # draw plate plots
-    chart = chart_AA & chart_SG
-    chart.save(input + "/platemap.json")
+    # draw beacon fidelity plot
+    if "AA" in data:
+        chart = alt.hconcat(chart, fidelitymap(data["AA"])).resolve_scale(color="independent", shape="independent")
+    chart.save(os.path.join(input, "platemap.json"))
 
     # draw alignment plots
- #   chart = barstats(data)
-  #  chart.save(input + "/alignment_stats.json")
+    chart = barstats(data)
+    chart.save(os.path.join(input, "alignment_stats.json"))
 
     # qw table
     files = glob.glob(input + "/*/CRISPResso_qw_stats.txt")
@@ -221,22 +195,16 @@ if __name__ == "__main__":
 
     # adding data
     # input package
-    p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
+    # p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
 
     # output package
     preview = ["platemap.json", "alignment_stats.json"]
-    if os.path.exists(os.path.join(pipeline_run_id, "stats.csv")):
-        p.set(pipeline_run_id + "/stats.csv", input + "/stats.csv")
-        preview.append("stats.csv")
-    if os.path.exists(os.path.join(pipeline_run_id, "stats.sg.csv")):
-        p.set(pipeline_run_id + "/stats.sg.csv", input + "/stats.sg.csv")
-        preview.append("stats.sg.csv")
-    if os.path.exists(os.path.join(pipeline_run_id,"stats.pe.csv")):
-        p.set(pipeline_run_id + "/stats.pe.csv", input + "/stats.pe.csv")
-        preview.append("stats.pe.csv")
+    for f in glob.glob(os.path.join(input, "stats.*.csv")):
+        preview.append(os.path.basename(f))
+        p.set(os.path.join(pipeline_run_id, os.path.basename(f)), f)
 
     p.set(pipeline_run_id + "/qw_stats.csv", input + "/" + "qw_stats.csv")
-    p.set(pipeline_run_id + "/stats.xlsx", input + "/" + "stats.xlsx")
+    p.set(pipeline_run_id + "/" + pipeline_run_id + ".stats.xlsx", input + "/" + input + ".stats.xlsx")
     p.set(pipeline_run_id + "/platemap.json", input + "/platemap.json")
     p.set(pipeline_run_id + "/alignment_stats.json", input + "/alignment_stats.json")
     p.set(pipeline_run_id + "/status.txt", input + "/" + "status.txt")
