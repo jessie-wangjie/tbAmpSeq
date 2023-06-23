@@ -348,10 +348,10 @@ def main():
                     len(wt_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
             if aaan_id.startswith("SG") or aaan_id.startswith("OT"):
-                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
                     os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
             else:
-                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s" % (
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s -n 10000000000" % (
                     os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
 
         else:
@@ -361,7 +361,7 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), 0, 1, len(wt_amplicon) - 1),
                 stderr=job_fh, stdout=job_fh, shell=True)
 
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (os.path.join(output, "CRISPResso_on_" + name), "WT"),
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -n 10000000000" % (os.path.join(output, "CRISPResso_on_" + name), "WT"),
                             stderr=job_fh, stdout=job_fh, shell=True)
 
         if aaan_id and aaan_id.startswith("PN"):
@@ -378,9 +378,9 @@ def main():
                     sp1_info["cut"],
                     len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
 
         elif aaan_id and (not aaan_id.startswith("SG")) and (not aaan_id.startswith("OT")):
@@ -391,7 +391,7 @@ def main():
                     sp1_info["cut"],
                     len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
 
         job_fh.close()

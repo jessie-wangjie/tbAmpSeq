@@ -156,6 +156,13 @@ def window_quantification(cs2_folder, quantification_windows):
         stats = {"amplicon": ref_name, "window_name": qw_name, "window_region": qw + ":" + flank_bp}
         df_ref = df_alleles[df_alleles["Reference_Name"] == ref_name]
         if df_ref.empty:
+            if ref_name == "Beacon":
+                b_json["beacon_indel_read_num"] = 0
+                b_json["beacon_sub_read_num"] = 0
+                b_json["beacon_indel_percentage"] = 0
+                b_json["beacon_sub_percentage"] = 0
+                b_json["beacon_fidelity"] = 0
+                b_json["perfect_beacon_percent"] = 0
             continue
 
         df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))), axis=1, result_type='expand')
@@ -179,7 +186,7 @@ def window_quantification(cs2_folder, quantification_windows):
 
         qw_stats.append(stats)
 
-        if ref_name == "Beacon":
+        if ref_name == "Beacon" and qw_name == "beacon_whole":
             if "indels" in stats:
                 b_json["beacon_indel_read_num"] = int(stats["indels"])
                 b_json["beacon_sub_read_num"] = int(stats["substitution"])
