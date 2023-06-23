@@ -229,6 +229,6 @@ if __name__ == "__main__":
     html_fh = open(os.path.join(output, cs2_info['running_info']["name"] + "." + args.reference + ".html"), 'w')
     html_fh.write(HTML_HEADER)
     df_to_html(df_alleles[df_alleles['Aligned_Reference_Names'] == args.reference],
-               cs2_info["results"]["refs"][args.reference]["sequence"], args.highlight, html_fh)
+               cs2_info["results"]["refs"][args.reference]["sequence"], args.highlight, html_fh, args.topn)
     html_fh.write(HTML_TAIL)
     html_fh.close()

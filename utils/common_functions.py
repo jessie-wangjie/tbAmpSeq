@@ -179,7 +179,7 @@ def window_quantification(cs2_folder, quantification_windows):
 
         qw_stats.append(stats)
 
-        if ref_name == "Beacon" and qw_name == "beacon_whole":
+        if ref_name == "Beacon":
             if "indels" in stats:
                 b_json["beacon_indel_read_num"] = int(stats["indels"])
                 b_json["beacon_sub_read_num"] = int(stats["substitution"])

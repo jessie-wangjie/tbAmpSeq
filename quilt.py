@@ -8,6 +8,7 @@ import quilt3
 import re
 import os
 import json
+from utils.base import *
 
 
 class Capturing(list):
@@ -131,6 +132,11 @@ if __name__ == "__main__":
     pipeline_run_id = args.m
     input = args.i
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", pipeline_run_id)
+    cur.execute("select entry.name, entry.url from ngs_tracking "
+                "join registration_origin on registration_origin.entity_id = ngs_tracking.id "
+                "join entry on entry.id = registration_origin.origin_entry_id "
+                "where file_registry_id$ = %s", [ngs_id])
+    entry_name, entry_url = cur.fetchone()
 
     # stats table
     data = {}
@@ -195,7 +201,7 @@ if __name__ == "__main__":
 
     # adding data
     # input package
-    # p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
+    p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
 
     # output package
     preview = ["platemap.json", "alignment_stats.json"]
@@ -209,6 +215,7 @@ if __name__ == "__main__":
     p.set(pipeline_run_id + "/alignment_stats.json", input + "/alignment_stats.json")
     p.set(pipeline_run_id + "/status.txt", input + "/" + "status.txt")
     p.set_dir(pipeline_run_id + "/cs2_alignment_html", input + "/cs2_alignment_html/")
+    p.set_meta({"Benchling Entry": entry_name, "Benchling URL": entry_url})
     pd.Series(preview).to_json(input + "/quilt_summarize.json", orient="records")
     p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 

@@ -33,7 +33,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {}
+    current_run = {"TB_MISEQ_000175":261156937}
     while True:
         response = requests.get(
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=20', stream=True)
@@ -123,6 +123,6 @@ if __name__ == '__main__':
                     # backup the data to S3
                     subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-raw/MiSeq/%s --quiet " % (s, s), shell=True)
                     # subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-quilt/%s/fastq/ --quiet" % (s, ngs_id), shell=True)
-                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s --quiet" % (pipeline_run_name, s), shell=True)
+                    subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-analysis/%s --quiet" % (pipeline_run_name, pipeline_run_name), shell=True)
 
         time.sleep(3600)
