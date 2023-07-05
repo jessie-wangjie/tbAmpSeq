@@ -29,6 +29,8 @@ def main():
     if os.path.exists(os.path.join(tbid, tbid + ".run.json")):
         ngs_stats = pd.read_json(os.path.join(tbid, tbid + ".run.json"), typ="series")
 
+    ngs_stats = {}
+    ngs_stats["ngs_tracking"] = 'bfi_Pnqse81h'
     # create pipeline run entity
     # TODO: to check run suffix
     benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
@@ -46,8 +48,8 @@ def main():
                                          "github address": {"value": "https://github.com/tomebio/tbOnT"},
                                          "ELN entry": {"value": ngs_stats["project_name"]},
                                          "AmpSeq Project Name": {"value": ngs_stats["ngs_tracking"]},
-                                         "run start": {"value": ngs_stats["run start"]},
-                                         "run end": {"value": ngs_stats["run end"]},
+                                         # "run start": {"value": ngs_stats["run start"]},
+                                         # "run end": {"value": ngs_stats["run end"]},
                                          "run status": {"value": "Complete"}}))
         pipeline_run_entity = benchling.custom_entities.create(entity).id
 
@@ -58,6 +60,7 @@ def main():
         del data["well"]
         del data["plate"]
         del data["email"]
+        data["project_name"] = ['etr_xkeFyMsT']
         data["project_eln_id"] = data.pop("project_name")
         data["ampseq_pipeline_run"] = pipeline_run_entity
         row = AssayResultCreate(schema_id=result_schema_id, fields=AssayFieldsCreate.from_dict(data), project_id=result_project_id)

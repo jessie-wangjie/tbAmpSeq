@@ -20,6 +20,7 @@ def main():
     parser.add_argument("-p", help='Number of CPUs to use', default=4)
     parser.add_argument("-o", help='Output folder', default="./")
     parser.add_argument("-cs2", help='CRISPRESSO2 parameters', default="")
+    parser.add_argument("-beacon", help='overwrite the beacon sequences', default="")
 
     args = parser.parse_args()
     fastq = args.i
@@ -28,6 +29,7 @@ def main():
     ncpu = int(args.p)
     cs2 = args.cs2
     output = args.o
+    new_beacon = args.beacon
 
     # create output folder
     os.makedirs(os.path.join(output, "cs2_alignment_html"), exist_ok=True)
@@ -82,12 +84,12 @@ def main():
             continue
 
         # Get primer information
-        cur.execute("select target_gene.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
+        cur.execute("select p1.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
                     "join primer as p1 on p1.id = primer_pair.forward_primer "
                     "join primer as p2 on p2.id = primer_pair.reverse_primer "
                     "join target_gene on target_gene.id = p1.gene_or_target_name "
                     "where primer_pair.file_registry_id$ = %s", [pp_id])
-        target_chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
+        chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
 
         # reference genome
         genome_build = re.sub(".*/", "", genome_build)
@@ -105,7 +107,11 @@ def main():
         job_fh = open(os.path.join(output, name + ".job.log"), 'wb')
 
         # WT amplicon
-        wt_amplicon = get_seq(genome_fa, target_chr, wt_start, wt_end, target_strand)
+        wt_amplicon = get_seq(genome_fa, chr, wt_start, wt_end, target_strand)
+        if len(wt_amplicon) > 298:
+            cs2 = "--force_merge_pairs "
+        elif len(wt_amplicon) >= 293 and len(wt_amplicon) <= 298:
+            cs2 = "--stringent_flash_merging "
         amplicon_fh.write(name + "\tWT\t" + wt_amplicon + "\n")
 
         sp1_info = {}
@@ -141,9 +147,16 @@ def main():
             coord = re.match(r"\[(.*), (.*)\]", rt_coord)
             rt_info = get_cut_site(wt_amplicon, atg_seq[int(coord.group(1)) - 1:int(coord.group(2))])
             beacon = get_beacon_seq(beacon_seq, sp1_info["strand"])
+            if new_beacon:
+                beacon = new_beacon
 
             # beacon seq
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[rt_info["3P"] - 1:]
+            if len(beacon_amplicon) > 298:
+                cs2 = "--force_merge_pairs "
+            elif len(beacon_amplicon) >= 293 and len(beacon_amplicon) <= 298:
+                cs2 = "--stringent_flash_merging "
+
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
 
             # define quantification window
@@ -204,6 +217,11 @@ def main():
 
             # beacon seq
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[sp2_info["cut"]:]
+            if len(beacon_amplicon) > 298:
+                cs2 = "--force_merge_pairs "
+            elif len(beacon_amplicon) >= 293 and len(beacon_amplicon) <= 298:
+                cs2 = "--stringent_flash_merging "
+
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
 
             # define quantification window
@@ -282,10 +300,16 @@ def main():
                                                    [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3, beacon_qw4]))
 
         # sgRNA
-        elif aaan_id.startswith("SG"):
-            cur.execute("select dna_oligo.bases from sgrna "
-                        "join dna_oligo on dna_oligo.id=sgrna.spacer "
-                        "where sgrna.file_registry_id$ = %s", [aaan_id])
+        elif aaan_id.startswith("SG") or aaan_id.startswith("OT"):
+            if aaan_id.startswith("SG"):
+                cur.execute("select dna_oligo.bases from sgrna "
+                            "join dna_oligo on dna_oligo.id=sgrna.spacer "
+                            "where sgrna.file_registry_id$ = %s", [aaan_id])
+            if aaan_id.startswith("OT"):
+                cur.execute("select dna_sequence.bases from spacer_off_target "
+                            "join dna_sequence on dna_sequence.id=spacer_off_target.id "
+                            "where spacer_off_target.file_registry_id$ = %s", [aaan_id])
+
             sg_seq = cur.fetchone()[0]
             sp1_info = get_cut_site(wt_amplicon, sg_seq)
             wt_qw1 = "WT:sg_cut:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
@@ -323,8 +347,13 @@ def main():
                     sp1_info["cut"],
                     len(wt_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-                os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+            if aaan_id.startswith("SG") or aaan_id.startswith("OT"):
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
+                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+            else:
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s -n 10000000000" % (
+                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
+
         else:
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --min_freq 0.01 "
@@ -332,7 +361,7 @@ def main():
                     os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), 0, 1, len(wt_amplicon) - 1),
                 stderr=job_fh, stdout=job_fh, shell=True)
 
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (os.path.join(output, "CRISPResso_on_" + name), "WT"),
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -n 10000000000" % (os.path.join(output, "CRISPResso_on_" + name), "WT"),
                             stderr=job_fh, stdout=job_fh, shell=True)
 
         if aaan_id and aaan_id.startswith("PN"):
@@ -349,12 +378,12 @@ def main():
                     sp1_info["cut"],
                     len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
 
-        elif aaan_id and (not aaan_id.startswith("SG")):
+        elif aaan_id and (not aaan_id.startswith("SG")) and (not aaan_id.startswith("OT")):
             subprocess.call(
                 "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --min_freq 0.01 "
                 "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
@@ -362,7 +391,7 @@ def main():
                     sp1_info["cut"],
                     len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
 
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
 
         job_fh.close()

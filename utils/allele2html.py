@@ -16,7 +16,9 @@ from logging import warning
 
 ALIGN_TEMPLATE = "<tr><td>" \
                  "<span class=\"template\">{prefix}</span>" \
-                 "<span class=\"highlight\">{seq_to_highlight}</span>" \
+                 "<span class=\"highlight\">{seq_to_highlight1}</span>" \
+                 "<span class=\"template\">{middle}</span>" \
+                 "<span class=\"highlight\">{seq_to_highlight2}</span>" \
                  "<span class=\"template\">{postfix}</span>" \
                  "</td><td></td><td></td></tr>"
 ALIGN_PADDING = "<span class=\"padding\">{seq}</span>"
@@ -142,13 +144,14 @@ def format_type(tag, frag):
 
 def df_to_html(df_alleles, ref, highlight, outfh, top_n=100):
     # print the template
-    if highlight:
-        ref_name, qw_name, qw, flank_bp = highlight.split(":")
+    h = [(1, 0), (1, 0)]
+    for k, window in enumerate(highlight):
+        ref_name, qw_name, qw, flank_bp = window.split(":")
         start, end = qw.split("-")
-        outfh.write(ALIGN_TEMPLATE.format(prefix=ref[0:int(start) - 1], seq_to_highlight=ref[int(start) - 1:int(end)],
-                                          postfix=ref[int(end):]))
-    else:
-        outfh.write(ALIGN_TEMPLATE.format(prefix=ref, seq_to_highlight="", postfix=""))
+        h[k] = (int(start), int(end))
+    h.sort()
+    outfh.write(ALIGN_TEMPLATE.format(prefix=ref[0:h[0][0] - 1], seq_to_highlight1=ref[h[0][0] - 1:h[0][1]], middle=ref[h[0][1]:h[1][0] - 1],
+                                      seq_to_highlight2=ref[h[1][0] - 1:h[1][1]], postfix=ref[h[1][1]:]))
 
     # prepare the alignment counter
     aligncounter = Counter()
@@ -208,7 +211,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--crispresso_output_folder", dest="crispresso_output_folder", required=True,
                         help="crispresso_output_folder", type=str)
     parser.add_argument("-r", "--ref", dest="reference", required=True, help="reference name", type=str)
-    parser.add_argument("-b", "--hl", dest="highlight", default="", help="reference position highlight", type=str)
+    parser.add_argument("-b", "--hl", dest="highlight", default=[], help="reference position highlight", action="append")
     parser.add_argument("-n", "--topn", dest="topn", default=100, help="print the top N alignments", type=int)
 
     args = parser.parse_args()
@@ -226,6 +229,6 @@ if __name__ == "__main__":
     html_fh = open(os.path.join(output, cs2_info['running_info']["name"] + "." + args.reference + ".html"), 'w')
     html_fh.write(HTML_HEADER)
     df_to_html(df_alleles[df_alleles['Aligned_Reference_Names'] == args.reference],
-               cs2_info["results"]["refs"][args.reference]["sequence"], args.highlight, html_fh)
+               cs2_info["results"]["refs"][args.reference]["sequence"], args.highlight, html_fh, args.topn)
     html_fh.write(HTML_TAIL)
     html_fh.close()

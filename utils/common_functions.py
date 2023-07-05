@@ -134,17 +134,19 @@ def window_quantification(cs2_folder, quantification_windows):
               "wt_aligned_read_num": int(cs2_info["results"]["alignment_stats"]["counts_total"]["WT"])}
     if "Beacon" in cs2_info["results"]["alignment_stats"]["counts_total"]:
         b_json["beacon_aligned_read_num"] = int(cs2_info["results"]["alignment_stats"]["counts_total"]["Beacon"])
-    elif "PE" in cs2_info["results"]["alignment_stats"]["counts_total"]:
-        b_json["beacon_aligned_read_num"] = int(cs2_info["results"]["alignment_stats"]["counts_total"]["PE"])
+        b_json["total_aligned_read_num"] = b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]
+        b_json["aligned_percentage"] = format(100 * b_json["total_aligned_read_num"] / b_json["merged_r1r2_read_num"], ".2f")
+        b_json["wt_aligned_percentage"] = format(100 * b_json["wt_aligned_read_num"] / b_json["total_aligned_read_num"], ".2f")
+        b_json["beacon_placement_percentage"] = 100 - float(b_json["wt_aligned_percentage"])
+    elif "Prime-edited" in cs2_info["results"]["alignment_stats"]["counts_total"]:
+        b_json["PE_aligned_read_num"] = int(cs2_info["results"]["alignment_stats"]["counts_total"]["Prime-edited"])
+        b_json["Scaffold_aligned_read_num"] = int(cs2_info["results"]["alignment_stats"]["counts_total"]["Scaffold-incorporated"])
+        b_json["total_aligned_read_num"] = b_json["wt_aligned_read_num"] + b_json["PE_aligned_read_num"] + b_json["Scaffold_aligned_read_num"]
+        b_json["aligned_percentage"] = format(100 * b_json["total_aligned_read_num"] / b_json["merged_r1r2_read_num"], ".2f")
+        b_json["wt_aligned_percentage"] = format(100 * b_json["wt_aligned_read_num"] / b_json["total_aligned_read_num"], ".2f")
+        b_json["PE_percentage"] = 100 - float(b_json["wt_aligned_percentage"])
     else:
-        b_json["beacon_aligned_read_num"] = 0
-
-    b_json["aligned_percentage"] = format(100 * (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]) / b_json["merged_r1r2_read_num"],
-                                          ".1f")
-    b_json["wt_aligned_percentage"] = format(
-        100 * b_json["wt_aligned_read_num"] / (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
-    b_json["beacon_placement_percentage"] = format(
-        100 * b_json["beacon_aligned_read_num"] / (b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
+        b_json["aligned_percentage"] = format(100 * b_json["wt_aligned_read_num"] / b_json["merged_r1r2_read_num"], ".2f")
 
     qw_stats = []
     for window in quantification_windows:
@@ -154,6 +156,13 @@ def window_quantification(cs2_folder, quantification_windows):
         stats = {"amplicon": ref_name, "window_name": qw_name, "window_region": qw + ":" + flank_bp}
         df_ref = df_alleles[df_alleles["Reference_Name"] == ref_name]
         if df_ref.empty:
+            if ref_name == "Beacon":
+                b_json["beacon_indel_read_num"] = 0
+                b_json["beacon_sub_read_num"] = 0
+                b_json["beacon_indel_percentage"] = 0
+                b_json["beacon_sub_percentage"] = 0
+                b_json["beacon_fidelity"] = 0
+                b_json["perfect_beacon_percent"] = 0
             continue
 
         df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))), axis=1, result_type='expand')
@@ -184,17 +193,31 @@ def window_quantification(cs2_folder, quantification_windows):
             else:
                 b_json["beacon_indel_read_num"] = 0
                 b_json["beacon_sub_read_num"] = 0
-            b_json["beacon_indel_percentage"] = format(100 * b_json["beacon_indel_read_num"] / b_json["beacon_aligned_read_num"], ".1f")
-            b_json["beacon_sub_percentage"] = format(100 * b_json["beacon_sub_read_num"] / b_json["beacon_aligned_read_num"], ".1f")
-            b_json["perfect_beacon_percent"] = format(100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / (
-                    b_json["wt_aligned_read_num"] + b_json["beacon_aligned_read_num"]), ".1f")
+            b_json["beacon_indel_percentage"] = format(100 * b_json["beacon_indel_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
+            b_json["beacon_sub_percentage"] = format(100 * b_json["beacon_sub_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
             b_json["beacon_fidelity"] = format(
-                100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["beacon_aligned_read_num"], ".1f")
+                100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["beacon_aligned_read_num"], ".2f")
+            b_json["perfect_beacon_percent"] = format(
+                100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["total_aligned_read_num"], ".2f")
+
+        if ref_name == "Prime-edited" and qw_name == "RT_whole":
+            if "indels" in stats:
+                b_json["PE_indel_read_num"] = int(stats["indels"])
+                b_json["PE_sub_read_num"] = int(stats["substitution"])
+            else:
+                b_json["PE_indel_read_num"] = 0
+                b_json["PE_sub_read_num"] = 0
+            b_json["PE_indel_percentage"] = format(100 * b_json["PE_indel_read_num"] / b_json["PE_aligned_read_num"], ".2f")
+            b_json["PE_sub_percentage"] = format(100 * b_json["PE_sub_read_num"] / b_json["PE_aligned_read_num"], ".2f")
 
         if ref_name == "WT" and qw_name == "sg_cut":
-            b_json["indel_read_num"] = int(stats["indels"])
-            b_json["sub_read_num"] = int(stats["substitution"])
-            b_json["indel_percentage"] = format(100 * b_json["indel_read_num"] / b_json["wt_aligned_read_num"], ".1f")
+            if "indels" in stats:
+                b_json["indel_read_num"] = int(stats["indels"])
+                b_json["sub_read_num"] = int(stats["substitution"])
+            else:
+                b_json["indel_read_num"] = 0
+                b_json["sub_read_num"] = 0
+            b_json["indel_percentage"] = format(100 * b_json["indel_read_num"] / b_json["wt_aligned_read_num"], ".2f")
 
     df = pd.DataFrame(qw_stats)
     df.insert(0, "samplename", cs2_info["running_info"]["args"].name)
