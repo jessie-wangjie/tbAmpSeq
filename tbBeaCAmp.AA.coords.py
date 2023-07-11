@@ -3,12 +3,11 @@
 On-Target analysis for Amp-seq
 Information from Benchling
 Input AA/SG ID
-Input PP ID
+Input WT corridnates
 """
 
 import argparse
 import glob
-import datetime
 from utils.base import *
 from utils.common_functions import *
 
@@ -18,7 +17,7 @@ def main():
     parser = argparse.ArgumentParser(description='Process meta data', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-i", help='Path to fastq')
     parser.add_argument("-g", help='AA/SG/AN/PN id')
-    parser.add_argument("-a", help='prime pair id')
+    parser.add_argument("-a", help='WT corridnates, eg. hg38:chr1:1-200:+')
     parser.add_argument("-s", help='specifiy a sample in the fastq path', default=None)
     parser.add_argument("-p", help='Number of CPUs to use', default=4)
     parser.add_argument("-o", help='Output folder', default="./")
@@ -29,7 +28,6 @@ def main():
     fastq = args.i
     name = args.s
     aaan_id = args.g
-    pp_id = args.a
     ncpu = int(args.p)
     cs2 = args.cs2
     output = args.o
@@ -41,19 +39,10 @@ def main():
     # amplicon information file
     amplicon_fh = open(os.path.join(output, name + ".amplicon.txt"), 'w')
 
-    # Get primer information
-    cur.execute("select p1.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
-                "join primer as p1 on p1.id = primer_pair.forward_primer "
-                "join primer as p2 on p2.id = primer_pair.reverse_primer "
-                "join target_gene on target_gene.id = p1.gene_or_target_name "
-                "where primer_pair.file_registry_id$ = %s", [pp_id])
-    if cur.rowcount == 0:
-        print("Can't find this PRIP in Benchling!")
-        return
-    else:
-        chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
+    genome_build, chr, region, target_strand = args.a.split(":")
+    wt_start, wt_end = region.split("-")
 
-    cs2_stats = {"aaanid": aaan_id, "ppid": pp_id, "samplename": name}
+    cs2_stats = {"aaanid": aaan_id, "ppid": args.a, "samplename": name}
 
     # skip if no sample name or no fastq
     if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
@@ -75,7 +64,7 @@ def main():
     job_fh = open(os.path.join(output, name + ".job.log"), 'wb')
 
     # WT amplicon
-    wt_amplicon = get_seq(genome_fa, chr, wt_start, wt_end, target_strand)
+    wt_amplicon = get_seq(genome_fa, chr, int(wt_start), int(wt_end), target_strand)
     if len(wt_amplicon) > 298:
         cs2 = "--force_merge_pairs "
     elif len(wt_amplicon) >= 293 and len(wt_amplicon) <= 298:
@@ -292,7 +281,7 @@ def main():
         cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
     pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_benchling_stats.json"))
-    cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
+    cs2_stats.update(aaanid=aaan_id, ppid=args.a)
     pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
 
     # plot
