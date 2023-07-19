@@ -108,7 +108,8 @@ def barstats(data):
         "perfect_wt_read_num": "aligned_read_num", "indel_read_num": "aligned_read_num"})
 
     legend_labels = {"total_read_num": "Total reads", "merged_r1r2_read_num": "Total merged reads",
-                     "wt_aligned_read_num": "AA/AN: WT", "perfect_beacon_read_num": "AA/AN: Perfect Beacon", "beacon_indel_read_num": "AA/AN: Imperfect Beacon",
+                     "wt_aligned_read_num": "AA/AN: WT", "perfect_beacon_read_num": "AA/AN: Perfect Beacon",
+                     "beacon_indel_read_num": "AA/AN: Imperfect Beacon",
                      "perfect_wt_read_num": "SG: Perfect WT", "indel_read_num": "SG: Indels"}
     d["Legend"] = d["Variable"].map(legend_labels)
 
@@ -117,13 +118,14 @@ def barstats(data):
         alt.X("x:O").title("").scale(domain=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
         alt.Y("Value:Q").title(""),
         alt.XOffset("Stacked_Variable:O").sort(["total_read_num", "merged_r1r2_read_num", "aligned_read_num"]),
-        alt.Color("Legend:N").scale(domain=["Total reads", "Total merged reads", "SG: Perfect WT", "SG: Indels", "AA/AN: WT", "AA/AN: Imperfect Beacon", "AA/AN: Perfect Beacon"]))
+        alt.Color("Legend:N").scale(
+            domain=["Total reads", "Total merged reads", "SG: Perfect WT", "SG: Indels", "AA/AN: WT", "AA/AN: Imperfect Beacon",
+                    "AA/AN: Perfect Beacon"]))
     chart = bar.facet(row=alt.Row("y:O").title(""), column=alt.Column("plate:O").title(""), spacing=10)
     return chart
 
 
-if __name__ == "__main__":
-
+def main():
     parser = argparse.ArgumentParser(description="Generate quilt package", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-m", help="TB id")
     parser.add_argument("-i", help="Ampseq result folder", default="./")
@@ -195,7 +197,7 @@ if __name__ == "__main__":
 
     # check if the package existed
     if "AmpSeq/" + ngs_id in list(quilt3.list_packages("s3://tb-ngs-quilt/")):
-        quilt3.Package.install("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/")
+        # quilt3.Package.install("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/")
         p = quilt3.Package.browse("AmpSeq/" + ngs_id)
     else:
         p = quilt3.Package()
@@ -225,4 +227,9 @@ if __name__ == "__main__":
         p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
     base_url = output[1].split()[-1]
     full_url = f"{base_url}/tree/{p.top_hash}"
+    return full_url
+
+
+if __name__ == "__main__":
+    full_url = main()
     print(full_url)
