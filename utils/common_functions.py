@@ -60,7 +60,7 @@ def get_seq(twobit_file, chromosome, start, end, strand):
 
 
 def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
-    # beacon1 and beacon2 should have at least 5nt overlap.
+    # Slides b1 across b2 to test if they match
     beacon = seq1.upper()
     if sp1_strand == "+":
         beacon = reverse_complement(seq1)
@@ -68,8 +68,12 @@ def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
         beacon2 = seq2.upper()
         if sp2_strand == "+":
             beacon2 = reverse_complement(seq2)
-        idx = beacon.find(beacon2[0:5])
-        beacon = beacon[0:idx] + beacon2
+
+        n1 = len(beacon)
+        for i in range(n1):
+            if beacon[i:] == beacon2[0:min(n1 - i, len(beacon2))]:
+                beacon = beacon + beacon2[n1 - i:]
+                return beacon
     return beacon
 
 
@@ -114,7 +118,7 @@ def window_quantification(cs2_folder, quantification_windows):
     # Amplicon:Window_name:Window_region:flanking_bp. 
     # Bp positions in the amplicon sequence specifying the quantification window, 1-index
     if not os.path.exists(os.path.join(cs2_folder, 'CRISPResso2_info.json')):
-        return
+        return {}
     else:
         cs2_info = CRISPRessoShared.load_crispresso_info(cs2_folder)
 

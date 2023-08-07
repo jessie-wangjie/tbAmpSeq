@@ -37,13 +37,18 @@ if __name__ == "__main__":
                 "join registration_origin on registration_origin.entity_id = ngs_tracking.id "
                 "join entry on entry.id = registration_origin.origin_entry_id "
                 "where file_registry_id$ = %s", [ngs_id])
-    entry_name, entry_url = cur.fetchone()
+    # entry_name, entry_url = cur.fetchone()
 
     # stats table
     data = {}
     writer = pd.ExcelWriter(os.path.join(input, input + ".stats.xlsx"), engine="xlsxwriter", engine_kwargs={"options": {"strings_to_numbers": True}})
 
-    cols = {"SP": ["samplename", "aaanid", "ppid", "total_read_num",
+    cols = {"AA": ["samplename", "aaanid", "ppid", "total_read_num",
+                   "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
+                   "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
+                   "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
+                   "beacon_fidelity"],
+            "AN": ["samplename", "aaanid", "ppid", "total_read_num",
                    "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
                    "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
                    "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
@@ -102,7 +107,7 @@ if __name__ == "__main__":
     p.set(pipeline_run_id + "/qw_stats.csv", input + "/" + "qw_stats.csv")
     p.set(pipeline_run_id + "/" + pipeline_run_id + ".stats.xlsx", input + "/" + input + ".stats.xlsx")
     p.set_dir(pipeline_run_id + "/cs2_alignment_html", input + "/cs2_alignment_html/")
-    p.set_meta({"Benchling Entry": entry_name, "Benchling URL": entry_url})
+    # p.set_meta({"Benchling Entry": entry_name, "Benchling URL": entry_url})
     pd.Series(preview).to_json(input + "/quilt_summarize.json", orient="records")
     p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 

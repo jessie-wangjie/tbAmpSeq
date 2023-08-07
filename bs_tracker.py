@@ -39,12 +39,11 @@ if __name__ == '__main__':
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=20', stream=True)
         for run in response.json().get("Items"):
             samples = {}
-            if run["Status"] != "Complete":
+            if run["Status"] != "Complete" and run["Status"] != "Failed":
                 current_run[run["ExperimentName"]] = run["V1Pre3Id"]
-                print(current_run)
             elif run["ExperimentName"] in current_run:
-                print(current_run[run["ExperimentName"]])
                 # store the runinfo and stats
+                print(current_run)
                 response = requests.get(
                     f'{bs_api_server}/runs/{current_run[run["ExperimentName"]]}/sequencingstats?access_token={bs_access_token}',
                     stream=True)
@@ -61,7 +60,6 @@ if __name__ == '__main__':
                 send_email(run["ExperimentName"], samples.keys())
                 del current_run[run["ExperimentName"]]
 
-                print(samples.items())
                 benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():
                     # check if it's Ampseq data

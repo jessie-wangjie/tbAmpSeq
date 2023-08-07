@@ -26,8 +26,8 @@ def main():
     tbid = args.m
 
     # read NGS information
-    if os.path.exists(os.path.join(tbid, tbid + ".run.json")):
-        ngs_stats = pd.read_json(os.path.join(tbid, tbid + ".run.json"), typ="series")
+    if os.path.exists(os.path.join(tbid, "run.json")):
+        ngs_stats = pd.read_json(os.path.join(tbid, "run.json"), typ="series")
 
     ngs_stats = {}
     ngs_stats["ngs_tracking"] = 'bfi_Pnqse81h'
@@ -36,7 +36,7 @@ def main():
     benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
 
     # check if the entity exists
-    entity = benchling.custom_entities.list(name=tbid + "a")
+    entity = benchling.custom_entities.list(name=tbid)
     if entity.estimated_count > 0:
         pipeline_run_entity = entity.first().id
     else:
@@ -54,7 +54,7 @@ def main():
         pipeline_run_entity = benchling.custom_entities.create(entity).id
 
     # insert the cs2 stats to benchling
-    files = glob.glob(tbid + "/*/CRISPResso_stats.json")
+    files = glob.glob(tbid + "/*/CRISPResso_benchling_stats.json")
     for s in files:
         data = json.load(open(s))
         del data["well"]

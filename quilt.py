@@ -197,7 +197,7 @@ def main():
 
     # check if the package existed
     if "AmpSeq/" + ngs_id in list(quilt3.list_packages("s3://tb-ngs-quilt/")):
-        # quilt3.Package.install("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/")
+        quilt3.Package.install("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/")
         p = quilt3.Package.browse("AmpSeq/" + ngs_id)
     else:
         p = quilt3.Package()
