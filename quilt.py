@@ -144,15 +144,15 @@ def main():
     data = {}
     writer = pd.ExcelWriter(os.path.join(input, input + ".stats.xlsx"), engine="xlsxwriter", engine_kwargs={"options": {"strings_to_numbers": True}})
 
-    cols = {"AA": ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num",
+    cols = {"AA": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num",
                    "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
                    "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
                    "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
                    "beacon_fidelity"],
-            "SG": ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num",
+            "SG": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num",
                    "merged_r1r2_read_num", "aligned_percentage", "wt_aligned_read_num", "indel_read_num", "sub_read_num",
                    "indel_percentage"],
-            "PN": ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num",
+            "PN": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num",
                    "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
                    "PE_aligned_read_num", "Scaffold_aligned_read_num", "PE_indel_read_num", "PE_sub_read_num",
                    "PE_indel_percentage", "PE_sub_percentage", "wt_aligned_percentage", "PE_percentage"]}
@@ -163,11 +163,12 @@ def main():
         d["x"] = int(d["well"][1:])
         d["y"] = d["well"][0]
         # d["plate"] = d["plate"] + " " + re.sub(".*(PRIP\d).*", "\\1", d["miseq_sample_name"])
+        # d["plate"] = d["plate"] + " " + re.sub(".*(set\d).*", "\\1", d["miseq_sample_name"])
         type = d["aaanid"][0:2] if d["aaanid"][0:2] != "OT" else "SG"
         data.setdefault(type, []).append(d)
 
     for k, v in data.items():
-        v = pd.DataFrame(v)[cols[k]]
+        v = pd.DataFrame(v)[cols[k]].sort_values(["plate", "x", "y"])
         v.to_csv(os.path.join(input, "stats." + k + ".csv"), index=False)
         v.to_excel(writer, sheet_name=k, index=False, float_format="%.2f")
 
@@ -218,7 +219,7 @@ def main():
     p.set(pipeline_run_id + "/alignment_stats.json", input + "/alignment_stats.json")
     p.set(pipeline_run_id + "/status.txt", input + "/" + "status.txt")
     p.set_dir(pipeline_run_id + "/cs2_alignment_html", input + "/cs2_alignment_html/")
-    p.set_meta({"Benchling Entry": entry_name, "Benchling URL": entry_url})
+    # p.set_meta({"Benchling Entry": entry_name, "Benchling URL": entry_url})
     pd.Series(preview).to_json(input + "/quilt_summarize.json", orient="records")
     p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 

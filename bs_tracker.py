@@ -33,32 +33,31 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {}
+    current_run = {264134885: "TB_MISEQ_000207"}
     while True:
         response = requests.get(
-            f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=20', stream=True)
+            f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=10', stream=True)
         for run in response.json().get("Items"):
             samples = {}
             if run["Status"] != "Complete" and run["Status"] != "Failed":
-                current_run[run["ExperimentName"]] = run["V1Pre3Id"]
-            elif run["ExperimentName"] in current_run:
+                current_run[run["V1Pre3Id"]] = run["ExperimentName"]
+                print(current_run)
+            elif run["V1Pre3Id"] in current_run:
                 # store the runinfo and stats
                 print(current_run)
                 response = requests.get(
-                    f'{bs_api_server}/runs/{current_run[run["ExperimentName"]]}/sequencingstats?access_token={bs_access_token}',
-                    stream=True)
-                run_json = {"bsrunid": run["ExperimentName"], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
+                    f'{bs_api_server}/runs/{run["V1Pre3Id"]}/sequencingstats?access_token={bs_access_token}', stream=True)
+                run_json = {"bsrunid": run["V1Pre3Id"], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
 
                 response = requests.get(
-                    f'{bs_api_server}/datasets?InputRuns={current_run[run["ExperimentName"]]}&access_token={bs_access_token}&limit=1000',
-                    stream=True)
+                    f'{bs_api_server}/datasets?InputRuns={run["V1Pre3Id"]}&access_token={bs_access_token}&limit=1000', stream=True)
                 for item in response.json().get("Items"):
                     project = item.get("Project").get("Name")
                     if project != "Unindexed Reads":
                         samples[project] = item.get("Project").get("Id")
 
                 send_email(run["ExperimentName"], samples.keys())
-                del current_run[run["ExperimentName"]]
+                del current_run[run["V1Pre3Id"]]
 
                 benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():

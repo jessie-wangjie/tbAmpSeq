@@ -51,14 +51,14 @@ def main():
 
     # Query sample metasheet information for BTB
     cur.execute("select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, "
-                "sample_name, mrna_batch_id, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
+                "sample_name, plate, mrna_batch_id, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
                 "from ampseq_sample_metasheet$raw "
                 "left join registry_entity as re1 on re1.id = aaanpnsg_id "
                 "left join registry_entity as re2 on re2.id = pp_id "
                 "where genomics_ampseq_project_queue = %s "
                 "union "
                 "select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, "
-                "sample_name, mrna_batch_id, modrnabatch_id as modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
+                "sample_name, animal_group, mrna_batch_id, modrnabatch_id as modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
                 "from ampseq_sample_metasheet_v2$raw "
                 "left join registry_entity as re1 on re1.id = aaanpnsg_id "
                 "left join registry_entity as re2 on re2.id = pp_id "
@@ -69,7 +69,7 @@ def main():
 
     for record in cur.fetchall():
         cs2_stats = {}
-        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], cs2_stats["samplename"], cs2_stats["mrna_batch_id"], cs2_stats[
+        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], cs2_stats["samplename"], cs2_stats["animal_group"], cs2_stats["mrna_batch_id"], cs2_stats[
             "modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], cs2_stats["plate"], cs2_stats["well"] = record
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["genomics_ampseq_project_queue"] = tbid
