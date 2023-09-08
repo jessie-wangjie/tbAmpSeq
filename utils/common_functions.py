@@ -106,12 +106,14 @@ def get_modified_in_quantification_window(row, include_idx):
     deletion = row["#Reads"] * (payload["deletion_n"] > 0)
     substitution = row["#Reads"] * (payload["substitution_n"] > 0)
     indels = row["#Reads"] * ((payload["insertion_n"] > 0) | (payload["deletion_n"] > 0))
+    indels_1bp = row["#Reads"] * ((payload["insertion_n"] + payload["deletion_n"]) > 1)
+    indels_2bp = row["#Reads"] * ((payload["insertion_n"] + payload["deletion_n"]) > 2)
     if set(include_idx).issubset(payload["deletion_positions"]):
         whole_window_deletion = row["#Reads"]
     else:
         whole_window_deletion = 0
     return {"#Reads": row["#Reads"], "classification": classification, "indels": indels, "insertion": insertion, "deletion": deletion,
-            "substitution": substitution, "whole_window_deletion": whole_window_deletion}
+            "substitution": substitution, "indels_1bp": indels_1bp, "indels_2bp": indels_2bp, "whole_window_deletion": whole_window_deletion}
 
 
 def window_quantification(cs2_folder, quantification_windows):
@@ -164,6 +166,8 @@ def window_quantification(cs2_folder, quantification_windows):
                 b_json["beacon_indel_percentage"] = 0
                 b_json["beacon_sub_percentage"] = 0
                 b_json["beacon_fidelity"] = 0
+                b_json["beacon_fidelity_1mm"] = 0
+                b_json["beacon_fidelity_2mm"] = 0
                 b_json["perfect_beacon_percent"] = 0
             continue
 
@@ -172,7 +176,7 @@ def window_quantification(cs2_folder, quantification_windows):
         for i in g.index:
             stats[i] = g.loc[i]["#Reads"]
             if i == "modified":
-                stats.update(g.loc[i][["indels", "insertion", "deletion", "substitution", "whole_window_deletion"]])
+                stats.update(g.loc[i][["indels", "indels_1bp", "indels_2bp", "insertion", "deletion", "substitution", "whole_window_deletion"]])
 
         if int(flank_bp):
             include_idx = []
@@ -199,6 +203,10 @@ def window_quantification(cs2_folder, quantification_windows):
             b_json["beacon_sub_percentage"] = format(100 * b_json["beacon_sub_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
             b_json["beacon_fidelity"] = format(
                 100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["beacon_aligned_read_num"], ".2f")
+            b_json["beacon_fidelity_1mm"] = format(
+                100 * (b_json["beacon_aligned_read_num"] - stats["indels_1bp"]) / b_json["beacon_aligned_read_num"], ".2f")
+            b_json["beacon_fidelity_2mm"] = format(
+                100 * (b_json["beacon_aligned_read_num"] - stats["indels_2bp"]) / b_json["beacon_aligned_read_num"], ".2f")
             b_json["perfect_beacon_percent"] = format(
                 100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["total_aligned_read_num"], ".2f")
 
