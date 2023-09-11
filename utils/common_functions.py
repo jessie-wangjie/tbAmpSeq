@@ -196,17 +196,22 @@ def window_quantification(cs2_folder, quantification_windows):
             if "indels" in stats:
                 b_json["beacon_indel_read_num"] = int(stats["indels"])
                 b_json["beacon_sub_read_num"] = int(stats["substitution"])
+                b_json["beacon_fidelity_1mm_num"] = int(stats["indels_1bp"])
+                b_json["beacon_fidelity_2mm_num"] = int(stats["indels_2bp"])
             else:
                 b_json["beacon_indel_read_num"] = 0
                 b_json["beacon_sub_read_num"] = 0
+                b_json["beacon_fidelity_1mm_num"] = 0
+                b_json["beacon_fidelity_1mm_num"] = 0
+
             b_json["beacon_indel_percentage"] = format(100 * b_json["beacon_indel_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
             b_json["beacon_sub_percentage"] = format(100 * b_json["beacon_sub_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
             b_json["beacon_fidelity"] = format(
                 100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["beacon_aligned_read_num"], ".2f")
             b_json["beacon_fidelity_1mm"] = format(
-                100 * (b_json["beacon_aligned_read_num"] - stats["indels_1bp"]) / b_json["beacon_aligned_read_num"], ".2f")
+                100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_fidelity_1mm_num"]) / b_json["beacon_aligned_read_num"], ".2f")
             b_json["beacon_fidelity_2mm"] = format(
-                100 * (b_json["beacon_aligned_read_num"] - stats["indels_2bp"]) / b_json["beacon_aligned_read_num"], ".2f")
+                100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_fidelity_2mm_num"]) / b_json["beacon_aligned_read_num"], ".2f")
             b_json["perfect_beacon_percent"] = format(
                 100 * (b_json["beacon_aligned_read_num"] - b_json["beacon_indel_read_num"]) / b_json["total_aligned_read_num"], ".2f")
 
