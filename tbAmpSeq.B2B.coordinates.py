@@ -108,9 +108,11 @@ def main():
 
         # WT amplicon
         wt_amplicon = get_seq(genome_fa, chr, wt_start, wt_end, target_strand)
-        if len(wt_amplicon) > 298:
+
+        read_length = CRISPRessoCORE.get_avg_read_length_fastq(r1)
+        if len(wt_amplicon) > read_length * 2 - 4:
             cs2 = "--force_merge_pairs "
-        elif len(wt_amplicon) >= 293 and len(wt_amplicon) <= 298:
+        elif len(wt_amplicon) >= read_length * 2 - 9 and len(wt_amplicon) <= read_length * 2 - 4:
             cs2 = "--stringent_flash_merging "
         amplicon_fh.write(name + "\tWT\t" + wt_amplicon + "\n")
 
@@ -258,6 +260,11 @@ def main():
                 "join registry_entity as spp on spp.id = peg_ng.spacer_pair "
                 "where peg_ng.file_registry_id$ = %s", [aaan_id])
             sp_seq, ng_seq, rt_coord, pbs_coord, scaffold_seq, peg_seq, cs2_stats["spp_id"] = cur.fetchone()
+
+            # spacer is always in the forward strand of amplicon
+            if sp_seq not in wt_amplicon:
+                wt_amplicon = reverse_complement(wt_amplicon)
+
             sp1_info = get_cut_site(wt_amplicon, sp_seq)
             ng_info = get_cut_site(wt_amplicon, ng_seq)
 

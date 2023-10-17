@@ -202,7 +202,7 @@ def window_quantification(cs2_folder, quantification_windows):
                 b_json["beacon_indel_read_num"] = 0
                 b_json["beacon_sub_read_num"] = 0
                 b_json["beacon_fidelity_1mm_num"] = 0
-                b_json["beacon_fidelity_1mm_num"] = 0
+                b_json["beacon_fidelity_2mm_num"] = 0
 
             b_json["beacon_indel_percentage"] = format(100 * b_json["beacon_indel_read_num"] / b_json["beacon_aligned_read_num"], ".2f")
             b_json["beacon_sub_percentage"] = format(100 * b_json["beacon_sub_read_num"] / b_json["beacon_aligned_read_num"], ".2f")

@@ -43,7 +43,7 @@ if __name__ == "__main__":
     data = {}
     writer = pd.ExcelWriter(os.path.join(input, input + ".stats.xlsx"), engine="xlsxwriter", engine_kwargs={"options": {"strings_to_numbers": True}})
 
-    cols = {"AA": ["samplename", "aaanid", "ppid", "total_read_num",
+    cols = {"SP": ["samplename", "aaanid", "ppid", "total_read_num",
                    "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
                    "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
                    "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",

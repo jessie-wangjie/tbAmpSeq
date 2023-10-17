@@ -162,9 +162,10 @@ def main():
         d = json.load(open(f))
         d["x"] = int(d["well"][1:])
         d["y"] = d["well"][0]
-        # d["plate"] = d["plate"] + " " + re.sub(".*(PRIP\d).*", "\\1", d["miseq_sample_name"])
-        # d["plate"] = d["plate"] + " " + re.sub(".*(set\d).*", "\\1", d["miseq_sample_name"])
-        # d["plate"] = d["plate"] + " " + re.sub(".*(Plate-\d).*", "\\1", d["miseq_sample_name"])
+        # d["plate"] = d["plate"] + " " + re.sub(".*(P3S\d+).*", "\\1", d["miseq_sample_name"])
+        # d["plate"] = d["plate"] + " " + re.sub(".*(PRIP\d+).*", "\\1", d["miseq_sample_name"])
+        # d["plate"] = d["plate"] + " " + re.sub(".*(set\d+).*", "\\1", d["miseq_sample_name"])
+        # d["plate"] = d["plate"] + " " + re.sub(".*(Plate-\d+).*", "\\1", d["miseq_sample_name"])
         type = d["aaanid"][0:2] if d["aaanid"][0:2] != "OT" else "SG"
         data.setdefault(type, []).append(d)
 
