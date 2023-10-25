@@ -148,7 +148,7 @@ def main():
                    "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
                    "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
                    "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
-                   "beacon_fidelity", "beacon_fidelity_1mm", "beacon_fidelity_2mm"],
+                   "beacon_fidelity", "beacon_fwd_fidelity", "beacon_rev_fidelity", "beacon_fidelity_1mm", "beacon_fidelity_2mm"],
             "SG": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num",
                    "merged_r1r2_read_num", "aligned_percentage", "wt_aligned_read_num", "indel_read_num", "sub_read_num",
                    "indel_percentage"],
@@ -162,6 +162,7 @@ def main():
         d = json.load(open(f))
         d["x"] = int(d["well"][1:])
         d["y"] = d["well"][0]
+        d["plate"] = d["plate"] + " " + re.sub(".*(P1S\d+).*", "\\1", d["miseq_sample_name"])
         # d["plate"] = d["plate"] + " " + re.sub(".*(P3S\d+).*", "\\1", d["miseq_sample_name"])
         # d["plate"] = d["plate"] + " " + re.sub(".*(PRIP\d+).*", "\\1", d["miseq_sample_name"])
         # d["plate"] = d["plate"] + " " + re.sub(".*(set\d+).*", "\\1", d["miseq_sample_name"])
@@ -226,11 +227,11 @@ def main():
     p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
-    with Capturing() as output:
-        p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
-    base_url = output[1].split()[-1]
-    full_url = f"{base_url}/tree/{p.top_hash}"
-    print(full_url)
+    # with Capturing() as output:
+    #    p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
+    # base_url = output[1].split()[-1]
+    # full_url = f"{base_url}/tree/{p.top_hash}"
+    # print(full_url)
 
 
 if __name__ == "__main__":
