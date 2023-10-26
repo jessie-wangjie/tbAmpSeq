@@ -50,7 +50,7 @@ def main():
     ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
 
     # Query sample metasheet information for BTB
-    cur.execute("select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, "
+    cur.execute("select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, primer_pair_set, "
                 "sample_name, plate, mrna_batch_id, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
                 "from ampseq_sample_metasheet$raw "
                 "left join registry_entity as re1 on re1.id = aaanpnsg_id "
@@ -69,8 +69,8 @@ def main():
 
     for record in cur.fetchall():
         cs2_stats = {}
-        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], cs2_stats["samplename"], cs2_stats["animal_group"], cs2_stats["mrna_batch_id"], cs2_stats[
-            "modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], cs2_stats["plate"], cs2_stats["well"] = record
+        name, aaan_id, cs2_stats["aaanid"], pp_id, cs2_stats["ppid"], cs2_stats["pp_set"], cs2_stats["samplename"], cs2_stats["animal_group"], \
+        cs2_stats["mrna_batch_id"], cs2_stats["modatg_batch_id"], cs2_stats["primary_cell_lot_id"], cs2_stats["lnp_batch_id"], cs2_stats["plate"], cs2_stats["well"] = record
         cs2_stats["miseq_sample_name"] = name
         cs2_stats["genomics_ampseq_project_queue"] = tbid
         print([name, aaan_id, pp_id])
