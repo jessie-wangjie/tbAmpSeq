@@ -162,7 +162,7 @@ def main():
         d = json.load(open(f))
         d["x"] = int(d["well"][1:])
         d["y"] = d["well"][0]
-        d["plate"] = d["plate"] + " " + re.sub(".*(P1S\d+).*", "\\1", d["miseq_sample_name"])
+        d["plate"] = d["plate"] + " " + re.sub(".*(P\dS\d+).*", "\\1", d["miseq_sample_name"])
         # d["plate"] = d["plate"] + " " + re.sub(".*(P3S\d+).*", "\\1", d["miseq_sample_name"])
         # d["plate"] = d["plate"] + " " + re.sub(".*(PRIP\d+).*", "\\1", d["miseq_sample_name"])
         # d["plate"] = d["plate"] + " " + re.sub(".*(set\d+).*", "\\1", d["miseq_sample_name"])
@@ -227,11 +227,11 @@ def main():
     p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
-    # with Capturing() as output:
-    #    p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
-    # base_url = output[1].split()[-1]
-    # full_url = f"{base_url}/tree/{p.top_hash}"
-    # print(full_url)
+    with Capturing() as output:
+        p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
+    base_url = output[1].split()[-1]
+    full_url = f"{base_url}/tree/{p.top_hash}"
+    print(full_url)
 
 
 if __name__ == "__main__":

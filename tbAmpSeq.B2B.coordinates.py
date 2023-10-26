@@ -84,19 +84,21 @@ def main():
             continue
 
         # Get primer information
-        cur.execute("select p1.chromosome, p1.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
+        cur.execute("select p1.chromosome, p1.start, p1.end, p2.start, p2.end, p1.genome_build, target_gene.direction_of_transcription from primer_pair "
                     "join primer as p1 on p1.id = primer_pair.forward_primer "
                     "join primer as p2 on p2.id = primer_pair.reverse_primer "
                     "join target_gene on target_gene.id = p1.gene_or_target_name "
                     "where primer_pair.file_registry_id$ = %s", [pp_id])
-        chr, wt_start, wt_end, genome_build, target_strand = cur.fetchone()
+        chr, p1_start, p1_end, p2_start, p2_end, genome_build, target_strand = cur.fetchone()
+        wt_start = min(p1_start, p2_start)
+        wt_end = max(p1_end, p2_end)
 
         # reference genome
         genome_build = re.sub(".*/", "", genome_build)
         genome_fa = "/home/ubuntu/annotation/2bit/" + genome_build + ".2bit"
 
         # get r1 and r2 fastq
-        if target_strand == "antisense" or target_strand == "-":
+        if (target_strand == "antisense" or target_strand == "-") and (p1_start < p2_start):
             r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
             r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
         else:
