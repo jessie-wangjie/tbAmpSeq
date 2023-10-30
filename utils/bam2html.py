@@ -7,12 +7,8 @@ in the clib module.
 """
 import argparse
 import os
-import pandas as pd
-import zipfile
+from pysam import AlignmentFile
 from collections import Counter
-from CRISPResso2 import CRISPRessoShared
-from logging import warning
-
 
 ALIGN_TEMPLATE = "<tr><td>" \
                  "<span class=\"template\">{prefix}</span>" \
@@ -128,21 +124,7 @@ $('#remove_indel').click(function(){
 '''
 
 
-def format_type(tag, frag):
-    buffer = ""
-    if tag == "M":
-        buffer = ALIGN_MATCH.format(seq=frag)
-    elif tag == "D":
-        buffer = ALIGN_DELETION.format(seq='+' * len(frag))
-    elif tag == "I":
-        buffer = ALIGN_INSERTION.format(len=len(frag) - 1, seq=frag[1:], pre=frag[0])
-    elif tag == "MM":
-        for n in frag:
-            buffer += ALIGN_MISMATCH.format(nt=n)
-    return buffer
-
-
-def df_to_html(df_alleles, ref, fragment, highlight, outfh, top_n=100):
+def bam_to_html(bam_file, ref, fragment, highlight, outfh, top_n=100):
     # print the template
     h = []
     if fragment:
@@ -157,6 +139,8 @@ def df_to_html(df_alleles, ref, fragment, highlight, outfh, top_n=100):
         h.append((int(start), int(end)))
     h.sort()
 
+    # ref = get_reference_sequence
+
     if len(h) == 1:
         outfh.write(ALIGN_TEMPLATE.format(prefix=ref[int(ref_start) - 1:h[0][0] - 1], seq_to_highlight1=ref[h[0][0] - 1:h[0][1]],
                                           middle="", seq_to_highlight2="", postfix=ref[h[0][1]:int(ref_end)]))
@@ -169,53 +153,36 @@ def df_to_html(df_alleles, ref, fragment, highlight, outfh, top_n=100):
     aligncounter = Counter()
     total = 0
     # iterate through the reads
-    for idx, row in df_alleles.iterrows():
-        total += row["#Reads"]
-        buffer = ""
+    with AlignmentFile(bam_file, "rb") as bam:
+        for alignment in bam:
+            total += 1
+            buffer = ""
+            frag = ""
 
-        frag = ""
-        tag = "M"
-        for idx_c, c in enumerate(row["Aligned_Sequence"]):
-            # skip the bases are not in the fragment
-            if abs(row["ref_positions"][idx_c]) < int(ref_start) - 1 or abs(row["ref_positions"][idx_c]) > int(ref_end) - 1:
+            if alignment.is_unmapped:
                 continue
+            # skip the bases are not in the fragment
+            # if abs(row["ref_positions"][idx_c]) < int(ref_start) - 1 or abs(row["ref_positions"][idx_c]) > int(ref_end) - 1:
+            #    continue
+            if alignment.reference_start > 0:
+                buffer += ALIGN_PADDING.format(seq='+' * alignment.reference_start)
 
-            # a deletion
-            if row["ref_positions"][idx_c] in row["all_deletion_positions"]:
-                if tag != "D":
-                    buffer += format_type(tag, frag)
-                    frag = ""
-                tag = "D"
+            for qidx, ridx, base in alignment.get_aligned_pairs(with_seq=True):
+                # a deletion
+                if qidx is None:
+                    buffer += ALIGN_DELETION.format(seq='+')
+                # an insertion
+                elif ridx is None:
+                    frag += base
+                    buffer += ALIGN_INSERTION.format(len=oplen, seq=base, pre=prev)
+                # a mismatch
+                elif base.islower():
+                    buffer += ALIGN_MISMATCH.format(nt=base.upper())
+                # a match
+                else:
+                    buffer += ALIGN_MATCH.format(seq=base)
 
-            # a substitution
-            elif row["ref_positions"][idx_c] in row["all_substitution_positions"]:
-                if tag != "MM":
-                    buffer += format_type(tag, frag)
-                    frag = ""
-                tag = "MM"
-
-            # a insertion
-            elif row["ref_positions"][idx_c] < 0:
-                if row["ref_positions"][idx_c] == -1:
-                    continue
-                if tag != "I":
-                    buffer += format_type(tag, frag[:-1])
-                    frag = row["Aligned_Sequence"][idx_c - 1]
-                tag = "I"
-
-            # a nucleotide match
-            else:
-                if tag != "M":
-                    buffer += format_type(tag, frag)
-                    frag = ""
-                tag = "M"
-            frag += c
-
-        if tag != "I":
-            buffer += format_type(tag, frag)
-        else:
-            buffer += format_type("M", frag[0])
-        aligncounter[buffer] += row["#Reads"]  # increment the counter
+            aligncounter[buffer] += 1  # increment the counter
 
     # print out the top n
     for alignment, count in aligncounter.most_common(top_n):
@@ -223,29 +190,18 @@ def df_to_html(df_alleles, ref, fragment, highlight, outfh, top_n=100):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convert CS2 Allele table to html")
-    parser.add_argument("-f", "--crispresso_output_folder", dest="crispresso_output_folder", required=True,
-                        help="crispresso_output_folder", type=str)
-    parser.add_argument("-r", "--ref", dest="reference", required=True, help="reference name", type=str)
+    parser = argparse.ArgumentParser(description="Convert bam to html")
+    parser.add_argument("-s", "--bam_file", dest="bam", required=True, help="bam file", type=str)
+    parser.add_argument("-c", "--chr", dest="chr", required=True, help="chromosome to output", type=str)
+    parser.add_argument("-o", "--output", dest="output", default=True, help="output file", type=str)
     parser.add_argument("-b", "--hl", dest="highlight", default=[], help="reference position highlight", action="append")
-    parser.add_argument("-n", "--topn", dest="topn", default=100, help="print the top N alignments", type=int)
-    parser.add_argument("-s", "--frag", dest="fragment", default="", help="referece region to plot", type=str)
+    parser.add_argument("-n", "--topn", dest="topn", default=10000000, help="print the top N alignments", type=int)
+    parser.add_argument("-r", "--frag", dest="fragment", default="", help="specific region to plot", type=str)
 
     args = parser.parse_args()
 
-    cs2_info = CRISPRessoShared.load_crispresso_info(args.crispresso_output_folder)
-    z = zipfile.ZipFile(os.path.join(args.crispresso_output_folder,
-                                     cs2_info['running_info']['allele_frequency_table_zip_filename']))
-    zf = z.open(cs2_info['running_info']['allele_frequency_table_filename'])
-    df_alleles = pd.read_csv(zf, sep="\t")
-    df_alleles["all_deletion_positions"] = df_alleles["all_deletion_positions"].apply(eval)
-    df_alleles["all_substitution_positions"] = df_alleles["all_substitution_positions"].apply(eval)
-    df_alleles["ref_positions"] = df_alleles["ref_positions"].apply(eval)
-
-    output = os.path.join(os.path.dirname(args.crispresso_output_folder), "cs2_alignment_html")
-    html_fh = open(os.path.join(output, cs2_info['running_info']["name"] + "." + args.reference + args.fragment + ".html"), 'w')
+    html_fh = open(args.output, 'w')
     html_fh.write(HTML_HEADER)
-    df_to_html(df_alleles[df_alleles['Aligned_Reference_Names'] == args.reference],
-               cs2_info["results"]["refs"][args.reference]["sequence"], args.fragment, args.highlight, html_fh, args.topn)
+    bam_to_html(args.bam, args.chr, args.fragment, args.highlight, html_fh, args.topn)
     html_fh.write(HTML_TAIL)
     html_fh.close()

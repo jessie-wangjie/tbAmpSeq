@@ -142,28 +142,16 @@ def format_type(tag, frag):
     return buffer
 
 
-def df_to_html(df_alleles, ref, fragment, highlight, outfh, top_n=100):
+def df_to_html(df_alleles, ref, highlight, outfh, top_n=100):
     # print the template
-    h = []
-    if fragment:
-        ref_start, ref_end = fragment.split("-")
-    else:
-        ref_start = 1
-        ref_end = len(ref)
-
+    h = [(1, 0), (1, 0)]
     for k, window in enumerate(highlight):
         ref_name, qw_name, qw, flank_bp = window.split(":")
         start, end = qw.split("-")
-        h.append((int(start), int(end)))
+        h[k] = (int(start), int(end))
     h.sort()
-
-    if len(h) == 1:
-        outfh.write(ALIGN_TEMPLATE.format(prefix=ref[int(ref_start) - 1:h[0][0] - 1], seq_to_highlight1=ref[h[0][0] - 1:h[0][1]],
-                                          middle="", seq_to_highlight2="", postfix=ref[h[0][1]:int(ref_end)]))
-    if len(h) == 2:
-        outfh.write(ALIGN_TEMPLATE.format(prefix=ref[int(ref_start) - 1:h[0][0] - 1], seq_to_highlight1=ref[h[0][0] - 1:h[0][1]],
-                                          middle=ref[h[0][1]:h[1][0] - 1],
-                                          seq_to_highlight2=ref[h[1][0] - 1:h[1][1]], postfix=ref[h[1][1]:int(ref_end)]))
+    outfh.write(ALIGN_TEMPLATE.format(prefix=ref[0:h[0][0] - 1], seq_to_highlight1=ref[h[0][0] - 1:h[0][1]], middle=ref[h[0][1]:h[1][0] - 1],
+                                      seq_to_highlight2=ref[h[1][0] - 1:h[1][1]], postfix=ref[h[1][1]:]))
 
     # prepare the alignment counter
     aligncounter = Counter()
@@ -176,10 +164,6 @@ def df_to_html(df_alleles, ref, fragment, highlight, outfh, top_n=100):
         frag = ""
         tag = "M"
         for idx_c, c in enumerate(row["Aligned_Sequence"]):
-            # skip the bases are not in the fragment
-            if abs(row["ref_positions"][idx_c]) < int(ref_start) - 1 or abs(row["ref_positions"][idx_c]) > int(ref_end) - 1:
-                continue
-
             # a deletion
             if row["ref_positions"][idx_c] in row["all_deletion_positions"]:
                 if tag != "D":
@@ -228,8 +212,7 @@ if __name__ == "__main__":
                         help="crispresso_output_folder", type=str)
     parser.add_argument("-r", "--ref", dest="reference", required=True, help="reference name", type=str)
     parser.add_argument("-b", "--hl", dest="highlight", default=[], help="reference position highlight", action="append")
-    parser.add_argument("-n", "--topn", dest="topn", default=100000000, help="print the top N alignments", type=int)
-    parser.add_argument("-s", "--frag", dest="fragment", default="", help="referece region to plot", type=str)
+    parser.add_argument("-n", "--topn", dest="topn", default=100, help="print the top N alignments", type=int)
 
     args = parser.parse_args()
 
@@ -243,9 +226,9 @@ if __name__ == "__main__":
     df_alleles["ref_positions"] = df_alleles["ref_positions"].apply(eval)
 
     output = os.path.join(os.path.dirname(args.crispresso_output_folder), "cs2_alignment_html")
-    html_fh = open(os.path.join(output, cs2_info['running_info']["name"] + "." + args.reference + args.fragment + ".html"), 'w')
+    html_fh = open(os.path.join(output, cs2_info['running_info']["name"] + "." + args.reference + ".html"), 'w')
     html_fh.write(HTML_HEADER)
     df_to_html(df_alleles[df_alleles['Aligned_Reference_Names'] == args.reference],
-               cs2_info["results"]["refs"][args.reference]["sequence"], args.fragment, args.highlight, html_fh, args.topn)
+               cs2_info["results"]["refs"][args.reference]["sequence"], args.highlight, html_fh, args.topn)
     html_fh.write(HTML_TAIL)
     html_fh.close()

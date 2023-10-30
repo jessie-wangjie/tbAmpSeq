@@ -50,19 +50,19 @@ def main():
     ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
 
     # Query sample metasheet information for BTB
-    cur.execute("select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, primer_pair_set, "
-                "sample_name, plate, mrna_batch_id, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
-                "from ampseq_sample_metasheet$raw "
-                "left join registry_entity as re1 on re1.id = aaanpnsg_id "
-                "left join registry_entity as re2 on re2.id = pp_id "
-                "where genomics_ampseq_project_queue = %s "
-                "union "
-                "select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, "
+    cur.execute("select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, primer_pair_set,"
                 "sample_name, animal_group, mrna_batch_id, modrnabatch_id as modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
                 "from ampseq_sample_metasheet_v2$raw "
                 "left join registry_entity as re1 on re1.id = aaanpnsg_id "
                 "left join registry_entity as re2 on re2.id = pp_id "
-                "where genomics_ampseq_project_queue = %s", [tbid, tbid])
+                "where genomics_ampseq_project_queue = %s"
+                "union "
+                "select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, Null as primer_pair_set, "
+                "sample_name, plate, mrna_batch_id, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
+                "from ampseq_sample_metasheet$raw "
+                "left join registry_entity as re1 on re1.id = aaanpnsg_id "
+                "left join registry_entity as re2 on re2.id = pp_id "
+                "where genomics_ampseq_project_queue = %s ", [tbid, tbid])
 
     if cur.rowcount == 0:
         project_fh.write("This project doesn't exist in the Benchling!\n")
@@ -221,11 +221,6 @@ def main():
 
             # beacon seq
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[sp2_info["cut"]:]
-            if len(beacon_amplicon) > 298:
-                cs2 = "--force_merge_pairs "
-            elif len(beacon_amplicon) >= 293 and len(beacon_amplicon) <= 298:
-                cs2 = "--stringent_flash_merging "
-
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
 
             # define quantification window
@@ -354,59 +349,43 @@ def main():
 
         # plot
         if sp1_info:
-            # subprocess.call(
-            #    "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --min_freq 0.01 "
-            #    "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-            #        os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1,
-            #        sp1_info["cut"],
-            #        len(wt_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
-
             if aaan_id.startswith("SG") or aaan_id.startswith("OT"):
-                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                     os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+                if sp1_info["strand"] == "-":
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -s %s-%s" % (
+                        os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, sp1_info["3P"] - 3, sp1_info["5P"]), stderr=job_fh,
+                                    stdout=job_fh, shell=True)
+                elif sp1_info["strand"] == "+":
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -s %s-%s" % (
+                        os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, sp1_info["5P"], sp1_info["3P"] + 3), stderr=job_fh,
+                                    stdout=job_fh, shell=True)
             else:
-                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s -n 10000000000" % (
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s" % (
                     os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s -s %s-%s" % (
+                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2, sp1_info["5P"], sp2_info["5P"]), stderr=job_fh,
+                                stdout=job_fh, shell=True)
 
         else:
-            # subprocess.call(
-            #    "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a WT --min_freq 0.01 "
-            #    "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-            #        os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), 0, 1, len(wt_amplicon) - 1),
-            #    stderr=job_fh, stdout=job_fh, shell=True)
-
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -n 10000000000" % (os.path.join(output, "CRISPResso_on_" + name), "WT"),
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (os.path.join(output, "CRISPResso_on_" + name), "WT"),
                             stderr=job_fh, stdout=job_fh, shell=True)
 
         if aaan_id and aaan_id.startswith("PN"):
-            # subprocess.call(
-            #    "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Prime-edited --min_freq 0.01 "
-            #    "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-            #        os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1,
-            #        sp1_info["cut"],
-            #        len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
-            # subprocess.call(
-            #    "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Scaffold-incorporated --min_freq 0.01 "
-            #    "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-            #        os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1,
-            #        sp1_info["cut"],
-            #        len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
-
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -s %s-%s" % (
+                os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1, sp1_info["5P"], ng_info["5P"]), stderr=job_fh,
+                            stdout=job_fh, shell=True)
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
 
         elif aaan_id and (not aaan_id.startswith("SG")) and (not aaan_id.startswith("OT")):
-            # subprocess.call(
-                # "python /home/ubuntu/bin/tbOnT/utils/plotCustomAllelePlot.py -f %s -o %s -a Beacon --min_freq 0.01 "
-                # "--plot_center %s --plot_left %s --plot_right %s --plot_cut_point" % (
-                #    os.path.join(output, "CRISPResso_on_" + name), os.path.join(output, "CRISPResso_on_" + name), sp1_info["cut"] - 1,
-                #    sp1_info["cut"],
-                #    len(beacon_amplicon) - sp1_info["cut"]), stderr=job_fh, stdout=job_fh, shell=True)
-
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -n 10000000000" % (
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -s %s-%s" % (
+                os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1, sp1_info["5P"],
+                sp1_info["cut"] + len(beacon) + len(sp2_info["seq"]) - 3), stderr=job_fh, stdout=job_fh, shell=True)
 
         job_fh.close()
 

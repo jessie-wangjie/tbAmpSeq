@@ -144,8 +144,8 @@ def main():
     data = {}
     writer = pd.ExcelWriter(os.path.join(input, input + ".stats.xlsx"), engine="xlsxwriter", engine_kwargs={"options": {"strings_to_numbers": True}})
 
-    cols = {"AA": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id", "total_read_num",
-                   "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
+    cols = {"AA": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "pp_set", "spp_id",
+                   "total_read_num", "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
                    "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
                    "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
                    "beacon_fidelity", "beacon_fwd_fidelity", "beacon_rev_fidelity", "beacon_fidelity_1mm", "beacon_fidelity_2mm"],
@@ -162,11 +162,11 @@ def main():
         d = json.load(open(f))
         d["x"] = int(d["well"][1:])
         d["y"] = d["well"][0]
-        # d["plate"] = d["plate"] + " " + re.sub(".*(P\dS\d+).*", "\\1", d["miseq_sample_name"])
-        # d["plate"] = d["plate"] + " " + re.sub(".*(P3S\d+).*", "\\1", d["miseq_sample_name"])
-        # d["plate"] = d["plate"] + " " + re.sub(".*(PRIP\d+).*", "\\1", d["miseq_sample_name"])
-        # d["plate"] = d["plate"] + " " + re.sub(".*(set\d+).*", "\\1", d["miseq_sample_name"])
-        # d["plate"] = d["plate"] + " " + re.sub(".*(Plate-\d+).*", "\\1", d["miseq_sample_name"])
+        if d["pp_set"] is None:
+            d["pp_set"] = ""
+        if d["plate"] is None:
+            d["plate"] = ""
+        d["plate"] = d["plate"] + d["pp_set"]
         type = d["aaanid"][0:2] if d["aaanid"][0:2] != "OT" else "SG"
         data.setdefault(type, []).append(d)
 
