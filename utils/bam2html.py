@@ -6,8 +6,8 @@ read to a template sequence with Smith-Waterman aligner, which can be found
 in the clib module.
 """
 import argparse
-import os
-from pysam import AlignmentFile
+import re
+from pysam import AlignmentFile, FastaFile
 from collections import Counter
 
 ALIGN_TEMPLATE = "<tr><td>" \
@@ -124,65 +124,88 @@ $('#remove_indel').click(function(){
 '''
 
 
-def bam_to_html(bam_file, ref, fragment, highlight, outfh, top_n=100):
+def bam_to_html(bam_file, fasta, region, highlight, outfh, top_n):
+    # open reference file
+    fa = FastaFile(fasta)
+
+    # parse region
+    if ":" in region:
+        m = re.match(r"(.*):(\d+)-(\d+)", region)
+        chr = m.group(1)
+        ref_start = int(m.group(2))
+        ref_end = int(m.group(3))
+    else:
+        chr = region
+        ref_start = 1
+        ref_end = fa.get_reference_length(chr)
+    ref_seq = fa.fetch(chr, ref_start - 1, ref_end)
+    print(chr, ref_start - 1, ref_end)
+    print(ref_seq)
     # print the template
     h = []
-    if fragment:
-        ref_start, ref_end = fragment.split("-")
-    else:
-        ref_start = 1
-        ref_end = len(ref)
-
-    for k, window in enumerate(highlight):
-        ref_name, qw_name, qw, flank_bp = window.split(":")
+    for qw in highlight:
         start, end = qw.split("-")
-        h.append((int(start), int(end)))
+        h.append((int(start) - ref_start + 1, int(end) - ref_start + 1))
     h.sort()
 
-    # ref = get_reference_sequence
-
     if len(h) == 1:
-        outfh.write(ALIGN_TEMPLATE.format(prefix=ref[int(ref_start) - 1:h[0][0] - 1], seq_to_highlight1=ref[h[0][0] - 1:h[0][1]],
-                                          middle="", seq_to_highlight2="", postfix=ref[h[0][1]:int(ref_end)]))
-    if len(h) == 2:
-        outfh.write(ALIGN_TEMPLATE.format(prefix=ref[int(ref_start) - 1:h[0][0] - 1], seq_to_highlight1=ref[h[0][0] - 1:h[0][1]],
-                                          middle=ref[h[0][1]:h[1][0] - 1],
-                                          seq_to_highlight2=ref[h[1][0] - 1:h[1][1]], postfix=ref[h[1][1]:int(ref_end)]))
+        outfh.write(ALIGN_TEMPLATE.format(prefix=ref_seq[ref_start - 1:h[0][0] - 1], seq_to_highlight1=ref_seq[h[0][0] - 1:h[0][1]],
+                                          middle="", seq_to_highlight2="", postfix=ref_seq[h[0][1]:ref_end]))
+    elif len(h) == 2:
+        outfh.write(ALIGN_TEMPLATE.format(prefix=ref_seq[ref_start - 1:h[0][0] - 1], seq_to_highlight1=ref_seq[h[0][0] - 1:h[0][1]],
+                                          middle=ref_seq[h[0][1]:h[1][0] - 1],
+                                          seq_to_highlight2=ref_seq[h[1][0] - 1:h[1][1]], postfix=ref_seq[h[1][1]:ref_end]))
+    else:
+        outfh.write(ALIGN_TEMPLATE.format(prefix=ref_seq, seq_to_highlight1="", middle="", seq_to_highlight2="", postfix=""))
 
     # prepare the alignment counter
     aligncounter = Counter()
     total = 0
+
     # iterate through the reads
-    with AlignmentFile(bam_file, "rb") as bam:
-        for alignment in bam:
-            total += 1
-            buffer = ""
-            frag = ""
+    bam = AlignmentFile(bam_file, "rb")
+    for alignment in bam.fetch(chr, int(ref_start) - 1, int(ref_end)):
+        total += 1
+        buffer = ""
 
-            if alignment.is_unmapped:
+        if alignment.is_unmapped or alignment.is_secondary or alignment.mapping_quality < 1:
+            continue
+
+        if alignment.reference_start > int(ref_start):
+            buffer += ALIGN_PADDING.format(seq='+' * (alignment.reference_start - int(ref_start) + 1))
+
+        i = alignment.query_alignment_start
+        pos = alignment.get_aligned_pairs(with_seq=True)
+        while i < len(pos):
+            if (pos[i][1] is not None) and (pos[i][1] < int(ref_start) - 1 or pos[i][1] >= int(ref_end)):
+                i = i + 1
                 continue
-            # skip the bases are not in the fragment
-            # if abs(row["ref_positions"][idx_c]) < int(ref_start) - 1 or abs(row["ref_positions"][idx_c]) > int(ref_end) - 1:
-            #    continue
-            if alignment.reference_start > 0:
-                buffer += ALIGN_PADDING.format(seq='+' * alignment.reference_start)
 
-            for qidx, ridx, base in alignment.get_aligned_pairs(with_seq=True):
-                # a deletion
-                if qidx is None:
-                    buffer += ALIGN_DELETION.format(seq='+')
-                # an insertion
-                elif ridx is None:
-                    frag += base
-                    buffer += ALIGN_INSERTION.format(len=oplen, seq=base, pre=prev)
-                # a mismatch
-                elif base.islower():
-                    buffer += ALIGN_MISMATCH.format(nt=base.upper())
-                # a match
-                else:
-                    buffer += ALIGN_MATCH.format(seq=base)
-
-            aligncounter[buffer] += 1  # increment the counter
+            # a deletion
+            if pos[i][0] is None:
+                buffer += ALIGN_DELETION.format(seq='+')
+            # an insertion
+            elif pos[i][1] is None:
+                prev_pos = pos[i - 1][1]
+                insertions = alignment.query_sequence[pos[i][0]]
+                while i < len(pos) - 1 and pos[i + 1][1] is None:
+                    i = i + 1
+                    insertions += alignment.query_sequence[pos[i][0]]
+                if prev_pos >= int(ref_start) - 1 and prev_pos < int(ref_end):
+                    prev = buffer[-1]
+                    if prev == ">":
+                        prev = ""
+                    else:
+                        buffer = buffer[:-1]
+                    buffer += ALIGN_INSERTION.format(len=len(insertions), seq=insertions, pre=prev)
+            # mismatch
+            elif pos[i][2].islower():
+                buffer += ALIGN_MISMATCH.format(nt=alignment.query_sequence[pos[i][0]].upper())
+            # match
+            else:
+                buffer += ALIGN_MATCH.format(seq=pos[i][2])
+            i = i + 1
+        aligncounter[buffer] += 1  # increment the counter
 
     # print out the top n
     for alignment, count in aligncounter.most_common(top_n):
@@ -192,16 +215,16 @@ def bam_to_html(bam_file, ref, fragment, highlight, outfh, top_n=100):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert bam to html")
     parser.add_argument("-s", "--bam_file", dest="bam", required=True, help="bam file", type=str)
-    parser.add_argument("-c", "--chr", dest="chr", required=True, help="chromosome to output", type=str)
+    parser.add_argument("-f", "--reference_file", dest="reference", required=True, help="reference fasta file", type=str)
+    parser.add_argument("-r", "--region", dest="region", required=True, help="specific region to plot", type=str)
     parser.add_argument("-o", "--output", dest="output", default=True, help="output file", type=str)
     parser.add_argument("-b", "--hl", dest="highlight", default=[], help="reference position highlight", action="append")
     parser.add_argument("-n", "--topn", dest="topn", default=10000000, help="print the top N alignments", type=int)
-    parser.add_argument("-r", "--frag", dest="fragment", default="", help="specific region to plot", type=str)
 
     args = parser.parse_args()
 
     html_fh = open(args.output, 'w')
     html_fh.write(HTML_HEADER)
-    bam_to_html(args.bam, args.chr, args.fragment, args.highlight, html_fh, args.topn)
+    bam_to_html(args.bam, args.reference, args.region, args.highlight, html_fh, args.topn)
     html_fh.write(HTML_TAIL)
     html_fh.close()

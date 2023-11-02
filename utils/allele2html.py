@@ -151,7 +151,7 @@ def df_to_html(df_alleles, ref, fragment, highlight, outfh, top_n=100):
         ref_start = 1
         ref_end = len(ref)
 
-    for k, window in enumerate(highlight):
+    for window in highlight:
         ref_name, qw_name, qw, flank_bp = window.split(":")
         start, end = qw.split("-")
         h.append((int(start), int(end)))
@@ -160,10 +160,12 @@ def df_to_html(df_alleles, ref, fragment, highlight, outfh, top_n=100):
     if len(h) == 1:
         outfh.write(ALIGN_TEMPLATE.format(prefix=ref[int(ref_start) - 1:h[0][0] - 1], seq_to_highlight1=ref[h[0][0] - 1:h[0][1]],
                                           middle="", seq_to_highlight2="", postfix=ref[h[0][1]:int(ref_end)]))
-    if len(h) == 2:
+    elif len(h) == 2:
         outfh.write(ALIGN_TEMPLATE.format(prefix=ref[int(ref_start) - 1:h[0][0] - 1], seq_to_highlight1=ref[h[0][0] - 1:h[0][1]],
                                           middle=ref[h[0][1]:h[1][0] - 1],
                                           seq_to_highlight2=ref[h[1][0] - 1:h[1][1]], postfix=ref[h[1][1]:int(ref_end)]))
+    else:
+        outfh.write(ALIGN_TEMPLATE.format(prefix=ref, seq_to_highlight1="", middle="", seq_to_highlight2="", postfix=""))
 
     # prepare the alignment counter
     aligncounter = Counter()
