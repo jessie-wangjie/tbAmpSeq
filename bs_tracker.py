@@ -100,7 +100,7 @@ def invoke_pipeline(sample_list: dict, run_info_json: dict):
 
 
 if __name__ == '__main__':
-    current_run = {"266096842": "TB_MISEQ_000220"}
+    current_run = {}
     while True:
         response = requests.get(
             f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=10', stream=True)
