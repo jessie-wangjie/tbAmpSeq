@@ -169,6 +169,8 @@ def window_quantification(cs2_folder, quantification_windows):
                 b_json["beacon_fidelity_1mm"] = 0
                 b_json["beacon_fidelity_2mm"] = 0
                 b_json["perfect_beacon_percent"] = 0
+                b_json["beacon_fwd_fidelity"] = 0
+                b_json["beacon_rev_fidelity"] = 0
             continue
 
         df = df_ref.apply(lambda row: get_modified_in_quantification_window(row, set(range(int(start) - 1, int(end)))), axis=1, result_type='expand')
