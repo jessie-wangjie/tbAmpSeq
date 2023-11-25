@@ -138,7 +138,7 @@ if __name__ == "__main__":
                 "join registration_origin on registration_origin.entity_id = ngs_tracking.id "
                 "join entry on entry.id = registration_origin.origin_entry_id "
                 "where file_registry_id$ = %s", [ngs_id])
-    entry_name, entry_url = cur.fetchone()
+    # entry_name, entry_url = cur.fetchone()
 
     # stats table
     data = {}

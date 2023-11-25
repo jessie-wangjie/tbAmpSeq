@@ -75,12 +75,15 @@ def main():
         cs2_stats["genomics_ampseq_project_queue"] = tbid
         print([name, aaan_id, pp_id])
 
-        # skip if no sample name or no fastq
-        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
-            continue
-
         # select specific sample
         if sample and name != sample:
+            continue
+
+        # skip if no sample name or no fastq
+        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
+            cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
+            os.makedirs(os.path.join(output, "CRISPResso_on_" + name), exist_ok=True)
+            pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
             continue
 
         # Get primer information
@@ -334,6 +337,8 @@ def main():
 
         pd.concat([pd.Series(cs2_stats), ngs_stats]).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_benchling_stats.json"))
         cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
+        cs2_stats["total_read_num"] = CRISPRessoCORE.get_n_reads_fastq(r1)
+        cs2_stats["merged_r1r2_read_num"] = CRISPRessoCORE.get_n_reads_fastq(os.path.join(output, "CRISPResso_on_" + name, "out.extendedFrags.fastq.gz"))
         pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
 
         # write sample status
