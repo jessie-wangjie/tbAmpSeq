@@ -337,8 +337,9 @@ def main():
 
         pd.concat([pd.Series(cs2_stats), ngs_stats]).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_benchling_stats.json"))
         cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
-        cs2_stats["total_read_num"] = CRISPRessoCORE.get_n_reads_fastq(r1)
-        cs2_stats["merged_r1r2_read_num"] = CRISPRessoCORE.get_n_reads_fastq(os.path.join(output, "CRISPResso_on_" + name, "out.extendedFrags.fastq.gz"))
+        if os.path.exists(os.path.join(output, "CRISPResso_on_" + name, "out.extendedFrags.fastq.gz")):
+            cs2_stats["total_read_num"] = CRISPRessoCORE.get_n_reads_fastq(r1)
+            cs2_stats["merged_r1r2_read_num"] = CRISPRessoCORE.get_n_reads_fastq(os.path.join(output, "CRISPResso_on_" + name, "out.extendedFrags.fastq.gz"))
         pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
 
         # write sample status
