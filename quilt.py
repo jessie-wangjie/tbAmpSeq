@@ -176,6 +176,7 @@ if __name__ == "__main__":
         v.to_excel(writer, sheet_name=k, index=False, float_format="%.2f")
 
     # draw plate plot
+    pd.DataFrame(data["AA"]).to_csv("test.csv", index=False)
     chart = platemap(data)
 
     # draw beacon fidelity plot

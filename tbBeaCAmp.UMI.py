@@ -100,17 +100,24 @@ def main():
         genome_build = re.sub(".*/", "", genome_build)
         genome_fa = "/home/ubuntu/annotation/2bit/" + genome_build + ".2bit"
 
+        # sample job log
+        job_fh = open(os.path.join(output, name + ".job.log"), 'wb')
+
         # get r1 and r2 fastq
         if (target_strand == "antisense" or target_strand == "-") and (p1_start < p2_start):
             r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
             r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
+            subprocess.call("gunzip %s -c %s" % (r2, os.path.join(output, name + ".R1.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
+            subprocess.call("AmpUMI Process -fastq %s -fastq_out %s - -umi_regex '^IIIIIIIIIII'" % (
+                os.path.join(output, name + ".R1.fastq"), os.path.join(output, name + ".R1.dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
+            r2 = os.path.join(output, name + ".R1.dedup.fastq")
         else:
             r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
             r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
-
-        # sample job log
-        # name = name + "." + aaan_id
-        job_fh = open(os.path.join(output, name + ".job.log"), 'wb')
+            subprocess.call("gunzip %s -c > %s" % (r1, os.path.join(output, name + ".R1.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
+            subprocess.call("AmpUMI Process --fastq %s --fastq_out %s --umi_regex '^IIIIIIIIIII'" % (
+                os.path.join(output, name + ".R1.fastq"), os.path.join(output, name + ".R1.dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
+            r1 = os.path.join(output, name + ".R1.dedup.fastq")
 
         # WT amplicon
         wt_amplicon = get_seq(genome_fa, chr, wt_start, wt_end, target_strand)
