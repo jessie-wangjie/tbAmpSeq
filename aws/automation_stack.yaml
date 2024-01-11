@@ -1,0 +1,362 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Automation stack
+
+Parameters:
+  NotificationEmail:
+    Description: Email for notifications
+    Type: String
+    AllowedPattern: '[^@]+@[^@]+\.[^@]+'
+  BaseSpaceApiSecretArn:
+    Description: API secrets for BaseSpace
+    Type: String
+  FargateSubnet:
+    Description: The subnet to run Fargate tasks on
+    Type: AWS::EC2::Subnet::Id
+
+Resources:
+  FargateCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: AutomationCluster
+
+  FargateTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: on-target-amplicon-analysis
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt FargateExecutionRole.Arn
+      Cpu: 16384  # 16 vCPUs
+      Memory: 32768  # 32 GB of memory
+      ContainerDefinitions:
+        - Name: ota-docker
+          Image: 157506977666.dkr.ecr.us-east-1.amazonaws.com/ota:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: ota-automation
+              awslogs-region: us-east-1
+              awslogs-create-group: true
+              awslogs-stream-prefix: ota
+
+  FargateExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: FargateExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:log-group:ota-automation*:*
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                  - ssm:GetParameter
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                Resource: '*'
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaExecution
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: LambdaExecutionPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref BaseSpaceApiSecretArn
+            - Effect: Allow
+              Action:
+                - ssm:PutParameter
+                - ssm:GetParameter
+              Resource: '*'
+            - Effect: Allow
+              Action: sns:Publish
+              Resource: !Ref NotificationTopic
+            - Effect: Allow
+              Action: ecs:RunTask
+              Resource: !Ref FargateTaskDefinition
+            - Effect: Allow
+              Action: iam:PassRole
+              Resource: !GetAtt FargateExecutionRole.Arn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  ScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: CheckRunsSchedule
+      Description: CloudWatch Events rule to trigger the CheckBaseSpaceRunsLambda function every hour
+      ScheduleExpression: rate(1 hour)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt CheckBaseSpaceRunsLambda.Arn
+          Id: CheckBaseSpaceRuns
+
+  SSHSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH from all IP addresses
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+
+  CheckBaseSpaceRunsLambdaLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      LayerName: dependencies-layer
+      Content:
+        S3Bucket: tome-automation-stack
+        S3Key: automation-deps.zip
+      CompatibleRuntimes:
+        - python3.10
+
+  CheckBaseSpaceRunsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt CheckBaseSpaceRunsLambda.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: 'events.amazonaws.com'
+      SourceArn: !GetAtt ScheduleRule.Arn
+
+  CheckBaseSpaceRunsLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: CheckBaseSpaceRuns
+      Runtime: python3.10
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 120
+      Layers:
+        - !Ref CheckBaseSpaceRunsLambdaLayer
+      Environment:
+        Variables:
+           CLUSTER_NAME: !GetAtt FargateCluster.Arn
+           TASK_DEFINITION: !Ref FargateTaskDefinition
+           SECURITY_GROUP: !GetAtt SSHSecurityGroup.GroupId
+           SUBNET: !Ref FargateSubnet
+           TOPIC: !Ref NotificationTopic
+      Code:
+        ZipFile:
+          Fn::Sub: |
+            import boto3
+            import json
+            import logging
+            import os
+            import urllib3
+            
+            from botocore.exceptions import NoCredentialsError
+            from urllib3.exceptions import NewConnectionError
+            logger = logging.getLogger()
+            logger.setLevel(logging.INFO)
+            
+            sns_client = boto3.client('sns')
+            
+            http = urllib3.PoolManager()
+            
+            
+            def sendSNSMessage(message: str) -> None:
+                logger.info(f"Sending SNS message: {message}")
+                response = sns_client.publish(TopicArn=os.environ['TOPIC'], Message=message)
+            
+            
+            def handler(event: dict, lambda_context) -> dict:
+                ssm = boto3.client('ssm')
+                secrets_manager = boto3.client('secretsmanager')
+                parameter_name = 'CurrentRun'
+                try:
+                    # Retrieve secrets
+                    response = secrets_manager.get_secret_value(SecretId="basespace-api")
+                    secret_data = json.loads(response['SecretString'])
+                    bs_api_server = secret_data['bs-api-server']
+                    bs_access_token = secret_data['bs-access-token']
+            
+                    # Retrieve the parameter's value
+                    response = ssm.get_parameter(Name=parameter_name, WithDecryption=True)
+                    current_run = json.loads(response['Parameter']['Value'])
+                    logger.info(f"Current Run: {current_run}")
+                    url = f'{bs_api_server}runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=10'
+                    logger.info(f"Querying BaseSpace API: {url} ...")
+                    response = http.request(method='GET', url=url)
+            
+                    if response.status != 200:
+                        logger.info(f"Error calling BaseSpaceApi. Status: {response.status} Message: {response.reason}")
+                        return {
+                            'statusCode': 500,
+                            'body': 'Error calling BaseSpace API'
+                        }
+            
+                    response_json = json.loads(response.data.decode('utf-8'))
+                    logger.info(f"Response from BaseSpace: {response.status} {response.status}")
+            
+                    runs = response_json.get("Items")
+                    logger.info(f"Processing a total of {len(runs)} runs.")
+            
+                    for run in runs:
+                        logger.info(f"Processing run ID: {run['V1Pre3Id']} Name: {run['ExperimentName']}")
+            
+                        if run["Status"] not in ["Complete", "Failed"]:
+                            logger.info(f"Run {run['V1Pre3Id']} is not done. Status: {run['Status']}")
+                            current_run[run["V1Pre3Id"]] = run["ExperimentName"]
+                            logger.info(f"Storing: {json.dumps(current_run)}")
+                            ssm.put_parameter(
+                                Name=parameter_name,
+                                Value=json.dumps(current_run),
+                                Type='String',
+                                Overwrite=True
+                            )
+                        elif run["V1Pre3Id"] in runs:
+                            run_id = run["V1Pre3Id"]
+                            logger.info(f"Run {run_id} is done. Status: {run['Status']}")
+                            samples = {}
+                            logger.info(f'Running {run_id}')
+                            url = f'{bs_api_server}/runs/{run_id}/sequencingstats?access_token={bs_access_token}'
+                            response = http.request(method='GET', url=url)
+                            response_json = json.loads(response.data.decode('utf-8'))
+            
+                            run_json = {"bsrunid": run_id, "q30_percentage": format(response_json.get("PercentGtQ30"), ".2f")}
+            
+                            url = f'{bs_api_server}/datasets?InputRuns={run_id}&access_token={bs_access_token}&limit=1000'
+                            response = http.request(method='GET', url=url)
+                            response_json = json.loads(response.data.decode('utf-8'))
+            
+                            for item in response_json.get("Items"):
+                                project = item.get("Project").get("Name")
+                                if project != "Unindexed Reads":
+                                    samples[project] = item.get("Project").get("Id")
+            
+                            for s, id in samples.items():
+                                # Send run to Fargate for processing
+                                ecs = boto3.client('ecs')
+                                # Define your Fargate task parameters
+                                task_definition = os.environ['TASK_DEFINITION']
+                                cluster = os.environ['CLUSTER_NAME']
+                                launch_type = 'FARGATE'
+                                # Additional subnets can be added as necessary
+                                network_configuration = {
+                                    'awsvpcConfiguration': {
+                                        'subnets': [os.environ['SUBNET']],
+                                        'securityGroups': [os.environ['SECURITY_GROUP']],
+                                        'assignPublicIp': 'ENABLED'
+                                    }
+                                }
+                                logger.info(f"Dispatching job to cluster {cluster} using task definition {task_definition}")
+                                overrides = {
+                                    "containerOverrides": [
+                                        {
+                                            "name": "ota-docker",
+                                            "environment": [
+                                                {"name": "RUN_ID", "value": run['V1Pre3Id']},
+                                                {"name": "PROJECT_ID", "value": id},
+                                                {"name": "PROJECT_NAME", "value": s},
+                                                {"name": "Q30", "value": run_json['q30_percentage']},
+                                                {"name": "EXPERIMENT_NAME", "value": run['ExperimentName']}
+                                            ]
+                                        }
+                                    ]
+                                }
+            
+                                ecs.run_task(
+                                    cluster=cluster,
+                                    taskDefinition=task_definition,
+                                    launchType=launch_type,
+                                    networkConfiguration=network_configuration,
+                                    overrides=overrides
+                                )
+            
+                            sendSNSMessage(f"Projects {','.join(samples.keys())} submitted for processing.")
+                            return {
+                                'statusCode': 200,
+                                'body': f"Fargate task started successfully for run ID: {run['V1Pre3Id']} Name: {run['ExperimentName']}"
+                            }
+            
+                    message = f"No runs ready for processing. Monitoring the following runs {current_run}"
+                    sendSNSMessage(message)
+                    return {
+                        'statusCode': 200,
+                        'body': message
+                    }
+            
+                except NoCredentialsError as e:
+                    logger.error(f'No AWS credentials found: {e}')
+                    return {
+                        'statusCode': 500,
+                        'body': 'No AWS credentials found'
+                    }
+                except NewConnectionError as e:
+                    logger.error(f'Failed to establish a new connection: {e}')
+                    return {
+                        'statusCode': 500,
+                        'body': 'Failed to establish a new connection'
+                    }
+                except Exception as e:
+                    logger.error(f'Error: {str(e)}')
+                    return {
+                        'statusCode': 500,
+                        'body': f'Error: {str(e)}'
+                    }
+            
+            
+            if __name__ == '__main__':
+                # For local testing if needed
+                sample_event = {}  # Replace with a sample event
+                result = handler(sample_event, None)
+                print(result)
+
+
+
+            
+
+  CurrentRunParameterStore:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: CurrentRun
+      Description: The current run that is being checked in BaseSpace
+      Type: String
+      Value: '{}'
+
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: 'AmpSeqNotifications'
+
+  NotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: 'email'
+      Endpoint: !Ref NotificationEmail
+      TopicArn: !Ref NotificationTopic
