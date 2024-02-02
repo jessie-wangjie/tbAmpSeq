@@ -134,7 +134,7 @@ def main():
             os.path.join(output, "CRISPResso_on_" + name, name + ".R1.trimmed.fastq.gz"),
             os.path.join(output, "CRISPResso_on_" + name, name + ".R2.trimmed.fastq.gz"), os.path.join(output, "CRISPResso_on_" + name)),
                         stderr=job_fh, stdout=job_fh, shell=True)
-        subprocess.call("AmpUMI Process --fastq %s --fastq_out %s --umi_regex '^IIIIIIIIIII' --write_UMI_counts --write_alleles_with_multiple_UMIs" % (
+        subprocess.call("AmpUMI Process --fastq %s --fastq_out %s --umi_regex '^IIIII.*IIIII$' --write_UMI_counts --write_alleles_with_multiple_UMIs" % (
             os.path.join(output, "CRISPResso_on_" + name, "out.extendedFrags.fastq"),
             os.path.join(output, "CRISPResso_on_" + name, "out.dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
 
