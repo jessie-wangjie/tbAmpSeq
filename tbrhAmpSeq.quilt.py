@@ -24,11 +24,9 @@ class Capturing(list):
 
 def platemap(data):
     # prepare the data for plotting
-
-    d = data["total_aligned_read_num"].groupby(data["miseq_sample_name"]).sum()
-    print(d["QE_A01"]>1000)
-    print(d[data["miseq_sample_name"]] > 1000)
-    data = data.loc[d[data["miseq_sample_name"]] > 1000]
+    d = data["total_aligned_read_num"].groupby(data["miseq_sample_name"]).sum().rename("sample_aligned_read_num")
+    data = pd.merge(data, d, on="miseq_sample_name")
+    data = data.loc[data["sample_aligned_read_num"] > 1000]
 
     # draw plate plots
     base = alt.Chart(data, title="BP%").properties(width=550, height=400).encode(
@@ -49,7 +47,10 @@ def platemap(data):
 
 def platemap_cargo(data):
     # prepare the data for plotting
-    data = data[data["total_aligned_read_num"] > 1000]
+    d = data["total_aligned_read_num"].groupby(data["miseq_sample_name"]).sum().rename("sample_aligned_read_num")
+    data = pd.merge(data, d, on="miseq_sample_name")
+    data = data.loc[data["sample_aligned_read_num"] > 1000]
+
     d = data.loc[data["aaanid"] == "AA1520", ["x", "y", "aaanid", "cargo_placement_percentage"]]
     d["aaanid"] = "PGI"
     data = pd.concat([data[["x", "y", "aaanid", "beacon_placement_percentage"]], d.rename(columns={"cargo_placement_percentage": "beacon_placement_percentage"})])
@@ -73,7 +74,9 @@ def platemap_cargo(data):
 
 def fidelitymap(data):
     # prepare the data for plotting
-    data = data[data["total_aligned_read_num"] > 1000]
+    d = data["total_aligned_read_num"].groupby(data["miseq_sample_name"]).sum().rename("sample_aligned_read_num")
+    data = pd.merge(data, d, on="miseq_sample_name")
+    data = data.loc[data["sample_aligned_read_num"] > 1000]
 
     # draw plate plots
     base = alt.Chart(data, title="BF%").properties(width=550, height=400).encode(
@@ -94,7 +97,10 @@ def fidelitymap(data):
 
 def fidelitymap_cargo(data):
     # prepare the data for plotting
-    data = data[data["total_aligned_read_num"] > 1000]
+    d = data["total_aligned_read_num"].groupby(data["miseq_sample_name"]).sum().rename("sample_aligned_read_num")
+    data = pd.merge(data, d, on="miseq_sample_name")
+    data = data.loc[data["sample_aligned_read_num"] > 1000]
+
     d = data.loc[data["aaanid"] == "AA1520", ["x", "y", "aaanid", "beacon_fidelity"]]
     d["aaanid"] = "PGI"
     data = pd.concat([data[["x", "y", "aaanid", "beacon_fidelity"]], d.rename(columns={"cargo_fidelity": "beacon_fidelity"})])
@@ -215,9 +221,9 @@ if __name__ == "__main__":
     p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 
     # Pushing a package to a remote registry
-    # with Capturing() as output:
-    #     p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
-    # base_url = output[1].split()[-1]
-    # full_url = f"{base_url}/tree/{p.top_hash}"
-    # print(full_url)
+    with Capturing() as output:
+        p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
+    base_url = output[1].split()[-1]
+    full_url = f"{base_url}/tree/{p.top_hash}"
+    print(full_url)
 
