@@ -80,10 +80,11 @@ def main():
         if sample and name != sample:
             continue
 
+        os.makedirs(os.path.join(output, "CRISPResso_on_" + name), exist_ok=True)
+
         # skip if no sample name or no fastq
         if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
             cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
-            os.makedirs(os.path.join(output, "CRISPResso_on_" + name), exist_ok=True)
             pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
             continue
 
@@ -366,7 +367,8 @@ def main():
 
         pd.concat([pd.Series(cs2_stats), ngs_stats]).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_benchling_stats.json"))
         cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
-        cs2_stats["total_read_num"], cs2_stats["total_umi_num"] = CRISPRessoCORE.get_n_reads_fastq(r1), cs2_stats["total_read_num"]
+        if "total_read_num" in cs2_stats:
+            cs2_stats["total_read_num"], cs2_stats["total_umi_num"] = CRISPRessoCORE.get_n_reads_fastq(r1), cs2_stats["total_read_num"]
         pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
 
         # write sample status

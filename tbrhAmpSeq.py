@@ -45,7 +45,7 @@ def main():
         ngs_stats = pd.Series(dtype="object")
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
     cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s", [ngs_id])
-    # ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
+    ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
 
     # Query sample metasheet information for BTB
     cur.execute("select miseq_sample_name, aa1.file_registry_id, pp1.file_registry_id, aa2.file_registry_id, pp2.file_registry_id, "
@@ -74,8 +74,12 @@ def main():
         if sample and sample_name != sample:
             continue
 
-        # skip if no sample name or no fastq
-        if not sample_name or len(glob.glob(os.path.abspath(fastq) + "/" + sample_name + "_*/*_R1_*")) == 0:
+        # skip if no sample name
+        if not sample_name:
+            continue
+
+        # skip if no fastq
+        if len(glob.glob(os.path.abspath(fastq) + "/" + sample_name + "_*/*_R1_*")) == 0:
             meta_stats.update(aaanid=aaan_id, ppid=pp_id)
             os.makedirs(os.path.join(output, "CRISPResso_on_" + sample_name), exist_ok=True)
             pd.Series(meta_stats).to_json(os.path.join(output, "CRISPResso_on_" + sample_name, "CRISPResso_quilt_stats.json"))

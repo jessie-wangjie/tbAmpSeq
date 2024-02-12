@@ -26,20 +26,20 @@ def platemap(data):
     # prepare the data for plotting
     d = data["total_aligned_read_num"].groupby(data["miseq_sample_name"]).sum().rename("sample_aligned_read_num")
     data = pd.merge(data, d, on="miseq_sample_name")
-    data = data.loc[data["sample_aligned_read_num"] > 1000]
+    data = data.loc[data["sample_aligned_read_num"] > 300]
 
     # draw plate plots
     base = alt.Chart(data, title="BP%").properties(width=550, height=400).encode(
         x=alt.X("x:Q").axis(title="").scale(domain=[0, 12]).stack(False),
         y=alt.Y("y:O").axis(title="").scale(domain=["A", "B", "C", "D", "E", "F", "G", "H"]),
-        color=alt.Color("aaanid", scale=alt.Scale(domain=["AA1520", "AA2037", "AA2905"])))
+        color=alt.Color("aaanid", scale=alt.Scale(domain=["AA1520", "AA2037", "AA4024"])))
 
     bp = base.mark_arc(stroke="#ffffff", innerRadius=10).encode(
         radius=alt.Radius("outer:Q", scale=alt.Scale(rangeMax=20)),
         radius2=alt.Radius2("inner:Q"),
         theta=alt.Theta("bp:Q")).transform_calculate(bp='datum.beacon_placement_percentage * PI / 50').transform_calculate(
-        outer="{'AA1520': '10', 'AA2037': '15', 'AA2905': '20'}[datum.aaanid]").transform_calculate(
-        inner="{'AA1520': '5', 'AA2037': '10', 'AA2905': '15'}[datum.aaanid]")
+        outer="{'AA1520': '10', 'AA2037': '15', 'AA4024': '20'}[datum.aaanid]").transform_calculate(
+        inner="{'AA1520': '5', 'AA2037': '10', 'AA4024': '15'}[datum.aaanid]")
 
     chart = alt.layer(bp).facet(row=alt.Row("plate:O").title(""))
     return chart
@@ -49,24 +49,24 @@ def platemap_cargo(data):
     # prepare the data for plotting
     d = data["total_aligned_read_num"].groupby(data["miseq_sample_name"]).sum().rename("sample_aligned_read_num")
     data = pd.merge(data, d, on="miseq_sample_name")
-    data = data.loc[data["sample_aligned_read_num"] > 1000]
+    data = data.loc[data["sample_aligned_read_num"] > 300]
 
-    d = data.loc[data["aaanid"] == "AA1520", ["x", "y", "aaanid", "cargo_placement_percentage"]]
+    d = data.loc[data["aaanid"] == "AA1520", ["plate", "x", "y", "aaanid", "cargo_placement_percentage"]]
     d["aaanid"] = "PGI"
-    data = pd.concat([data[["x", "y", "aaanid", "beacon_placement_percentage"]], d.rename(columns={"cargo_placement_percentage": "beacon_placement_percentage"})])
+    data = pd.concat([data[["plate", "x", "y", "aaanid", "beacon_placement_percentage"]], d.rename(columns={"cargo_placement_percentage": "beacon_placement_percentage"})])
 
     # draw plate plots
     base = alt.Chart(data, title="BP%").properties(width=550, height=400).encode(
         x=alt.X("x:Q").axis(title="").scale(domain=[0, 12]).stack(False),
         y=alt.Y("y:O").axis(title="").scale(domain=["A", "B", "C", "D", "E", "F", "G", "H"]),
-        color=alt.Color("aaanid", scale=alt.Scale(domain=["AA1520", "AA2037", "AA2905", "PGI"])))
+        color=alt.Color("aaanid", scale=alt.Scale(domain=["AA1520", "AA2037", "AA4024", "PGI"])))
 
     bp = base.mark_arc(stroke="#ffffff", innerRadius=10).encode(
         radius=alt.Radius("outer:Q", scale=alt.Scale(rangeMax=20)),
         radius2=alt.Radius2("inner:Q"),
         theta=alt.Theta("bp:Q")).transform_calculate(bp='datum.beacon_placement_percentage * PI / 50').transform_calculate(
-        outer="{'AA1520': '10', 'AA2037': '15', 'AA2905': '20', 'PGI': 25}[datum.aaanid]").transform_calculate(
-        inner="{'AA1520': '5', 'AA2037': '10', 'AA2905': '15', 'PGI': 20}[datum.aaanid]")
+        outer="{'AA1520': '10', 'AA2037': '15', 'AA4024': '20', 'PGI': 25}[datum.aaanid]").transform_calculate(
+        inner="{'AA1520': '5', 'AA2037': '10', 'AA4024': '15', 'PGI': 20}[datum.aaanid]")
 
     chart = alt.layer(bp).facet(row=alt.Row("plate:O").title(""))
     return chart
@@ -76,20 +76,20 @@ def fidelitymap(data):
     # prepare the data for plotting
     d = data["total_aligned_read_num"].groupby(data["miseq_sample_name"]).sum().rename("sample_aligned_read_num")
     data = pd.merge(data, d, on="miseq_sample_name")
-    data = data.loc[data["sample_aligned_read_num"] > 1000]
+    data = data.loc[data["sample_aligned_read_num"] > 300]
 
     # draw plate plots
     base = alt.Chart(data, title="BF%").properties(width=550, height=400).encode(
         x=alt.X("x:Q").axis(title="").scale(domain=[0, 12]).stack(False),
         y=alt.Y("y:O").axis(title="").scale(domain=["A", "B", "C", "D", "E", "F", "G", "H"]),
-        color=alt.Color("aaanid", scale=alt.Scale(domain=["AA1520", "AA2037", "AA2905"])))
+        color=alt.Color("aaanid", scale=alt.Scale(domain=["AA1520", "AA2037", "AA4024"])))
 
     bp = base.mark_arc(stroke="#ffffff", innerRadius=10).encode(
         radius=alt.Radius("outer:Q", scale=alt.Scale(rangeMax=20)),
         radius2=alt.Radius2("inner:Q"),
         theta=alt.Theta("bp:Q")).transform_calculate(bp='datum.beacon_fidelity * PI / 50').transform_calculate(
-        outer="{'AA1520': '10', 'AA2037': '15', 'AA2905': '20'}[datum.aaanid]").transform_calculate(
-        inner="{'AA1520': '5', 'AA2037': '10', 'AA2905': '15'}[datum.aaanid]")
+        outer="{'AA1520': '10', 'AA2037': '15', 'AA4024': '20'}[datum.aaanid]").transform_calculate(
+        inner="{'AA1520': '5', 'AA2037': '10', 'AA4024': '15'}[datum.aaanid]")
 
     chart = alt.layer(bp).facet(row=alt.Row("plate:O").title(""))
     return chart
@@ -99,24 +99,24 @@ def fidelitymap_cargo(data):
     # prepare the data for plotting
     d = data["total_aligned_read_num"].groupby(data["miseq_sample_name"]).sum().rename("sample_aligned_read_num")
     data = pd.merge(data, d, on="miseq_sample_name")
-    data = data.loc[data["sample_aligned_read_num"] > 1000]
+    data = data.loc[data["sample_aligned_read_num"] > 300]
 
-    d = data.loc[data["aaanid"] == "AA1520", ["x", "y", "aaanid", "beacon_fidelity"]]
+    d = data.loc[data["aaanid"] == "AA1520", ["plate", "x", "y", "aaanid", "beacon_fidelity"]]
     d["aaanid"] = "PGI"
-    data = pd.concat([data[["x", "y", "aaanid", "beacon_fidelity"]], d.rename(columns={"cargo_fidelity": "beacon_fidelity"})])
+    data = pd.concat([data[["plate", "x", "y", "aaanid", "beacon_fidelity"]], d.rename(columns={"cargo_fidelity": "beacon_fidelity"})])
 
     # draw plate plots
     base = alt.Chart(data, title="BF%").properties(width=550, height=400).encode(
         x=alt.X("x:Q").axis(title="").scale(domain=[0, 12]).stack(False),
         y=alt.Y("y:O").axis(title="").scale(domain=["A", "B", "C", "D", "E", "F", "G", "H"]),
-        color=alt.Color("aaanid", scale=alt.Scale(domain=["AA1520", "AA2037", "AA2905", "PGI"])))
+        color=alt.Color("aaanid", scale=alt.Scale(domain=["AA1520", "AA2037", "AA4024", "PGI"])))
 
     bp = base.mark_arc(stroke="#ffffff", innerRadius=10).encode(
         radius=alt.Radius("outer:Q", scale=alt.Scale(rangeMax=20)),
         radius2=alt.Radius2("inner:Q"),
         theta=alt.Theta("bp:Q")).transform_calculate(bp='datum.beacon_fidelity * PI / 50').transform_calculate(
-        outer="{'AA1520': '10', 'AA2037': '15', 'AA2905': '20', 'PGI': 25}[datum.aaanid]").transform_calculate(
-        inner="{'AA1520': '5', 'AA2037': '10', 'AA2905': '15', 'PGI': 20}[datum.aaanid]")
+        outer="{'AA1520': '10', 'AA2037': '15', 'AA4024': '20', 'PGI': 25}[datum.aaanid]").transform_calculate(
+        inner="{'AA1520': '5', 'AA2037': '10', 'AA4024': '15', 'PGI': 20}[datum.aaanid]")
 
     chart = alt.layer(bp).facet(row=alt.Row("plate:O").title(""))
     return chart
@@ -203,10 +203,10 @@ if __name__ == "__main__":
 
     # adding data
     # input package
-    p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
+    # p.set_dir("fastq/" + pipeline_run_id[:-1], pipeline_run_id[:-1])
 
     # output package
-    preview = ["platemap.json"]
+    preview = ["platemap.json", "report.html"]
     for f in glob.glob(os.path.join(input, "stats.csv")):
         preview.append(os.path.basename(f))
         p.set(os.path.join(pipeline_run_id, os.path.basename(f)), f)
@@ -215,6 +215,7 @@ if __name__ == "__main__":
     p.set(pipeline_run_id + "/" + pipeline_run_id + ".stats.xlsx", input + "/" + input + ".stats.xlsx")
     p.set(pipeline_run_id + "/platemap.json", input + "/platemap.json")
     p.set(pipeline_run_id + "/status.txt", input + "/" + "status.txt")
+    p.set(pipeline_run_id + "/report.html", input + "/" + "report.html")
     p.set_dir(pipeline_run_id + "/cs2_alignment_html", input + "/cs2_alignment_html/")
     # p.set_meta({"Benchling Entry": entry_name, "Benchling URL": entry_url})
     pd.Series(preview).to_json(input + "/quilt_summarize.json", orient="records")
@@ -222,7 +223,7 @@ if __name__ == "__main__":
 
     # Pushing a package to a remote registry
     with Capturing() as output:
-        p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
+          p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
     base_url = output[1].split()[-1]
     full_url = f"{base_url}/tree/{p.top_hash}"
     print(full_url)
