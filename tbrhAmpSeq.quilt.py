@@ -7,6 +7,7 @@ import pandas as pd
 import quilt3
 import re
 import json
+import subprocess
 from utils.base import *
 
 
@@ -192,6 +193,9 @@ if __name__ == "__main__":
     qw_data.to_csv(input + "/qw_stats.csv", index=False)
     qw_data.to_excel(writer, sheet_name="qw_stats", index=False, float_format="%.2f")
     writer.close()
+
+    # create report.html
+    subprocess.call("/home/ubuntu/software/miniconda3/bin/jupyter nbconvert --execute --to html /home/ubuntu/bin/tbOnT/report.template.ipynb --output report --no-input", shell=True)
 
     # check if the package existed
     if "AmpSeq/" + ngs_id in list(quilt3.list_packages("s3://tb-ngs-quilt/")):
