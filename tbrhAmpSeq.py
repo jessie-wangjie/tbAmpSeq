@@ -78,6 +78,9 @@ def main():
         if not sample_name:
             continue
 
+        if "Plate3" not in sample_name:
+            continue
+
         # skip if no fastq
         if len(glob.glob(os.path.abspath(fastq) + "/" + sample_name + "_*/*_R1_*")) == 0:
             meta_stats.update(aaanid=aaan_id, ppid=pp_id)

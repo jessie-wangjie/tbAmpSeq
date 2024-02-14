@@ -54,7 +54,8 @@ def platemap_cargo(data):
 
     d = data.loc[data["aaanid"] == "AA1520", ["plate", "x", "y", "aaanid", "cargo_placement_percentage"]]
     d["aaanid"] = "PGI"
-    data = pd.concat([data[["plate", "x", "y", "aaanid", "beacon_placement_percentage"]], d.rename(columns={"cargo_placement_percentage": "beacon_placement_percentage"})])
+    data = pd.concat([data[["plate", "x", "y", "aaanid", "beacon_placement_percentage"]],
+                      d.rename(columns={"cargo_placement_percentage": "beacon_placement_percentage"})])
 
     # draw plate plots
     base = alt.Chart(data, title="BP%").properties(width=550, height=400).encode(
@@ -143,11 +144,11 @@ if __name__ == "__main__":
     writer = pd.ExcelWriter(os.path.join(input, input + ".stats.xlsx"), engine="xlsxwriter", engine_kwargs={"options": {"strings_to_numbers": True}})
 
     cargo_cols = ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id",
-            "total_read_num", "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
-            "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num",
-            "cargo_aligned_read_num", "cargo_indel_read_num", "cargo_sub_read_num", "wt_aligned_percentage",
-            "beacon_placement_percentage", "perfect_beacon_percent", "beacon_fidelity",
-            "cargo_placement_percentage", "perfect_cargo_percent", "cargo_fidelity"]
+                  "total_read_num", "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
+                  "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num",
+                  "cargo_aligned_read_num", "cargo_indel_read_num", "cargo_sub_read_num", "wt_aligned_percentage",
+                  "beacon_placement_percentage", "perfect_beacon_percent", "beacon_fidelity",
+                  "cargo_placement_percentage", "perfect_cargo_percent", "cargo_fidelity"]
 
     cols = ["plate", "x", "y", "well", "samplename", "miseq_sample_name", "aaanid", "ppid", "spp_id",
             "total_read_num", "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
@@ -195,7 +196,9 @@ if __name__ == "__main__":
     writer.close()
 
     # create report.html
-    subprocess.call("/home/ubuntu/software/miniconda3/bin/jupyter nbconvert --execute --to html /home/ubuntu/bin/tbOnT/report.template.ipynb --output report --no-input", shell=True)
+    subprocess.call("cp /home/ubuntu/bin/tbOnT/report.template.ipynb %s" % (input), shell=True)
+    subprocess.call("/home/ubuntu/software/miniconda3/bin/jupyter nbconvert --execute --to html %s --output report --no-input" % (
+        os.path.join(input, "report.template.ipynb")), shell=True)
 
     # check if the package existed
     if "AmpSeq/" + ngs_id in list(quilt3.list_packages("s3://tb-ngs-quilt/")):
@@ -227,8 +230,7 @@ if __name__ == "__main__":
 
     # Pushing a package to a remote registry
     with Capturing() as output:
-          p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
+        p.push("AmpSeq/" + ngs_id, "s3://tb-ngs-quilt/", force=True)
     base_url = output[1].split()[-1]
     full_url = f"{base_url}/tree/{p.top_hash}"
     print(full_url)
-
