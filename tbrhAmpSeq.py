@@ -258,15 +258,15 @@ def main():
             # plot
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s -s %s-%s" % (
-                os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2, sp1_info["5P"], sp2_info["5P"]), stderr=job_fh,
-                            stdout=job_fh, shell=True)
+            # subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s -s %s-%s" % (
+            #    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2, sp1_info["5P"], sp2_info["5P"]), stderr=job_fh,
+            #                stdout=job_fh, shell=True)
 
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
-            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -s %s-%s" % (
-                os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1, sp1_info["5P"],
-                sp1_info["cut"] + len(beacon) + len(sp2_info["seq"]) - 3), stderr=job_fh, stdout=job_fh, shell=True)
+            # subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -s %s-%s" % (
+            #    os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1, sp1_info["5P"],
+            #    sp1_info["cut"] + len(beacon) + len(sp2_info["seq"]) - 3), stderr=job_fh, stdout=job_fh, shell=True)
 
 
             job_fh.close()

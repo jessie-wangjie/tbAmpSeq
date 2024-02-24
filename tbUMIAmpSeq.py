@@ -47,7 +47,7 @@ def main():
         ngs_stats = pd.Series(dtype="object")
     ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
     cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s", [ngs_id])
-    ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
+    # ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
 
     # Query sample metasheet information for BTB
     cur.execute("select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, primer_pair_set,"
@@ -83,7 +83,7 @@ def main():
         os.makedirs(os.path.join(output, "CRISPResso_on_" + name), exist_ok=True)
 
         # skip if no sample name or no fastq
-        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
+        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "*_R1_*")) == 0:
             cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
             pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
             continue
@@ -119,8 +119,8 @@ def main():
             #    os.path.join(output, "CRISPResso_on_" + name, name + ".R1.dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
             # r2 = os.path.join(output, "CRISPResso_on_" + name, name + ".R1.dedup.fastq")
         else:
-            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
-            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
+            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R1_*")[0]
+            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R2_*")[0]
             subprocess.call("/home/ubuntu/software/miniconda3/bin/fastp -i %s -I %s -o %s -O %s --detect_adapter_for_pe "
                 "--adapter_sequence=AGATCGGAAGAGCACACGTCTGAACTCCAGTCA --adapter_sequence_r2=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" % (r1, r2,
                 os.path.join(output, "CRISPResso_on_" + name, name + ".R1.trimmed.fastq.gz"),
