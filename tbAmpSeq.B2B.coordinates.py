@@ -39,7 +39,7 @@ def main():
     # amplicon information file
     amplicon_fh = open(os.path.join(output, "amplicon.txt"), 'w')
     # amplicon file
-    variant_fh = open(os.path.join(output, "WT.variant.txt"), 'w')
+    variant_fh = open(os.path.join(output, "WT.variant.csv"), 'w')
     variant_fh.write("sample\tamplicon\tvariant_pos\tref\talt\tgenotype\tguide1\tguide1_pam\tguide2\tguide2_pam\n")
 
     # project status file
