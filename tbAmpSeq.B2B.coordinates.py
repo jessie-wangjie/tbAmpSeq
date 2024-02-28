@@ -7,6 +7,8 @@ Information from Benchling
 import argparse
 import glob
 import datetime
+import subprocess
+
 from utils.base import *
 from utils.common_functions import *
 
@@ -36,6 +38,10 @@ def main():
 
     # amplicon information file
     amplicon_fh = open(os.path.join(output, "amplicon.txt"), 'w')
+    # amplicon file
+    variant_fh = open(os.path.join(output, "WT.variant.txt"), 'w')
+    variant_fh.write("sample\tamplicon\tvariant_pos\tref\talt\tgenotype\tguide1\tguide1_pam\tguide2\tguide2_pam\n")
+
     # project status file
     project_fh = open(os.path.join(output, "status.txt"), 'w')
 
@@ -160,9 +166,9 @@ def main():
 
             # beacon seq
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[rt_info["3P"] - 1:]
-            if len(beacon_amplicon) > 298:
+            if len(beacon_amplicon) > read_length * 2 - 4:
                 cs2 = "--force_merge_pairs "
-            elif len(beacon_amplicon) >= 293 and len(beacon_amplicon) <= 298:
+            elif len(beacon_amplicon) >= read_length * 2 - 9 and len(beacon_amplicon) <= read_length * 2 - 4:
                 cs2 = "--stringent_flash_merging "
 
             amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
@@ -244,6 +250,19 @@ def main():
                 "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
                     r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output, ncpu, cs2),
                 stderr=job_fh, stdout=job_fh, shell=True)
+
+            # call variants
+            subprocess.call(
+                "bcftools mpileup %s --fasta-ref %s -Ou -r WT | bcftools call -mv -Ou -o %s" % (
+                os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.bam"),
+                os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.fa"), os.path.join(output, "CRISPResso_on_" + name, "WT.variants.bcf")),
+                stderr=job_fh, stdout=job_fh, shell=True)
+
+            p = subprocess.Popen(
+                "bcftools query -f '%%CHROM\t%%POS\t%%REF\t%%ALT\t[%%GT]\n' %s | awk -F '\t' -v name=%s '{OFS=\"\t\"; g1=\"N\"; g1pam=\"N\"; g2=\"N\"; g2pam=\"N\"; if($2>=%s && $2<=%s) {g1=\"Y\"}; if($2>%s && $2<=%s) {g1pam=\"Y\"}; if($2>=%s && $2<=%s) {g2=\"Y\"}; if($2>=%s && $2<%s) {g2pam=\"Y\"}; print name,$0,g1,g1pam,g2,g2pam}'" % (
+                    os.path.join(output, "CRISPResso_on_" + name, "WT.variants.bcf"), name, sp1_info["5P"], sp1_info["3P"], sp1_info["3P"],
+                    sp1_info["3P"] + 3, sp2_info["3P"], sp2_info["5P"], sp2_info["3P"] - 3, sp2_info["3P"]), stdout=subprocess.PIPE, shell=True)
+            variant_fh.write(p.communicate()[0].decode('utf-8'))
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
 
@@ -331,6 +350,25 @@ def main():
                 "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
                     r1, r2, wt_amplicon, sp1_info["seq"], name, output, ncpu, cs2), stderr=job_fh, stdout=job_fh, shell=True)
 
+            # call variants
+            subprocess.call(
+                "bcftools mpileup %s --fasta-ref %s -Ou -r WT | bcftools call -mv -Ou -o %s" % (
+                os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.bam"),
+                os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.fa"), os.path.join(output, "CRISPResso_on_" + name, "WT.variants.bcf")),
+                stderr=job_fh, stdout=job_fh, shell=True)
+
+            if sp1_info["strand"] == "+":
+                p = subprocess.Popen(
+                    "bcftools query -f '%%CHROM\t%%POS\t%%REF\t%%ALT\t[%%GT]\n' %s | awk -F '\t' -v name=%s '{OFS=\"\t\"; g1=\"N\"; g1pam=\"N\"; if($2>=%s && $2<=%s) {g1=\"Y\"}; if($2>%s && $2<=%s) {g1pam=\"Y\"}; print name,$0,g1,g1pam}'" % (
+                        os.path.join(output, "CRISPResso_on_" + name, "WT.variants.bcf"), name, sp1_info["5P"], sp1_info["3P"], sp1_info["3P"],
+                        sp1_info["3P"] + 3), stdout=subprocess.PIPE, shell=True)
+            else:
+                p = subprocess.Popen(
+                    "bcftools query -f '%%CHROM\t%%POS\t%%REF\t%%ALT\t[%%GT]\n' %s | awk -F '\t' -v name=%s '{OFS=\"\t\"; g1=\"N\"; g1pam=\"N\"; if($2>=%s && $2<=%s) {g1=\"Y\"}; if($2>=%s && $2<%s) {g1pam=\"Y\"}; print name,$0,g1,g1pam}'" % (
+                        os.path.join(output, "CRISPResso_on_" + name, "WT.variants.bcf"), name, sp1_info["3P"], sp1_info["5P"], sp1_info["3P"] - 3,
+                        sp1_info["3P"]), stdout=subprocess.PIPE, shell=True)
+            variant_fh.write(p.communicate()[0].decode('utf-8'))
+
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
 
         else:
@@ -341,6 +379,7 @@ def main():
         if os.path.exists(os.path.join(output, "CRISPResso_on_" + name, "out.extendedFrags.fastq.gz")):
             cs2_stats["total_read_num"] = CRISPRessoCORE.get_n_reads_fastq(r1)
             cs2_stats["merged_r1r2_read_num"] = CRISPRessoCORE.get_n_reads_fastq(os.path.join(output, "CRISPResso_on_" + name, "out.extendedFrags.fastq.gz"))
+
         pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
 
         # write sample status
