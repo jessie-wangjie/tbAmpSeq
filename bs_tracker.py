@@ -33,14 +33,13 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {}
+    current_run = {"276232017": "TB_MISEQ_000331"}
     while True:
         response = requests.get(f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=10', stream=True)
         for run in response.json().get("Items"):
             samples = {}
             if run["Status"] != "Complete" and run["Status"] != "Failed":
                 current_run[run["V1Pre3Id"]] = run["ExperimentName"]
-                print(current_run)
             elif run["V1Pre3Id"] in current_run:
                 # store the runinfo and stats
                 print(current_run)
@@ -61,7 +60,7 @@ if __name__ == '__main__':
                 benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():
                     # check if it's Ampseq data
-                    if "BTB" not in s:
+                    if "BTB410" not in s:
                         continue
 
                     # change status of NGS tracking entity to sequencing complete

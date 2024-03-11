@@ -27,6 +27,7 @@ def platemap(data):
     # prepare the data for plotting
     cols = {
         "AA": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "beacon_placement_percentage"],
+        "LM": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "beacon_placement_percentage"],
         "SG": ["plate", "x", "y", "samplename", "aaanid", "ppid", "wt_aligned_read_num", "aligned_percentage", "indel_percentage"],
         "PN": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "PE_percentage"]}
 
@@ -62,12 +63,20 @@ def platemap(data):
 
 def fidelitymap(data):
     # prepare the data for plotting
-    d = pd.DataFrame(data)
+    d = pd.DataFrame()
+    for k, v in data.items():
+        if k != "AA" and k != "LM":
+            continue
+        v = pd.DataFrame(v)
+        v.insert(0, "type", k)
+        d = d.append(v)
 
+    d.to_csv("test.csv")
     # draw plate plots
-    bp = alt.Chart(d).mark_circle(size=300, filled=True).properties(width=300, height=200).encode(
+    bp = alt.Chart(d).mark_point(size=300, filled=True).properties(width=300, height=200).encode(
         x=alt.X("x:Q").axis(title="").scale(domain=[1, 12]),
         y=alt.Y("y:O").axis(title="").scale(domain=["A", "B", "C", "D", "E", "F", "G", "H"]),
+        shape=alt.Shape("type:N").title("Type").legend(symbolFillColor="#ff7f0e", symbolStrokeWidth=0),
         color=alt.Color("beacon_fidelity:Q").scale(scheme="oranges", domain=[0, 100]).title("Beacon fidelity %").legend(gradientLength=95))
 
     text = alt.Chart(d).mark_text(size=8, dx=0, dy=0, color="black", fontWeight="bold").encode(
@@ -85,13 +94,15 @@ def fidelitymap(data):
 def barstats(data):
     cols = {"AA": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "beacon_aligned_read_num",
                    "beacon_indel_read_num"],
+            "LM": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "beacon_aligned_read_num",
+                   "beacon_indel_read_num"],
             "SG": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "indel_read_num"],
             "PN": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "PE_aligned_read_num", "PE_indel_read_num"]}
 
     d = pd.DataFrame(columns=["x", "y", "Variable", "Value"])
     for k, v in data.items():
         v = pd.DataFrame(v)[cols[k]]
-        if k == "AA":
+        if k == "AA" or k == "LM":
             v["perfect_beacon_read_num"] = v["beacon_aligned_read_num"] - v["beacon_indel_read_num"]
             v = pd.melt(v, id_vars=["plate", "x", "y"],
                         value_vars=["total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "perfect_beacon_read_num",
@@ -149,6 +160,11 @@ if __name__ == "__main__":
                    "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
                    "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
                    "beacon_fidelity", "beacon_fwd_fidelity", "beacon_rev_fidelity", "beacon_fidelity_1mm", "beacon_fidelity_2mm"],
+            "LM": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "pp_set", "spp_id",
+                   "total_read_num", "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
+                   "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
+                   "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
+                   "beacon_fidelity", "beacon_fwd_fidelity", "beacon_rev_fidelity", "beacon_fidelity_1mm", "beacon_fidelity_2mm"],
             "SG": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num",
                    "merged_r1r2_read_num", "aligned_percentage", "wt_aligned_read_num", "indel_read_num", "sub_read_num",
                    "indel_percentage"],
@@ -179,8 +195,8 @@ if __name__ == "__main__":
     chart = platemap(data)
 
     # draw beacon fidelity plot
-    if "AA" in data:
-        chart = alt.hconcat(chart, fidelitymap(data["AA"])).resolve_scale(color="independent", shape="independent")
+    if "AA" in data or "LM" in data:
+        chart = alt.hconcat(chart, fidelitymap(data)).resolve_scale(color="independent", shape="independent")
     chart.save(os.path.join(input, "platemap.json"))
 
     # draw alignment plots
