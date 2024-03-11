@@ -64,11 +64,11 @@ def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
     # Slides b1 across b2 to test if they match
     beacon = seq1.upper()
     if sp1_strand == "+":
-        beacon = reverse_complement(seq1)
+        beacon = reverse_complement(seq1.upper())
     if seq2 != "":
         beacon2 = seq2.upper()
         if sp2_strand == "+":
-            beacon2 = reverse_complement(seq2)
+            beacon2 = reverse_complement(seq2.upper())
 
         n1 = len(beacon)
         for i in range(n1):
@@ -76,6 +76,26 @@ def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
                 beacon = beacon + beacon2[n1 - i:]
                 return beacon
     return beacon
+
+
+def get_donor_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
+    # Slides b1 across b2 to test if they match
+    donor = seq1.upper()
+    if sp1_strand == "-":
+        donor = reverse_complement(seq1.upper())
+    donor = donor.replace("U", "T")
+    if seq2 != "":
+        donor2 = seq2.upper()
+        if sp2_strand == "-":
+            donor2 = reverse_complement(seq2.upper())
+        donor2 = donor2.replace("U", "T")
+
+        n1 = len(donor)
+        for i in range(n1):
+            if donor[i:] == donor2[0:min(n1 - i, len(donor2))]:
+                donor = donor + donor2[n1 - i:]
+                return donor
+    return donor
 
 
 def reverse_complement(seq):

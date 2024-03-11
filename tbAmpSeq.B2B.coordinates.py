@@ -61,14 +61,14 @@ def main():
                 "from ampseq_sample_metasheet_v2$raw "
                 "left join registry_entity as re1 on re1.id = aaanpnsg_id "
                 "left join registry_entity as re2 on re2.id = pp_id "
-                "where genomics_ampseq_project_queue = %s"
+                "where genomics_ampseq_project_queue = %s and ampseq_sample_metasheet_v2$raw.archived$ = false "
                 "union "
                 "select miseq_sample_name, re1.file_registry_id, aaanpnsg_id, re2.file_registry_id, pp_id, Null as primer_pair_set, "
                 "sample_name, plate, mrna_batch_id, modrna_batch_id, primary_cell_lot_id, lnp_batch_id, plate, well_position "
                 "from ampseq_sample_metasheet$raw "
                 "left join registry_entity as re1 on re1.id = aaanpnsg_id "
                 "left join registry_entity as re2 on re2.id = pp_id "
-                "where genomics_ampseq_project_queue = %s ", [tbid, tbid])
+                "where genomics_ampseq_project_queue = %s and ampseq_sample_metasheet$raw.archived$ = false", [tbid, tbid])
 
     if cur.rowcount == 0:
         project_fh.write("This project doesn't exist in the Benchling!\n")
@@ -370,6 +370,65 @@ def main():
             variant_fh.write(p.communicate()[0].decode('utf-8'))
 
             cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1]))
+
+        elif aaan_id.startswith("LMLM"):
+            # Get spacers information
+            cur.execute("select sp1.bases, sp2.bases, beacon1.bases, beacon2.bases, spp.file_registry_id from lmg_lmg "
+                        "join lmgRNA as m1 on m1.id = lmg_lmg.lmg1 "
+                        "join lmgRNA as m2 on m2.id = lmg_lmg.lmg2 "
+                        "join dna_oligo as sp1 on sp1.id = m1.spacer "
+                        "join dna_oligo as sp2 on sp2.id = m2.spacer "
+                        "join rna_oligo as beacon1 on beacon1.id = m1.dna_donor "
+                        "join rna_oligo as beacon2 on beacon2.id = m2.dna_donor "
+                        "join registry_entity as spp on spp.id = lmg_lmg.spacer_pair "
+                        "where lmg_lmg.file_registry_id$ = %s", [aaan_id])
+            sp1_seq, sp2_seq, donor1_seq, donor2_seq, cs2_stats["spp_id"] = cur.fetchone()
+
+            sp1_info = get_cut_site(wt_amplicon, sp1_seq)
+            sp2_info = get_cut_site(wt_amplicon, sp2_seq)
+
+            beacon = get_donor_seq(donor1_seq, sp1_info["strand"], donor2_seq, sp2_info["strand"])
+            if sp1_info["cut"] > sp2_info["cut"]:
+                sp1_info = get_cut_site(wt_amplicon, sp2_seq)
+                sp2_info = get_cut_site(wt_amplicon, sp1_seq)
+                beacon = get_donor_seq(donor2_seq, sp1_info["strand"], donor1_seq, sp2_info["strand"])
+            print(beacon)
+            # beacon seq
+            beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[sp2_info["cut"]:]
+            amplicon_fh.write(name + "\tBeacon\t" + beacon_amplicon + "\n")
+
+            # define quantification window
+            # WT amplicon, spacer cutting 2bp
+            wt_qw1 = "WT:spacer1_cut:" + str(sp1_info["cut"]) + "-" + str(sp1_info["cut"] + 1) + ":0"
+            # WT amplicon, spacer2 cutting 2bp
+            wt_qw2 = "WT:spacer2_cut:" + str(sp2_info["cut"]) + "-" + str(sp2_info["cut"] + 1) + ":0"
+            # Beacon amplicon, whole beacon insertion, w/ flank 10bp
+            beacon_qw1 = "Beacon:beacon_whole:" + str(sp1_info["cut"] + 1) + "-" + str(sp1_info["cut"] + len(beacon)) + ":10"
+            beacon_qw2 = "Beacon:beacon_fwd:" + str(sp1_info["cut"] + 1) + "-" + str(sp1_info["cut"] + len(donor1_seq)) + ":10"
+            beacon_qw3 = "Beacon:beacon_rev:" + str(sp1_info["cut"] + len(beacon) - len(donor2_seq) + 1) + "-" + str(sp1_info["cut"] + len(beacon)) + ":10"
+
+            subprocess.call(
+                "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --name %s --output_folder %s "
+                "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 "
+                "--trim_sequences  --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
+                "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
+                    r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output, ncpu, cs2),
+                stderr=job_fh, stdout=job_fh, shell=True)
+
+            # call variants
+            subprocess.call(
+                "bcftools mpileup %s --fasta-ref %s -Ou -r WT | bcftools call -mv -Ou -o %s" % (
+                os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.bam"),
+                os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.fa"), os.path.join(output, "CRISPResso_on_" + name, "WT.variants.bcf")),
+                stderr=job_fh, stdout=job_fh, shell=True)
+
+            p = subprocess.Popen(
+                "bcftools query -f '%%CHROM\t%%POS\t%%REF\t%%ALT\t[%%GT]\n' %s | awk -F '\t' -v name=%s '{OFS=\"\t\"; g1=\"N\"; g1pam=\"N\"; g2=\"N\"; g2pam=\"N\"; if($2>=%s && $2<=%s) {g1=\"Y\"}; if($2>%s && $2<=%s) {g1pam=\"Y\"}; if($2>=%s && $2<=%s) {g2=\"Y\"}; if($2>=%s && $2<%s) {g2pam=\"Y\"}; print name,$0,g1,g1pam,g2,g2pam}'" % (
+                    os.path.join(output, "CRISPResso_on_" + name, "WT.variants.bcf"), name, sp1_info["5P"], sp1_info["3P"], sp1_info["3P"],
+                    sp1_info["3P"] + 3, sp2_info["3P"], sp2_info["5P"], sp2_info["3P"] - 3, sp2_info["3P"]), stdout=subprocess.PIPE, shell=True)
+            variant_fh.write(p.communicate()[0].decode('utf-8'))
+
+            cs2_stats.update(window_quantification(os.path.join(output, "CRISPResso_on_" + name), [wt_qw1, wt_qw2, beacon_qw1, beacon_qw2, beacon_qw3]))
 
         else:
             continue
