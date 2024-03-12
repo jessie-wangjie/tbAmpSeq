@@ -387,11 +387,11 @@ def main():
             sp1_info = get_cut_site(wt_amplicon, sp1_seq)
             sp2_info = get_cut_site(wt_amplicon, sp2_seq)
 
-            beacon = get_donor_seq(donor1_seq, sp1_info["strand"], donor2_seq, sp2_info["strand"])
+            beacon = get_donor_seq(donor1_seq, sp1_info, donor2_seq, sp2_info)
             if sp1_info["cut"] > sp2_info["cut"]:
                 sp1_info = get_cut_site(wt_amplicon, sp2_seq)
                 sp2_info = get_cut_site(wt_amplicon, sp1_seq)
-                beacon = get_donor_seq(donor2_seq, sp1_info["strand"], donor1_seq, sp2_info["strand"])
+                beacon = get_donor_seq(donor2_seq, sp1_info, donor1_seq, sp2_info)
             print(beacon)
             # beacon seq
             beacon_amplicon = wt_amplicon[0:sp1_info["cut"]] + beacon + wt_amplicon[sp2_info["cut"]:]

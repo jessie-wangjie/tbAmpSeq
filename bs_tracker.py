@@ -40,6 +40,7 @@ if __name__ == '__main__':
             samples = {}
             if run["Status"] != "Complete" and run["Status"] != "Failed":
                 current_run[run["V1Pre3Id"]] = run["ExperimentName"]
+                print(current_run)
             elif run["V1Pre3Id"] in current_run:
                 # store the runinfo and stats
                 print(current_run)
@@ -60,7 +61,7 @@ if __name__ == '__main__':
                 benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():
                     # check if it's Ampseq data
-                    if "BTB410" not in s:
+                    if "BTB416" not in s:
                         continue
 
                     # change status of NGS tracking entity to sequencing complete
