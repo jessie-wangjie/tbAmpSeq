@@ -139,8 +139,7 @@ def bam_to_html(bam_file, fasta, region, highlight, outfh, top_n):
         ref_start = 1
         ref_end = fa.get_reference_length(chr)
     ref_seq = fa.fetch(chr, ref_start - 1, ref_end)
-    print(chr, ref_start - 1, ref_end)
-    print(ref_seq)
+
     # print the template
     h = []
     for qw in highlight:
@@ -176,8 +175,14 @@ def bam_to_html(bam_file, fasta, region, highlight, outfh, top_n):
 
         i = alignment.query_alignment_start
         pos = alignment.get_aligned_pairs(with_seq=True)
+
         while i < len(pos):
             if (pos[i][1] is not None) and (pos[i][1] < int(ref_start) - 1 or pos[i][1] >= int(ref_end)):
+                i = i + 1
+                continue
+
+            # 3' soft-clip
+            if (pos[i][1] is None) and (pos[i][2] is None) and (int(alignment.query_alignment_end) <= pos[i][0]):
                 i = i + 1
                 continue
 
