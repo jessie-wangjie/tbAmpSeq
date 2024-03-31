@@ -33,7 +33,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {}
+    current_run = {"277922678": "TB_MISEQ_000351"}
     while True:
         response = requests.get(f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=10', stream=True)
         for run in response.json().get("Items"):
@@ -61,7 +61,7 @@ if __name__ == '__main__':
                 benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():
                     # check if it's Ampseq data
-                    if "BTB" not in s:
+                    if "BTB454" not in s:
                         continue
 
                     # change status of NGS tracking entity to sequencing complete
@@ -99,12 +99,20 @@ if __name__ == '__main__':
                                                                "pipeline Name": {"value": "tbAmpseq"},
                                                                "github address": {"value": "https://github.com/tomebio/tbOnT"},
                                                                "git commit": {"value": commit},
-                                                               "ELN entry": {"value": run_json["project_name"]},
                                                                "AmpSeq Project Name": {"value": ngs_name.id},
                                                                "run start": {"value": run_json["run start"]},
                                                                "run end": {"value": run_json["run end"]},
                                                                "run status": {"value": "Complete"}}))
                     pipeline_run_entity = benchling.custom_entities.create(entity).id
+
+                    ## check the accessibility of the ELN
+                    try:
+                        requests = benchling.requests.get_by_id(run_json["project_name"])
+                    except:
+                        pass
+                    else:
+                        update = CustomEntityUpdate(fields=fields({"ELN entry": {"value": run_json["project_name"]}}))
+                        updated_entity = benchling.custom_entities.update(entity_id=pipeline_run_entity, entity=update)
 
                     # push the data to quilt
                     p = subprocess.Popen(
