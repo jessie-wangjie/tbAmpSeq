@@ -83,7 +83,7 @@ def main():
         os.makedirs(os.path.join(output, "CRISPResso_on_" + name), exist_ok=True)
 
         # skip if no sample name or no fastq
-        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "*_R1_*")) == 0:
+        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
             cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
             pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
             continue
@@ -105,7 +105,6 @@ def main():
 
         # sample job log
         job_fh = open(os.path.join(output, name + ".job.log"), 'wb')
-
         # get r1 and r2 fastq
         if (target_strand == "antisense" or target_strand == "-") and (p1_start < p2_start):
             r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
@@ -119,8 +118,8 @@ def main():
             #    os.path.join(output, "CRISPResso_on_" + name, name + ".R1.dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
             # r2 = os.path.join(output, "CRISPResso_on_" + name, name + ".R1.dedup.fastq")
         else:
-            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R1_*")[0]
-            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R2_*")[0]
+            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
+            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
             subprocess.call("/home/ubuntu/software/miniconda3/bin/fastp -i %s -I %s -o %s -O %s --detect_adapter_for_pe "
                 "--adapter_sequence=AGATCGGAAGAGCACACGTCTGAACTCCAGTCA --adapter_sequence_r2=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" % (r1, r2,
                 os.path.join(output, "CRISPResso_on_" + name, name + ".R1.trimmed.fastq.gz"),
@@ -135,7 +134,7 @@ def main():
             os.path.join(output, "CRISPResso_on_" + name, name + ".R1.trimmed.fastq.gz"),
             os.path.join(output, "CRISPResso_on_" + name, name + ".R2.trimmed.fastq.gz"), os.path.join(output, "CRISPResso_on_" + name)),
                         stderr=job_fh, stdout=job_fh, shell=True)
-        subprocess.call("AmpUMI Process --fastq %s --fastq_out %s --umi_regex '^IIIII.*IIIII$' --write_UMI_counts --write_alleles_with_multiple_UMIs" % (
+        subprocess.call("AmpUMI Process --fastq %s --fastq_out %s --umi_regex '^IIIII.*IIIIII$' --write_UMI_counts --write_alleles_with_multiple_UMIs" % (
             os.path.join(output, "CRISPResso_on_" + name, "out.extendedFrags.fastq"),
             os.path.join(output, "CRISPResso_on_" + name, "out.dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
 

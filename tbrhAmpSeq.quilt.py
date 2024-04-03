@@ -164,10 +164,11 @@ if __name__ == "__main__":
             d["plate"] = ""
         data.append(d)
 
-    if "cargo_aligned_read_num" in data[0].keys():
-        data = pd.DataFrame(data)[cargo_cols].sort_values(["plate", "x", "y", "aaanid"])
+    data = pd.DataFrame(data)
+    if "cargo_aligned_read_num" in data:
+        data = data[cargo_cols].sort_values(["plate", "x", "y", "aaanid"])
     else:
-        data = pd.DataFrame(data)[cols].sort_values(["plate", "x", "y", "aaanid"])
+        data = data[cols].sort_values(["plate", "x", "y", "aaanid"])
     data.to_csv(os.path.join(input, "stats.csv"), index=False)
     data.to_excel(writer, sheet_name="AA", index=False, float_format="%.2f")
 
