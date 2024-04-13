@@ -468,15 +468,15 @@ def main():
             else:
                 subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s" % (
                     os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
-                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s -s %s-%s" % (
-                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2, sp1_info["5P"], sp2_info["5P"]), stderr=job_fh,
-                                stdout=job_fh, shell=True)
 
         else:
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (os.path.join(output, "CRISPResso_on_" + name), "WT"),
                             stderr=job_fh, stdout=job_fh, shell=True)
 
         if aaan_id and aaan_id.startswith("PN"):
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s -s %s-%s" % (
+                os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2, sp1_info["5P"], ng_info["5P"]), stderr=job_fh,
+                            stdout=job_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Prime-edited", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -s %s-%s" % (
@@ -486,6 +486,9 @@ def main():
                 os.path.join(output, "CRISPResso_on_" + name), "Scaffold-incorporated", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
 
         elif aaan_id and (not aaan_id.startswith("SG")) and (not aaan_id.startswith("OT")):
+            subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s -s %s-%s" % (
+                os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2, sp1_info["5P"], sp2_info["5P"]), stderr=job_fh,
+                            stdout=job_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
                 os.path.join(output, "CRISPResso_on_" + name), "Beacon", beacon_qw1), stderr=job_fh, stdout=job_fh, shell=True)
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -s %s-%s" % (
