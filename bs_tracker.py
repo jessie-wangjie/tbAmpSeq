@@ -85,7 +85,7 @@ if __name__ == '__main__':
                     # run CRISPresso2
                     os.makedirs(pipeline_run_name, exist_ok=True)
                     pd.Series(run_json).to_json(os.path.join(pipeline_run_name, "run.json"))
-                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.B2B.coordinates.py -m %s -i %s -p 8 -o %s" % (
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.py -m %s -i %s -p 8 -o %s" % (
                     s, s, pipeline_run_name), shell=True)
                     run_json = pd.read_json(os.path.join(pipeline_run_name, "run.json"), typ="series")
 

@@ -56,11 +56,11 @@ def main():
 
     # get r1 and r2 fastq
     if target_strand == "antisense" or target_strand == "-":
-        r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R2_*")[0]
-        r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R1_*")[0]
+        r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
+        r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
     else:
-        r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R1_*")[0]
-        r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R2_*")[0]
+        r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
+        r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
 
     # sample job log
     job_fh = open(os.path.join(output, name + ".job.log"), 'wb')
@@ -68,8 +68,6 @@ def main():
     # WT amplicon
     wt_amplicon = get_seq(genome_fa, chr, int(wt_start), int(wt_end), target_strand)
     amplicon_fh.write(name + "\tWT\t" + wt_amplicon + "\n")
-
-    sp1_info = {}
 
     # Beacon amplicon
     sp1_info = get_cut_site(wt_amplicon, sp1_seq)
