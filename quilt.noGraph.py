@@ -43,7 +43,8 @@ if __name__ == "__main__":
     data = {}
     writer = pd.ExcelWriter(os.path.join(input, input + ".stats.xlsx"), engine="xlsxwriter", engine_kwargs={"options": {"strings_to_numbers": True}})
 
-    cols = {"SP": ["samplename", "aaanid", "ppid", "total_read_num",
+    cols = {"WT": ["samplename", "aaanid", "ppid", "total_read_num", "merged_r1r2_read_num", "aligned_percentage", "wt_aligned_read_num"],
+            "SP": ["samplename", "aaanid", "ppid", "total_read_num",
                    "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
                    "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
                    "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
@@ -67,7 +68,12 @@ if __name__ == "__main__":
         # d["x"] = int(d["well"][1:])
         # d["y"] = d["well"][0]
         # d["plate"] = d["plate"] + " " + re.sub(".*(PRIP\d).*", "\\1", d["miseq_sample_name"])
-        type = d["aaanid"][0:2] if d["aaanid"][0:2] != "OT" else "SG"
+        if d["aaanid"] == "":
+            type = "WT"
+        elif d["aaanid"][0:2] != "OT":
+            d["aaanid"][0:2]
+        else:
+            type = "SG"
         data.setdefault(type, []).append(d)
 
     for k, v in data.items():
@@ -80,12 +86,14 @@ if __name__ == "__main__":
     qw_data = pd.DataFrame()
     for s in files:
         qw_data = pd.concat([qw_data, pd.read_csv(s, sep="\t")])
-    qw_data = qw_data[
-        ["samplename", "amplicon", "window_name", "window_region", "unmodified", "modified", "indels", "insertion", "deletion", "substitution",
-         "whole_window_deletion"]]
+    if "WT" not in data.keys():
+        qw_data = qw_data[
+            ["samplename", "amplicon", "window_name", "window_region", "unmodified", "modified", "indels", "insertion", "deletion", "substitution",
+            "whole_window_deletion"]]
     qw_data.to_csv(input + "/qw_stats.csv", index=False)
     qw_data.to_excel(writer, sheet_name="qw_stats", index=False, float_format="%.2f")
     writer.close()
+
 
     # check if the package existed
     if "AmpSeq/" + ngs_id in list(quilt3.list_packages("s3://tb-ngs-quilt/")):

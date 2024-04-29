@@ -144,7 +144,7 @@ if __name__ == "__main__":
     pipeline_run_id = args.m
     input = args.i
 
-    ngs_id = re.sub(".*(CTB\d+).*", "\\1", pipeline_run_id)
+    ngs_id = re.sub(".*(BTB\d+).*", "\\1", pipeline_run_id)
 
     # stats table
     data = []
