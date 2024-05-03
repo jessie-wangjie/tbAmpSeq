@@ -35,7 +35,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {"277932697": "TB_MISEQ_000352"}
+    current_run = {"280321116": "TB_MISEQ_000370"}
     while True:
         response = requests.get(f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=10', stream=True)
         for run in response.json().get("Items"):
