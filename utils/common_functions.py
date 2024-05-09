@@ -78,18 +78,14 @@ def get_beacon_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
     return beacon
 
 
-def get_donor_seq(seq1, sp1, seq2="", sp2=""):
+def get_donor_seq(seq1, sp1_strand, seq2="", sp2_strand=""):
     # Slides b1 across b2 to test if they match
-    seq1 = seq1.upper().replace("U", "T")
-    seq1 = seq1[0:seq1.find(reverse_complement(sp2["seq"][:-3]))]
-    donor = seq1
-    if sp1["strand"] == "-":
+    donor = seq1.upper().replace("U", "T")
+    if sp1_strand == "-":
         donor = reverse_complement(seq1)
     if seq2 != "":
-        seq2 = seq2.upper().replace("U", "T")
-        seq2 = seq2[0:seq2.find(reverse_complement(sp1["seq"][:-3]))]
-        donor2 = seq2
-        if sp2["strand"] == "-":
+        donor2 = seq2.upper().replace("U", "T")
+        if sp2_strand == "-":
             donor2 = reverse_complement(seq2)
 
         n1 = len(donor)

@@ -33,7 +33,7 @@ def send_email(run_id, samples):
 
 
 if __name__ == '__main__':
-    current_run = {}
+    current_run = {"280357168": "TB_MISEQ_000371"}
     while True:
         response = requests.get(f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=10', stream=True)
         for run in response.json().get("Items"):
@@ -49,7 +49,7 @@ if __name__ == '__main__':
                 run_json = {"bsrunid": run["V1Pre3Id"], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
 
                 response = requests.get(
-                    f'{bs_api_server}/datasets?InputRuns={run["V1Pre3Id"]}&access_token={bs_access_token}&limit=1000', stream=True)
+                    f'{bs_api_server}/datasets?InputRuns={run["V1Pre3Id"]}&access_token={bs_access_token}&limit=2048', stream=True)
                 for item in response.json().get("Items"):
                     project = item.get("Project").get("Name")
                     if project != "Unindexed Reads":
@@ -126,7 +126,6 @@ if __name__ == '__main__':
 
                     # backup the data to S3
                     subprocess.call("aws s3 sync %s s3://tb-ngs-raw/MiSeq/%s --quiet " % (s, s), shell=True)
-                    # subprocess.call("aws s3 --profile=jwang sync %s s3://tb-ngs-quilt/%s/fastq/ --quiet" % (s, ngs_id), shell=True)
                     subprocess.call("aws s3 sync %s s3://tb-ngs-analysis/%s --quiet" % (pipeline_run_name, pipeline_run_name), shell=True)
 
         time.sleep(3600)
