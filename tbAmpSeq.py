@@ -324,6 +324,9 @@ def main():
                 beacon_amplicon = read_ref_cs2(os.path.join(output, "CRISPResso_on_" + name), "Prime-edited")
 
                 # Beacon amplicon, ngRNA cutting 2bp
+                if not beacon_amplicon:
+                    continue
+
                 ng_info_beacon = get_cut_site(beacon_amplicon, ng_seq)
                 beacon_qw4 = "Prime-edited:ng_cut:" + str(ng_info_beacon["cut"]) + "-" + str(ng_info_beacon["cut"] + 1) + ":0"
 
