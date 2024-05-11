@@ -317,7 +317,7 @@ def main():
                     "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 "
                     "--trim_sequences --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
                     "--name %s --output_folder %s  --place_report_in_output_folder --n_processes %s --suppress_report %s " % (
-                        r1, r2, wt_amplicon, sp1_info["seq"], rt_seq + pbs_seq, scaffold_seq, "", name, output, ncpu, cs2), stderr=job_fh,
+                        r1, r2, wt_amplicon, sp1_info["seq"], rt_seq + pbs_seq, scaffold_seq, ng_seq, name, output, ncpu, cs2), stderr=job_fh,
                     stdout=job_fh, shell=True)
 
                 # Beacon amplicon, ngRNA cutting 2bp
@@ -459,7 +459,7 @@ def main():
                         "join dna_oligo as sp on sp.id = lmgrna.spacer "
                         "join rna_oligo as donor on donor.id = lmgrna.dna_donor "
                         "left join dna_oligo as ng on ng.id = ngrna.spacer "
-                        "join registry_entity as spp on spp.id = lmg_ng.spacer_pair "
+                        "left join registry_entity as spp on spp.id = lmg_ng.spacer_pair "
                         "where lmg_ng.file_registry_id$ = %s", [aaan_id])
             sp_seq, donor_seq, ng_seq, lha_edit_rha, cs2_stats["spp_id"] = cur.fetchone()
             sp1_info = get_cut_site(wt_amplicon, sp_seq)
