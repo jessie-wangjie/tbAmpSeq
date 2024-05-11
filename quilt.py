@@ -6,7 +6,6 @@ import altair as alt
 import pandas as pd
 import quilt3
 import re
-import os
 import json
 from utils.base import *
 
@@ -27,7 +26,9 @@ def platemap(data):
     # prepare the data for plotting
     cols = {
         "AA": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "beacon_placement_percentage"],
+        "AN": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "beacon_placement_percentage"],
         "LM": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "beacon_placement_percentage"],
+        "LN": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "beacon_placement_percentage"],
         "SG": ["plate", "x", "y", "samplename", "aaanid", "ppid", "wt_aligned_read_num", "aligned_percentage", "indel_percentage"],
         "PN": ["plate", "x", "y", "samplename", "aaanid", "ppid", "total_aligned_read_num", "aligned_percentage", "PE_percentage"]}
 
@@ -52,7 +53,7 @@ def platemap(data):
         y=alt.Y("y:O"),
         text=alt.Text("edit_percentage:Q", format=".0f"),
         tooltip=[alt.Tooltip("samplename", title="Sample name"),
-                 alt.Tooltip("aaanid", title="AA/AN/SG/PN id"),
+                 alt.Tooltip("aaanid", title="AA/AN/SG/PN/LMLM/LN id"),
                  alt.Tooltip("ppid", title="PP id"),
                  alt.Tooltip("total_aligned_read_num", title="Total aligned reads"),
                  alt.Tooltip("aligned_percentage", title="Aligned %")])
@@ -65,7 +66,7 @@ def fidelitymap(data):
     # prepare the data for plotting
     d = pd.DataFrame()
     for k, v in data.items():
-        if k != "AA" and k != "LM":
+        if k != "AA" and k != "LM" and k != "LN" and k != "AN":
             continue
         v = pd.DataFrame(v)
         v.insert(0, "type", k)
@@ -84,7 +85,7 @@ def fidelitymap(data):
         y=alt.Y("y:O"),
         text=alt.Text("beacon_fidelity:Q", format=".0f"),
         tooltip=[alt.Tooltip("samplename", title="Sample name"),
-                 alt.Tooltip("aaanid", title="AA/AN/SG/PN id"),
+                 alt.Tooltip("aaanid", title="AA/AN/SG/PN/LMLM/LN id"),
                  alt.Tooltip("perfect_beacon_percent", title="Perfect BP %")])
 
     chart = alt.layer(bp, text).facet(row=alt.Row("plate:O").title(""))
@@ -94,7 +95,11 @@ def fidelitymap(data):
 def barstats(data):
     cols = {"AA": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "beacon_aligned_read_num",
                    "beacon_indel_read_num"],
+            "AN": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "beacon_aligned_read_num",
+                   "beacon_indel_read_num"],
             "LM": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "beacon_aligned_read_num",
+                   "beacon_indel_read_num"],
+            "LN": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "beacon_aligned_read_num",
                    "beacon_indel_read_num"],
             "SG": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "indel_read_num"],
             "PN": ["plate", "x", "y", "total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "PE_aligned_read_num", "PE_indel_read_num"]}
@@ -102,7 +107,7 @@ def barstats(data):
     d = pd.DataFrame(columns=["x", "y", "Variable", "Value"])
     for k, v in data.items():
         v = pd.DataFrame(v)[cols[k]]
-        if k == "AA" or k == "LM":
+        if k == "AA" or k == "LM" or k == "LN":
             v["perfect_beacon_read_num"] = v["beacon_aligned_read_num"] - v["beacon_indel_read_num"]
             v = pd.melt(v, id_vars=["plate", "x", "y"],
                         value_vars=["total_read_num", "merged_r1r2_read_num", "wt_aligned_read_num", "perfect_beacon_read_num",
@@ -119,8 +124,8 @@ def barstats(data):
         "perfect_wt_read_num": "aligned_read_num", "indel_read_num": "aligned_read_num"})
 
     legend_labels = {"total_read_num": "Total reads", "merged_r1r2_read_num": "Total merged reads",
-                     "wt_aligned_read_num": "AA/AN: WT", "perfect_beacon_read_num": "AA/AN: Perfect Beacon",
-                     "beacon_indel_read_num": "AA/AN: Imperfect Beacon",
+                     "wt_aligned_read_num": "AA/AN/LMLM/LN: WT", "perfect_beacon_read_num": "AA/AN/LMLM/LN: Perfect Beacon",
+                     "beacon_indel_read_num": "AA/AN/LMLM/LN: Imperfect Beacon",
                      "perfect_wt_read_num": "SG: Perfect WT", "indel_read_num": "SG: Indels"}
     d["Legend"] = d["Variable"].map(legend_labels)
 
@@ -130,8 +135,8 @@ def barstats(data):
         alt.Y("Value:Q").title(""),
         alt.XOffset("Stacked_Variable:O").sort(["total_read_num", "merged_r1r2_read_num", "aligned_read_num"]),
         alt.Color("Legend:N").scale(
-            domain=["Total reads", "Total merged reads", "SG: Perfect WT", "SG: Indels", "AA/AN: WT", "AA/AN: Imperfect Beacon",
-                    "AA/AN: Perfect Beacon"]))
+            domain=["Total reads", "Total merged reads", "SG: Perfect WT", "SG: Indels", "AA/AN/LMLM/LN: WT", "AA/AN/LMLM/LN: Imperfect Beacon",
+                    "AA/AN/LMLM/LN: Perfect Beacon"]))
     chart = bar.facet(row=alt.Row("y:O").title(""), column=alt.Column("plate:O").title(""), spacing=10)
     return chart
 
@@ -165,6 +170,16 @@ if __name__ == "__main__":
                    "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
                    "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
                    "beacon_fidelity", "beacon_fwd_fidelity", "beacon_rev_fidelity", "beacon_fidelity_1mm", "beacon_fidelity_2mm"],
+            "LN": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "pp_set", "spp_id",
+                   "total_read_num", "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
+                   "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
+                   "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
+                   "beacon_fidelity", "beacon_fidelity_1mm", "beacon_fidelity_2mm"],
+            "AN": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "pp_set", "spp_id",
+                   "total_read_num", "merged_r1r2_read_num", "total_aligned_read_num", "aligned_percentage", "wt_aligned_read_num",
+                   "beacon_aligned_read_num", "beacon_indel_read_num", "beacon_sub_read_num", "beacon_indel_percentage",
+                   "beacon_sub_percentage", "wt_aligned_percentage", "beacon_placement_percentage", "perfect_beacon_percent",
+                   "beacon_fidelity", "beacon_fidelity_1mm", "beacon_fidelity_2mm"],
             "SG": ["plate", "x", "y", "well", "animal_group", "samplename", "miseq_sample_name", "aaanid", "ppid", "total_read_num",
                    "merged_r1r2_read_num", "aligned_percentage", "wt_aligned_read_num", "indel_read_num", "sub_read_num",
                    "indel_percentage"],
@@ -195,7 +210,7 @@ if __name__ == "__main__":
     chart = platemap(data)
 
     # draw beacon fidelity plot
-    if "AA" in data or "LM" in data:
+    if "AA" in data or "LM" in data or "LN" in data:
         chart = alt.hconcat(chart, fidelitymap(data)).resolve_scale(color="independent", shape="independent")
     chart.save(os.path.join(input, "platemap.json"))
 
