@@ -562,12 +562,12 @@ def main():
                     subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -s %s-%s" % (
                         os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, sp1_info["5P"], sp1_info["3P"] + 3), stderr=job_fh,
                                     stdout=job_fh, shell=True)
-            elif (aaan_id.startswith("LN") or aaan_id.startswith("PN") or  aaan_id.startswith("AN")) and ng_seq:
-                    subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s" % (
-                        os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
+            elif (aaan_id.startswith("LN") or aaan_id.startswith("PN") or aaan_id.startswith("AN")) and (not ng_seq):
+                    subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
+                        os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
             else:
-                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s" % (
-                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1), stderr=job_fh, stdout=job_fh, shell=True)
+                subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s -b %s -b %s" % (
+                    os.path.join(output, "CRISPResso_on_" + name), "WT", wt_qw1, wt_qw2), stderr=job_fh, stdout=job_fh, shell=True)
 
         else:
             subprocess.call("python /home/ubuntu/bin/tbOnT/utils/allele2html.py -f %s -r %s" % (os.path.join(output, "CRISPResso_on_" + name), "WT"),
