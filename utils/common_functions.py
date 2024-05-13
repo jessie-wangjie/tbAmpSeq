@@ -38,12 +38,13 @@ def get_cut_site(seq, guide, offset=3):
     # cut is always the left of the cutting site
     guide = guide.upper().replace("U", "T")
     seq = seq.upper()
+    p5, p3, cut, guide_strand = 0, 0, 0, ""
     if guide in seq:
         p5 = seq.find(guide) + 1
         p3 = p5 + len(guide) - 1
         cut = p3 - offset
         guide_strand = "+"
-    else:
+    elif reverse_complement(guide) in seq:
         p3 = seq.find(reverse_complement(guide)) + 1
         p5 = p3 + len(guide) - 1
         cut = p3 - 1 + offset
