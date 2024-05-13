@@ -61,7 +61,7 @@ if __name__ == '__main__':
                 benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():
                     # check if it's Ampseq data
-                    if "BTB474" not in s:
+                    if "BTB" not in s:
                         continue
 
                     # change status of NGS tracking entity to sequencing complete
@@ -69,7 +69,7 @@ if __name__ == '__main__':
                     entity = benchling.custom_entities.list(name=ngs_id)
                     ngs_name = entity.first()
                     update = CustomEntityUpdate(fields=fields({"job status": {"value": "sfso_6aKzgWvN"}}))
-                    updated_entity = benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
+                    benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
 
                     # check if the pipeline result entity exists
                     entity = benchling.custom_entities.list(name_includes=s, sort="name:desc")
@@ -85,8 +85,12 @@ if __name__ == '__main__':
                     # run CRISPresso2
                     os.makedirs(pipeline_run_name, exist_ok=True)
                     pd.Series(run_json).to_json(os.path.join(pipeline_run_name, "run.json"))
-                    subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.py -m %s -i %s -p 8 -o %s" % (
-                    s, s, pipeline_run_name), shell=True)
+                    if ngs_name.fields.get("NGS assay").text_value == "rhAmpSeq":
+                        subprocess.call("python /home/ubuntu/bin/tbOnT/tbrhAmpSeq.py -m %s -i %s -p 8 -o %s" % (
+                            s, s, pipeline_run_name), shell=True)
+                    else:
+                        subprocess.call("python /home/ubuntu/bin/tbOnT/tbAmpSeq.py -m %s -i %s -p 8 -o %s" % (
+                            s, s, pipeline_run_name), shell=True)
                     run_json = pd.read_json(os.path.join(pipeline_run_name, "run.json"), typ="series")
 
                     # get tbAmpseq commit id
@@ -112,17 +116,22 @@ if __name__ == '__main__':
                         pass
                     else:
                         update = CustomEntityUpdate(fields=fields({"ELN entry": {"value": run_json["project_name"]}}))
-                        updated_entity = benchling.custom_entities.update(entity_id=pipeline_run_entity, entity=update)
+                        benchling.custom_entities.update(entity_id=pipeline_run_entity, entity=update)
 
                     # push the data to quilt
-                    p = subprocess.Popen(
-                        "python /home/ubuntu/bin/tbOnT/quilt.py -m %s -i %s" % (pipeline_run_name, pipeline_run_name),
-                        stdout=subprocess.PIPE, shell=True)
+                    if ngs_name.fields.get("NGS assay").text_value == "rhAmpSeq":
+                        p = subprocess.Popen(
+                            "python /home/ubuntu/bin/tbOnT/tbrhAmpSeq.quilt.py -m %s -i %s" % (pipeline_run_name, pipeline_run_name),
+                            stdout=subprocess.PIPE, shell=True)
+                    else:
+                        p = subprocess.Popen(
+                            "python /home/ubuntu/bin/tbOnT/quilt.py -m %s -i %s" % (pipeline_run_name, pipeline_run_name),
+                            stdout=subprocess.PIPE, shell=True)
                     quilt_link = p.communicate()[0].decode('utf-8').rstrip()
                     if quilt_link:
                         update = CustomEntityUpdate(fields=fields({"analysis result URL link": {"value": quilt_link},
                                                                    "job status": {"value": "sfso_NSDzT3ki"}}))
-                        updated_entity = benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
+                        benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
 
                     # backup the data to S3
                     subprocess.call("aws s3 sync %s s3://tb-ngs-raw/MiSeq/%s --quiet " % (s, s), shell=True)
