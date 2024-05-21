@@ -31,11 +31,28 @@ def send_email(run_id, samples):
     except Exception as exception:
         print("Error: %s!\n\n" % exception)
 
+def send_email_bcb(project_name, project_id, email):
+    msg = EmailMessage()
+    msg["To"] = ['jwang@tome.bio', email] if email else ['jwang@tome.bio']
+    msg["From"] = 'bfx@tome.bio'
+    msg["Subject"] = f'{project_name} sequencing is finished.'
+    msg.set_content(f'Basespace project_id for {project_name} is {project_id}.')
+
+    try:
+        server = smtplib.SMTP('email-smtp.us-east-1.amazonaws.com', 587)
+        server.ehlo()
+        server.starttls()
+        server.login(aws_ses_id, aws_ses_password)
+        server.send_message(msg)
+        print("Successfully sent email")
+    except Exception as exception:
+        print("Error: %s!\n\n" % exception)
+
 
 if __name__ == '__main__':
     current_run = {}
     while True:
-        response = requests.get(f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=10', stream=True)
+        response = requests.get(f'{bs_api_server}/runs?access_token={bs_access_token}&sortby=DateCreated&SortDir=Desc&limit=5', stream=True)
         for run in response.json().get("Items"):
             samples = {}
             if run["Status"] != "Complete" and run["Status"] != "Failed" and run["Status"] != "Needs Attention":
@@ -43,7 +60,6 @@ if __name__ == '__main__':
                 print(current_run)
             elif run["V1Pre3Id"] in current_run:
                 # store the runinfo and stats
-                print(current_run)
                 response = requests.get(
                     f'{bs_api_server}/runs/{run["V1Pre3Id"]}/sequencingstats?access_token={bs_access_token}', stream=True)
                 run_json = {"bsrunid": run["V1Pre3Id"], "q30_percentage": format(response.json().get("PercentGtQ30"), ".2f")}
@@ -56,20 +72,32 @@ if __name__ == '__main__':
                         samples[project] = item.get("Project").get("Id")
 
                 send_email(run["ExperimentName"], samples.keys())
+                subprocess.call("python /home/ubuntu/bin/tbOnT/update_SRTB.py --srtb %s" % (run["V1Pre3Id"]), shell=True)
                 del current_run[run["V1Pre3Id"]]
 
                 benchling = Benchling(url=api_url, auth_method=ApiKeyAuth(api_key))
                 for s, id in samples.items():
-                    # check if it's Ampseq data
-                    if "BTB" not in s:
-                        continue
 
-                    # change status of NGS tracking entity to sequencing complete
-                    ngs_id = re.sub(".*(BTB\d+).*", "\\1", s)
+                    # Query BTB or CTB entity
+                    ngs_id = re.sub(".*([C|B]TB\d+).*", "\\1", s)
                     entity = benchling.custom_entities.list(name=ngs_id)
                     ngs_name = entity.first()
-                    update = CustomEntityUpdate(fields=fields({"job status": {"value": "sfso_6aKzgWvN"}}))
-                    benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
+
+                    # change status of entity to sequencing complete or data analysis
+                    if "BTB" in s:
+                        update = CustomEntityUpdate(fields=fields({"job status": {"value": "sfso_6aKzgWvN"}}))
+                        benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
+                    elif "CTB" in s:
+                        update = CustomEntityUpdate(fields=fields({"Status": {"value": "sfso_3jyKGSJ6"}}))
+                        benchling.custom_entities.update(entity_id=ngs_name.id, entity=update)
+
+                        # send email to the BCB person
+                        bcb_email = ngs_name.fields.get("Bioinformatician (email)").text_value
+                        send_email_bcb(s, id, bcb_email)
+
+                    # only process BTB project
+                    if "BTB" not in s:
+                        continue
 
                     # check if the pipeline result entity exists
                     entity = benchling.custom_entities.list(name_includes=s, sort="name:desc")
