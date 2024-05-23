@@ -9,7 +9,7 @@ from benchling_sdk.helpers.serialization_helpers import fields
 from benchling_api_client.models.naming_strategy import NamingStrategy
 
 
-def update_srtb(id):
+def update_srtb(run_id):
 
     basic_keys = ['Name', 'ExperimentName', 'Status', 'DateCreated', 'DateModified', 'FlowcellBarcode', 'ReagentBarcode']
     instrument_keys = ['Name', 'Type']
@@ -28,11 +28,11 @@ def update_srtb(id):
                       'ClusterDensity', 'PercentLoadingConcentration']
 
     # run link
-    json_entity = {"Link": {"value": "https://basespace.illumina.com/run/" + id},
-                   "V1Pre3Id": {"value": int(id)}, "Projects": {"value": []}}
+    json_entity = {"Link": {"value": "https://basespace.illumina.com/run/" + run_id},
+                   "V1Pre3Id": {"value": int(run_id)}, "Projects": {"value": []}}
 
     # get run basic info
-    response = requests.get(f'{bs_api_server}/runs/{id}?access_token={bs_access_token}', stream=True)
+    response = requests.get(f'{bs_api_server}/runs/{run_id}?access_token={bs_access_token}', stream=True)
     run = response.json()
 
     for k in basic_keys:
@@ -43,12 +43,12 @@ def update_srtb(id):
         json_entity["Instrument" + k] = {"value": run["Instrument"].get(k, '')}
 
     # get run stats
-    stats = requests.get(f'{bs_api_server}/runs/{id}/sequencingstats?access_token={bs_access_token}', stream=True)
+    stats = requests.get(f'{bs_api_server}/runs/{run_id}/sequencingstats?access_token={bs_access_token}', stream=True)
     for k in benchling_keys:
         json_entity[k] = {"value": str(stats.json().get(k, ''))}
 
     # get projects in each run
-    dataset = requests.get(f'{bs_api_server}/datasets?InputRuns={id}&access_token={bs_access_token}&limit=2048', stream=True)
+    dataset = requests.get(f'{bs_api_server}/datasets?InputRuns={run_id}&access_token={bs_access_token}&limit=2048', stream=True)
     samples = {}
     for item in dataset.json().get("Items"):
         project = item.get("Project").get("Name")
@@ -69,14 +69,14 @@ def update_srtb(id):
             run_project[tb_entity.id] = id
 
     # create or update run entity
-    entity_name = run["ExperimentName"] + "_" + run["V1Pre3Id"]
+    entity_name = run["ExperimentName"] + "_" + run_id
     run_entities = benchling.custom_entities.list(name=entity_name)
     if run_entities.estimated_count > 0:
         run_entity = run_entities.first()
         update_fields = CustomEntityUpdate(fields=fields(json_entity))
         benchling.custom_entities.update(entity_id=run_entity.id, entity=update_fields)
     else:
-        entity = CustomEntityCreate(schema_id=schema_id, folder_id=folder_id, registry_id=registry_id,
+        entity = CustomEntityCreate(schema_id=srtb_schema_id, folder_id=srtb_folder_id, registry_id=registry_id,
                                     naming_strategy=NamingStrategy.NEW_IDS, name=entity_name,
                                     fields=fields(json_entity))
         run_entity = benchling.custom_entities.create(entity)
