@@ -83,7 +83,7 @@ def main():
         os.makedirs(os.path.join(output, "CRISPResso_on_" + name), exist_ok=True)
 
         # skip if no sample name or no fastq
-        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "*_R1_*")) == 0:
+        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
             cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
             pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
             continue
@@ -105,47 +105,35 @@ def main():
 
         # sample job log
         job_fh = open(os.path.join(output, name + ".job.log"), 'wb')
+
+        r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
+        r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
+
+        # extract UMIs
+        subprocess.call("umi_tools extract -I %s --read2-in %s --umi-separator ':' -S %s --read2-out %s --extract-method regex "
+                        "--bc-pattern '^(?P<umi_1>[CGT][AGT][CG][AT][ACG])' --bc-pattern2 '^(?P<umi_2>[ACGT][CGT][AT][CG][AGT][ACG])'"
+                        % (r1, r2, os.path.join(output, "CRISPResso_on_" + name, "R1.umi.fastq"),
+                           os.path.join(output, "CRISPResso_on_" + name, "R2.umi.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
+
+        # remove the tailing of the read name
+        subprocess.call("sed -e 's/ 1:N:0.*//' %s | gzip - > %s" % (
+            os.path.join(output, "CRISPResso_on_" + name, "R1.umi.fastq"),
+            os.path.join(output, "CRISPResso_on_" + name, "R1.umi.fastq.gz")), stderr=job_fh, stdout=job_fh, shell=True)
+        subprocess.call("sed -e 's/ 2:N:0.*//' %s | gzip - > %s" % (
+            os.path.join(output, "CRISPResso_on_" + name, "R2.umi.fastq"),
+            os.path.join(output, "CRISPResso_on_" + name, "R2.umi.fastq.gz")), stderr=job_fh, stdout=job_fh, shell=True)
+
         # get r1 and r2 fastq
         if (target_strand == "antisense" or target_strand == "-") and (p1_start < p2_start):
-            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R2_*")[0]
-            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R1_*")[0]
-            subprocess.call("/home/ubuntu/software/miniconda3/bin/fastp -i %s -I %s -o %s -O %s --detect_adapter_for_pe --umi_loc read2 --umi_len 11" % (r1, r2,
-                os.path.join(output, "CRISPResso_on_" + name, name + ".R1.trimmed.fastq.gz"),
-                os.path.join(output, "CRISPResso_on_" + name, name + ".R2.trimmed.fastq.gz")), stderr=job_fh, stdout=job_fh, shell=True)
-            # subprocess.call("gunzip %s -c %s" % (r2, os.path.join(output, "CRISPResso_on_" + name, name + ".R1.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
-            # subprocess.call("AmpUMI Process -fastq %s -fastq_out %s - -umi_regex '^IIIIIIIIIII' --write_UMI_counts" % (
-            #    os.path.join(output, "CRISPResso_on_" + name, name + ".R1.fastq"),
-            #    os.path.join(output, "CRISPResso_on_" + name, name + ".R1.dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
-            # r2 = os.path.join(output, "CRISPResso_on_" + name, name + ".R1.dedup.fastq")
+            r1 = os.path.join(output, "CRISPResso_on_" + name, "R2.umi.fastq.gz")
+            r2 = os.path.join(output, "CRISPResso_on_" + name, "R1.umi.fastq.gz")
         else:
-            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R1_*")[0]
-            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "*_R2_*")[0]
-            subprocess.call("/home/ubuntu/software/miniconda3/bin/fastp -i %s -I %s -o %s -O %s --detect_adapter_for_pe "
-                "--adapter_sequence=AGATCGGAAGAGCACACGTCTGAACTCCAGTCA --adapter_sequence_r2=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" % (r1, r2,
-                os.path.join(output, "CRISPResso_on_" + name, name + ".R1.trimmed.fastq.gz"),
-                os.path.join(output, "CRISPResso_on_" + name, name + ".R2.trimmed.fastq.gz")), stderr=job_fh, stdout=job_fh, shell=True)
-            # subprocess.call("gunzip %s -c > %s" % (r1, os.path.join(output, "CRISPResso_on_" + name, name + ".R1.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
-            # subprocess.call("AmpUMI Process --fastq %s --fastq_out %s --umi_regex '^IIIIIIIIIII' --write_UMI_counts --write_alleles_with_multiple_UMIs" % (
-            #     os.path.join(output, "CRISPResso_on_" + name, name + ".R1.fastq"),
-            #    os.path.join(output, "CRISPResso_on_" + name, name + ".R1.dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
-            # r1 = os.path.join(output, "CRISPResso_on_" + name, name + ".R1.dedup.fastq")
-
-        subprocess.call("flash %s %s --min-overlap 10 --max-overlap 100 --allow-outies -d %s" % (
-            os.path.join(output, "CRISPResso_on_" + name, name + ".R1.trimmed.fastq.gz"),
-            os.path.join(output, "CRISPResso_on_" + name, name + ".R2.trimmed.fastq.gz"), os.path.join(output, "CRISPResso_on_" + name)),
-                        stderr=job_fh, stdout=job_fh, shell=True)
-        subprocess.call("AmpUMI Process --fastq %s --fastq_out %s --umi_regex '^IIIII.*IIIII$' --write_UMI_counts --write_alleles_with_multiple_UMIs" % (
-            os.path.join(output, "CRISPResso_on_" + name, "out.extendedFrags.fastq"),
-            os.path.join(output, "CRISPResso_on_" + name, "out.dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
+            r1 = os.path.join(output, "CRISPResso_on_" + name, "R1.umi.fastq.gz")
+            r2 = os.path.join(output, "CRISPResso_on_" + name, "R2.umi.fastq.gz")
 
         # WT amplicon
         wt_amplicon = get_seq(genome_fa, chr, wt_start, wt_end, target_strand)
 
-        read_length = CRISPRessoCORE.get_avg_read_length_fastq(r1)
-        if len(wt_amplicon) > read_length * 2 - 4:
-            cs2 = "--force_merge_pairs "
-        elif len(wt_amplicon) >= read_length * 2 - 9 and len(wt_amplicon) <= read_length * 2 - 4:
-            cs2 = "--stringent_flash_merging "
         amplicon_fh.write(name + "\tWT\t" + wt_amplicon + "\n")
 
         sp1_info = {}
@@ -264,12 +252,31 @@ def main():
             beacon_qw3 = "Beacon:beacon_rev:" + str(sp1_info["cut"] + len(beacon) - len(beacon2_seq) + 1) + "-" + str(
                 sp1_info["cut"] + len(beacon)) + ":10"
 
+            # 1st align
             subprocess.call(
-                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --name %s --output_folder %s "
+                "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --name %s --output_folder %s "
                 "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 "
                 "--trim_sequences  --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
                 "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
-                    os.path.join(output, "CRISPResso_on_" + name, "out.dedup.fastq"), wt_amplicon + "," + beacon_amplicon,
+                    r1, r2, wt_amplicon + "," + beacon_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output, ncpu, cs2),
+                stderr=job_fh, stdout=job_fh, shell=True)
+
+            # dedup
+            subprocess.call("umi_tools dedup --umi-separator ':' --method unique -I %s -S %s" % (
+                os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.bam"),
+                os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.dedup.bam")), stderr=job_fh, stdout=job_fh, shell=True)
+
+            # extract dedup reads
+            subprocess.call("samtools fastq %s > %s" % (
+                os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_output.dedup.bam"),
+                os.path.join(output, "CRISPResso_on_" + name, "dedup.fastq")), stderr=job_fh, stdout=job_fh, shell=True)
+
+            # 2nd align
+            subprocess.call(
+                "CRISPResso --fastq_r1 %s --amplicon_seq %s --amplicon_name WT,Beacon --guide_seq %s --name %s --output_folder %s "
+                "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 "
+                "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
+                    os.path.join(output, "CRISPResso_on_" + name, "dedup.fastq"), wt_amplicon + "," + beacon_amplicon,
                     sp1_info["seq"] + "," + sp2_info["seq"], name, output, ncpu, cs2), stderr=job_fh, stdout=job_fh, shell=True)
 
             cs2_stats.update(

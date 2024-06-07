@@ -149,11 +149,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     pipeline_run_id = args.m
     input = args.i
-    ngs_id = re.sub(".*(BTB\d+).*", "\\1", pipeline_run_id)
-    cur.execute("select entry.name, entry.url from ngs_tracking "
-                "join registration_origin on registration_origin.entity_id = ngs_tracking.id "
+    ngs_id = re.sub(".*([C|B]TB\d+).*", "\\1", pipeline_run_id)
+    cur.execute("select entry.name, entry.url from registry_entity "
+                "join registration_origin on registration_origin.entity_id = registry_entity.id "
                 "join entry on entry.id = registration_origin.origin_entry_id "
-                "where file_registry_id$ = %s", [ngs_id])
+                "where registry_entity.file_registry_id = %s", [ngs_id])
     entry_name, entry_url = cur.fetchone()
 
     # stats table
