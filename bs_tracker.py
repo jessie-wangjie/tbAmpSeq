@@ -163,6 +163,6 @@ if __name__ == '__main__':
 
                     # backup the data to S3
                     subprocess.call("aws s3 sync %s s3://tb-ngs-raw/MiSeq/%s --quiet " % (s, s), shell=True)
-                    subprocess.call("aws s3 sync %s s3://tb-ngs-analysis/%s --quiet" % (pipeline_run_name, pipeline_run_name), shell=True)
+                    subprocess.call("aws s3 sync %s s3://tb-ngs-analysis/Ampseq/%s --quiet" % (pipeline_run_name, pipeline_run_name), shell=True)
 
         time.sleep(3600)
