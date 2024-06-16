@@ -132,12 +132,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     pipeline_run_id = args.m
     input = args.i
-    ngs_id = re.sub(".*(BTB\d+).*", "\\1", pipeline_run_id)
-    cur.execute("select entry.name, entry.url from ngs_tracking "
-                "join registration_origin on registration_origin.entity_id = ngs_tracking.id "
-                "join entry on entry.id = registration_origin.origin_entry_id "
-                "where file_registry_id$ = %s", [ngs_id])
-    entry_name, entry_url = cur.fetchone()
+    ngs_id = re.sub(".*([B|C]TB\d+).*", "\\1", pipeline_run_id)
+    # cur.execute("select entry.name, entry.url from ngs_tracking "
+    #             "join registration_origin on registration_origin.entity_id = ngs_tracking.id "
+    #             "join entry on entry.id = registration_origin.origin_entry_id "
+    #             "where file_registry_id$ = %s", [ngs_id])
+    # entry_name, entry_url = cur.fetchone()
 
     # stats table
     data = []
@@ -198,7 +198,7 @@ if __name__ == "__main__":
 
     # create report.html
     subprocess.call("cp /home/ubuntu/bin/tbOnT/report.template.ipynb %s" % (input), shell=True)
-    subprocess.call("/home/ubuntu/software/miniconda3/bin/jupyter nbconvert --execute --to html %s --output report --no-input" % (
+    subprocess.call("jupyter nbconvert --execute --to html %s --output report --no-input" % (
         os.path.join(input, "report.template.ipynb")), shell=True)
 
     # check if the package existed
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     p.set(pipeline_run_id + "/status.txt", input + "/" + "status.txt")
     p.set(pipeline_run_id + "/report.html", input + "/" + "report.html")
     p.set_dir(pipeline_run_id + "/cs2_alignment_html", input + "/cs2_alignment_html/")
-    p.set_meta({"Benchling Entry": entry_name, "Benchling URL": entry_url})
+    # p.set_meta({"Benchling Entry": entry_name, "Benchling URL": entry_url})
     pd.Series(preview).to_json(input + "/quilt_summarize.json", orient="records")
     p.set(pipeline_run_id + "/quilt_summarize.json", input + "/quilt_summarize.json")
 

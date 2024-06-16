@@ -43,13 +43,16 @@ def main():
         ngs_stats = pd.read_json(os.path.join(output, "run.json"), typ="series")
     else:
         ngs_stats = pd.Series(dtype="object")
-    ngs_id = re.sub(".*(BTB\d+).*", "\\1", tbid)
-    cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s", [ngs_id])
+    ngs_id = re.sub(".*([B|C]TB\d+).*", "\\1", tbid)
+    cur.execute("select id, name, email, eln_id from ngs_tracking where file_registry_id$ = %s "
+                "union "
+                "select id, project_owner, email, sequencing_run_id from custom_tracking where file_registry_id$ = %s", [ngs_id, ngs_id])
     ngs_stats["ngs_tracking"], ngs_stats["experimenter"], ngs_stats["email"], ngs_stats["project_name"] = cur.fetchone()
 
     # Query sample metasheet information for BTB
     cur.execute("select miseq_sample_name, aa1.file_registry_id, pp1.file_registry_id, aa2.file_registry_id, pp2.file_registry_id, "
                 "aa3.file_registry_id, pp3.file_registry_id, aa4.file_registry_id, pp4.file_registry_id, "
+                "aa5.file_registry_id, pp5.file_registry_id, aa6.file_registry_id, pp6.file_registry_id,"
                 "sample_name, plate, well_position from ampseq_sample_metasheet_v2$raw "
                 "left join registry_entity as aa1 on aa1.id = aaanpnsg_id "
                 "left join registry_entity as pp1 on pp1.id = pp_id "
@@ -59,6 +62,10 @@ def main():
                 "left join registry_entity as pp3 on pp3.id = pp_id_3 "
                 "left join registry_entity as aa4 on aa4.id = payload_id "
                 "left join registry_entity as pp4 on pp4.id = pgi_pp_id "
+                "left join registry_entity as aa5 on aa5.id = payload_id_2 "
+                "left join registry_entity as pp5 on pp5.id = pgi_pp_id_2 "
+                "left join registry_entity as aa6 on aa6.id = payload_id_3 "
+                "left join registry_entity as pp6 on pp6.id = pgi_pp_id_3 "
                 "where genomics_ampseq_project_queue = %s", [tbid])
 
     if cur.rowcount == 0:
@@ -66,7 +73,8 @@ def main():
 
     for record in cur.fetchall():
         meta_stats = {}
-        sample_name, aaan_id, pp_id, aa2, pp2, aa3, pp3, payload_id, pgi_pp_id, meta_stats["samplename"], meta_stats["plate"], meta_stats["well"] = record
+        sample_name, aaan_id, pp_id, aa2, pp2, aa3, pp3, payload_id, pgi_pp_id, payload_id_2, pgi_pp_id_2, payload_id_3, pgi_pp_id_3, \
+        meta_stats["samplename"], meta_stats["plate"], meta_stats["well"] = record
         meta_stats["miseq_sample_name"] = sample_name
         meta_stats["genomics_ampseq_project_queue"] = tbid
 
@@ -86,10 +94,10 @@ def main():
             continue
 
         # run all AAs
-        aa_list = [[aaan_id, pp_id], [aa2, pp2], [aa3, pp3]]
-        for aa, pp in aa_list:
+        aa_list = [[aaan_id, pp_id, payload_id, pgi_pp_id], [aa2, pp2, payload_id_2, pgi_pp_id_2], [aa3, pp3, payload_id_3, pgi_pp_id_3]]
+        for aa, pp, payload, pgi_pp in aa_list:
             cs2_stats = {}
-            print([sample_name, aa, pp])
+            print([sample_name, aa, pp, payload, pgi_pp])
 
             # Get primer information
             cur.execute(
@@ -170,12 +178,12 @@ def main():
                 sp1_info["cut"] + len(beacon)) + ":10"
 
             # run cargo amplicon
-            if payload_id and pgi_pp_id and aa == aaan_id:
+            if payload and pgi_pp:
                 # Get primer information
                 cur.execute("select p1.id, p1.genome, p2.id, p2.genome from primer_pair "
                             "join primer as p1 on p1.id = primer_pair.forward_primer "
                             "join primer as p2 on p2.id = primer_pair.reverse_primer "
-                            "where primer_pair.file_registry_id$ = %s", [pgi_pp_id])
+                            "where primer_pair.file_registry_id$ = %s", [pgi_pp])
                 p1_id, p1_genome, p2_id, p2_genome = cur.fetchone()
 
                 for id, type in [[p1_id, p1_genome], [p2_id, p2_genome]]:
@@ -209,8 +217,8 @@ def main():
 
                 subprocess.call(
                     "CRISPResso --fastq_r1 %s --fastq_r2 %s --amplicon_seq %s --amplicon_name WT,Beacon,Cargo --guide_seq %s --name %s --output_folder %s "
-                    "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 "
-                    "--trim_sequences  --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
+                    "--min_frequency_alleles_around_cut_to_plot 0.05 --write_detailed_allele_table --needleman_wunsch_gap_extend 0 --default_min_aln_score 80 "
+                    "--trim_sequences --trimmomatic_options_string ILLUMINACLIP:/home/ubuntu/annotation/fasta/TruSeq_CD.fa:0:90:10:0:true "
                     "--place_report_in_output_folder --n_processes %s --bam_output --suppress_report %s " % (
                         r1, r2, wt_amplicon + "," + beacon_amplicon + "," + cargo_amplicon, sp1_info["seq"] + "," + sp2_info["seq"], name, output,
                         ncpu, cs2),
