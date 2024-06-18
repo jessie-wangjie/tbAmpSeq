@@ -38,7 +38,7 @@ def platemap(data):
     bp = base.mark_arc(stroke="#ffffff", innerRadius=10).encode(
         radius=alt.Radius("outer:Q", scale=alt.Scale(rangeMax=20)),
         radius2=alt.Radius2("inner:Q"),
-        theta=alt.Theta("bp:Q")).transform_calculate(bp='datum.beacon_placement_percentage * PI / 50').transform_calculate(
+        theta=alt.Theta("bp:Q").scale(domain=[0, alt.expr(alt.expr.PI * 2)])).transform_calculate(bp='datum.beacon_placement_percentage * PI / 50').transform_calculate(
         outer="{'AA1520': '10', 'AA2037': '15', 'AA4024': '20'}[datum.aaanid]").transform_calculate(
         inner="{'AA1520': '5', 'AA2037': '10', 'AA4024': '15'}[datum.aaanid]")
 
@@ -66,7 +66,7 @@ def platemap_cargo(data):
     bp = base.mark_arc(stroke="#ffffff", innerRadius=10).encode(
         radius=alt.Radius("outer:Q", scale=alt.Scale(rangeMax=20)),
         radius2=alt.Radius2("inner:Q"),
-        theta=alt.Theta("bp:Q")).transform_calculate(bp='datum.beacon_placement_percentage * PI / 50').transform_calculate(
+        theta=alt.Theta("bp:Q").scale(domain=[0, alt.expr(alt.expr.PI * 2)])).transform_calculate(bp='datum.beacon_placement_percentage * PI / 50').transform_calculate(
         outer="{'AA1520': '10', 'AA2037': '15', 'AA4024': '20', 'PGI': 25}[datum.aaanid]").transform_calculate(
         inner="{'AA1520': '5', 'AA2037': '10', 'AA4024': '15', 'PGI': 20}[datum.aaanid]")
 
@@ -89,7 +89,7 @@ def fidelitymap(data):
     bp = base.mark_arc(stroke="#ffffff", innerRadius=10).encode(
         radius=alt.Radius("outer:Q", scale=alt.Scale(rangeMax=20)),
         radius2=alt.Radius2("inner:Q"),
-        theta=alt.Theta("bp:Q")).transform_calculate(bp='datum.beacon_fidelity * PI / 50').transform_calculate(
+        theta=alt.Theta("bp:Q").scale(domain=[0, alt.expr(alt.expr.PI * 2)])).transform_calculate(bp='datum.beacon_fidelity * PI / 50').transform_calculate(
         outer="{'AA1520': '10', 'AA2037': '15', 'AA4024': '20'}[datum.aaanid]").transform_calculate(
         inner="{'AA1520': '5', 'AA2037': '10', 'AA4024': '15'}[datum.aaanid]")
 
@@ -103,7 +103,7 @@ def fidelitymap_cargo(data):
     data = pd.merge(data, d, on="miseq_sample_name")
     data = data.loc[data["sample_aligned_read_num"] > 300]
 
-    d = data.loc[data["aaanid"] == "AA1520", ["plate", "x", "y", "aaanid", "beacon_fidelity"]]
+    d = data.loc[data["aaanid"] == "AA1520", ["plate", "x", "y", "aaanid", "cargo_fidelity"]]
     d["aaanid"] = "PGI"
     data = pd.concat([data[["plate", "x", "y", "aaanid", "beacon_fidelity"]], d.rename(columns={"cargo_fidelity": "beacon_fidelity"})])
 
@@ -116,7 +116,7 @@ def fidelitymap_cargo(data):
     bp = base.mark_arc(stroke="#ffffff", innerRadius=10).encode(
         radius=alt.Radius("outer:Q", scale=alt.Scale(rangeMax=20)),
         radius2=alt.Radius2("inner:Q"),
-        theta=alt.Theta("bp:Q")).transform_calculate(bp='datum.beacon_fidelity * PI / 50').transform_calculate(
+        theta=alt.Theta("bp:Q").scale(domain=[0, alt.expr(alt.expr.PI * 2)])).transform_calculate(bp='datum.beacon_fidelity * PI / 50').transform_calculate(
         outer="{'AA1520': '10', 'AA2037': '15', 'AA4024': '20', 'PGI': 25}[datum.aaanid]").transform_calculate(
         inner="{'AA1520': '5', 'AA2037': '10', 'AA4024': '15', 'PGI': 20}[datum.aaanid]")
 
