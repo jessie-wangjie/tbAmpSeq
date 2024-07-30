@@ -86,7 +86,7 @@ def main():
             continue
 
         # skip if no sample name or no fastq
-        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")) == 0:
+        if not name or len(glob.glob(os.path.abspath(fastq) + "/" + name + "_L001_*/*_R1_*")) == 0:
             cs2_stats.update(aaanid=aaan_id, ppid=pp_id)
             os.makedirs(os.path.join(output, "CRISPResso_on_" + name), exist_ok=True)
             pd.Series(cs2_stats).to_json(os.path.join(output, "CRISPResso_on_" + name, "CRISPResso_quilt_stats.json"))
@@ -108,11 +108,11 @@ def main():
 
         # get r1 and r2 fastq
         if (target_strand == "antisense" or target_strand == "-") and (p1_start < p2_start):
-            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
-            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
+            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_L001_*/*_R2_*")[0]
+            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_L001_*/*_R1_*")[0]
         else:
-            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R1_*")[0]
-            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_*/*_R2_*")[0]
+            r1 = glob.glob(os.path.abspath(fastq) + "/" + name + "_L001_*/*_R1_*")[0]
+            r2 = glob.glob(os.path.abspath(fastq) + "/" + name + "_L001_*/*_R2_*")[0]
 
         # sample job log
         # name = name + "." + aaan_id
