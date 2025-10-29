@@ -1,0 +1,11 @@
+CRISPResso2
+benchling-sdk
+psycopg2~=2.9.3
+python-dotenv~=0.20.0
+pandas~=1.4.3
+numpy~=1.23.0
+seaborn~=0.11.2
+matplotlib~=3.5.2
+requests
+quilt3
+altair
