@@ -1,1 +1,1 @@
-# tbAmpseq
+# tbAmpseq - Ampseq analysis pipeline
